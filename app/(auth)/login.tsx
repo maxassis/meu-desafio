@@ -15,6 +15,7 @@ import Google from "../../assets/google.svg";
 import Facebook from "../../assets/facebook.svg";
 import Apple from "../../assets/apple.svg";
 // import tokenExists from "../store/auth";
+import useAuthStore from "../../store/auth-store";
 
 type FormData = {
   email: string;
@@ -26,8 +27,8 @@ type TokenType = {
 };
 
 export default function Login() {
-//   const navigation = useNavigation<any>();
-//   const tokenStore = tokenExists((state) => state.setToken);
+  const { login, isAuthenticated } = useAuthStore();
+
   const {
     handleSubmit,
     control,
@@ -48,7 +49,7 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
       const data: TokenType = await response.json();
-
+      
       if (!response.ok && response.status === 401) {
         Alert.alert(
           "Senha ou usuário inválido",
@@ -65,6 +66,9 @@ export default function Login() {
         throw new Error("Senha ou usuário inválido");
       }
 
+    login(data.access_token);  
+    console.log(isAuthenticated);
+    
     //   await AsyncStorage.setItem("@Bondis:token", data.access_token);
     //   tokenStore(data.access_token);
     } catch (error) {

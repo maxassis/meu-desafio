@@ -12,7 +12,7 @@ interface AuthState {
 
 // Criando o Zustand store com os tipos
 const useAuthStore = create<AuthState>((set) => ({
-  isAuthenticated: false,
+  isAuthenticated: true,
   token: null,
 
   login: async (token: string) => {
