@@ -12,12 +12,12 @@ interface AuthState {
 
 // Criando o Zustand store com os tipos
 const useAuthStore = create<AuthState>((set) => ({
-  isAuthenticated: true,
+  isAuthenticated: false,
   token: null,
 
   login: async (token: string) => {
     try {
-      await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('token-desafio', token);
       set({ isAuthenticated: true, token });
     } catch (error) {
       console.error('Error storing the token', error);
@@ -26,7 +26,7 @@ const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     try {
-      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('token-desafio');
       set({ isAuthenticated: false, token: null });
     } catch (error) {
       console.error('Error removing the token', error);
@@ -35,7 +35,7 @@ const useAuthStore = create<AuthState>((set) => ({
 
   loadToken: async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await AsyncStorage.getItem('token-desafio');
       if (token) {
         set({ isAuthenticated: true, token });
       }

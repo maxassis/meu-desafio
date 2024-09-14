@@ -27,7 +27,7 @@ type TokenType = {
 };
 
 export default function Login() {
-  const { login, isAuthenticated } = useAuthStore();
+  const { login } = useAuthStore();
 
   const {
     handleSubmit,
@@ -67,10 +67,6 @@ export default function Login() {
       }
 
     login(data.access_token);  
-    console.log(isAuthenticated);
-    
-    //   await AsyncStorage.setItem("@Bondis:token", data.access_token);
-    //   tokenStore(data.access_token);
     } catch (error) {
       console.error(error);
     }

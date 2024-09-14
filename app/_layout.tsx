@@ -8,13 +8,10 @@ export default function RootLayout() {
   const segments = useSegments();
 
   useEffect(() => {
-  //  Carrega o token do AsyncStorage ao iniciar o aplicativo
     loadToken();
-    // logout()
   }, []);
 
   useEffect(() => {
-    // Protege as rotas com base no estado de autenticação
     if (!isAuthenticated && segments[1] !== 'intro') {
       router.replace('/intro');
     } else if (isAuthenticated && segments[1] !== 'dashboard') {
