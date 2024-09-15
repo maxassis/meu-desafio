@@ -14,6 +14,7 @@ import Google from "../../assets/google.svg";
 import Facebook from "../../assets/facebook.svg";
 import Apple from "../../assets/apple.svg";
 import useAuthStore from "../../store/auth-store";
+import { Link, useRouter } from "expo-router";
 
 type FormData = {
   email: string;
@@ -44,6 +45,7 @@ const loginRequest = async ({ email, password }: FormData): Promise<TokenType> =
 
 export default function Login() {
   const { login } = useAuthStore();
+  const router = useRouter();
 
   const {
     handleSubmit,
@@ -77,7 +79,7 @@ export default function Login() {
       <View className="pt-[38px] px-5 bg-white flex-1">
         <View className="items-end mb-[10px]">
           <View className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/intro")}>
               <Close />
             </TouchableOpacity>
           </View>
