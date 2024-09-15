@@ -1,6 +1,10 @@
 import React, { useEffect } from 'react';
+import { StatusBar } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import useAuthStore from "../store/auth-store";
+
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const { isAuthenticated, loadToken, logout } = useAuthStore();
@@ -9,6 +13,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     loadToken();
+    logout()
   }, []);
 
   useEffect(() => {
@@ -19,5 +24,9 @@ export default function RootLayout() {
     }
   }, [isAuthenticated]);
 
-  return <Slot />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Slot />
+    </QueryClientProvider>
+  );
 }

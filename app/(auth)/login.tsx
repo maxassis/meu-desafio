@@ -4,17 +4,15 @@ import {
   TextInput,
   SafeAreaView,
   TouchableOpacity,
-  KeyboardAvoidingView,
   Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useForm, Controller } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
 import Close from "../../assets/Close.svg";
 import Logo from "../../assets/logo2.svg";
 import Google from "../../assets/google.svg";
 import Facebook from "../../assets/facebook.svg";
 import Apple from "../../assets/apple.svg";
-// import tokenExists from "../store/auth";
 import useAuthStore from "../../store/auth-store";
 
 type FormData = {
@@ -26,6 +24,24 @@ type TokenType = {
   access_token: string;
 };
 
+const loginRequest = async ({ email, password }: FormData): Promise<TokenType> => {
+  const response = await fetch("http://172.22.0.1:3000/signin/", {
+    method: "POST",
+    headers: { "Content-type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Usuário ou senha inválidos");
+    } else {
+      throw new Error("Erro ao fazer login");
+    }
+  }
+
+  return response.json(); 
+};
+
 export default function Login() {
   const { login } = useAuthStore();
 
@@ -35,41 +51,25 @@ export default function Login() {
     formState: { errors },
   } = useForm<FormData>();
 
-  const onSubmit = async ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) => {
-    try {
-      const response = await fetch("http://172.22.0.1:3000/signin/", {
-        method: "POST",
-        headers: { "Content-type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data: TokenType = await response.json();
-      
-      if (!response.ok && response.status === 401) {
-        Alert.alert(
-          "Senha ou usuário inválido",
-          "Por favor, tente outra vez.",
-          [
-            {
-              text: "Fechar",
-              style: "cancel",
-            },
-          ],
-          { cancelable: false }
-        );
+  const mutation = useMutation({
+    mutationFn: loginRequest,
+    onSuccess: (data) => {
+      login(data.access_token); 
+      console.log("Login bem-sucedido:", data.access_token);
+    },
+    onError: (error: any) => {
+      Alert.alert(
+        "Erro de login",
+        error.message,
+        [{ text: "Fechar", style: "cancel" }],
+        { cancelable: false }
+      );
+      console.error("Erro ao fazer login:", error);
+    },
+  });
 
-        throw new Error("Senha ou usuário inválido");
-      }
-
-    login(data.access_token);  
-    } catch (error) {
-      console.error(error);
-    }
+  const onSubmit = (formData: FormData) => {
+    mutation.mutate(formData);
   };
 
   return (
@@ -84,7 +84,6 @@ export default function Login() {
         </View>
 
         <Logo />
-
         <Text className="font-inter-bold mt-4 text-2xl">Login</Text>
         <Text className="text-bondis-gray-dark mt-4 text-base">
           Informe seu e-mail e senha de acesso:
@@ -95,10 +94,10 @@ export default function Login() {
           control={control}
           name="email"
           rules={{
-            required: "Email obrigatório",
+            required: "Email obrigatório",
             pattern: {
               value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: "Email inválido",
+              message: "Email inválido",
             },
           }}
           render={({ field: { value, onChange } }) => (
@@ -138,20 +137,17 @@ export default function Login() {
         </Text>
 
         <Text className="mt-8 font-inter-regular text-center">
-          Esqueceu a senha ?{" "}
-          <Text
-            className="font-inter-bold underline"
-            // onPress={() => navigation.navigate("Recovery")}
-          >
-            Recuperar
-          </Text>
+          Esqueceu a senha? <Text className="font-inter-bold underline">Recuperar</Text>
         </Text>
 
         <TouchableOpacity
           onPress={handleSubmit(onSubmit)}
           className="h-[52px] bg-bondis-green mt-8 rounded-full justify-center items-center"
+          disabled={mutation.isPending}
         >
-          <Text className="font-inter-bold text-base">Entrar</Text>
+          <Text className="font-inter-bold text-base">
+            {mutation.isPending ? "Entrando..." : "Entrar"}
+          </Text>
         </TouchableOpacity>
 
         <Text className="text-center mt-8 text-base text-bondis-gray-dark">
@@ -167,4 +163,3 @@ export default function Login() {
     </SafeAreaView>
   );
 }
-
