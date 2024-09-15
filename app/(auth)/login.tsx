@@ -14,7 +14,7 @@ import Google from "../../assets/google.svg";
 import Facebook from "../../assets/facebook.svg";
 import Apple from "../../assets/apple.svg";
 import useAuthStore from "../../store/auth-store";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 
 type FormData = {
   email: string;

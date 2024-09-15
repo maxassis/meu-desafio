@@ -10,7 +10,6 @@ interface AuthState {
   loadToken: () => Promise<void>;
 }
 
-// Criando o Zustand store com os tipos
 const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   token: null,
