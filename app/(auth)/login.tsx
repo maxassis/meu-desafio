@@ -5,7 +5,8 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Alert,
-  StatusBar
+  StatusBar,
+  ScrollView
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
@@ -15,7 +16,7 @@ import Google from "../../assets/google.svg";
 import Facebook from "../../assets/facebook.svg";
 import Apple from "../../assets/apple.svg";
 import useAuthStore from "../../store/auth-store";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 
 type FormData = {
   email: string;
@@ -77,6 +78,7 @@ export default function Login() {
 
   return (
     <SafeAreaView className="flex-1">
+      <ScrollView>
       <View className="pt-[38px] px-5 bg-white flex-1">
         <View className="items-end mb-[10px]">
           <View className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
@@ -140,7 +142,10 @@ export default function Login() {
         </Text>
 
         <Text className="mt-8 font-inter-regular text-center">
-          Esqueceu a senha? <Text className="font-inter-bold underline">Recuperar</Text>
+          Esqueceu a senha?{" "}
+          <Link href="/recovery"> 
+            <Text className="font-inter-bold underline">Recuperar</Text>
+          </Link>
         </Text>
 
         <TouchableOpacity
@@ -164,6 +169,7 @@ export default function Login() {
         </View>
       </View>
       <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
