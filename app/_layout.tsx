@@ -39,7 +39,6 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   useEffect(() => {
-    // Navega apenas se o app estiver pronto e as fontes carregadas
     if (appIsReady) {
       if (!isAuthenticated && segments[1] !== 'intro') {
         router.replace('/intro');
@@ -47,7 +46,7 @@ export default function RootLayout() {
         router.replace('/dashboard');
       }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, appIsReady]);
 
   // Enquanto o app não está pronto, não renderiza nada (mantém a splash screen)
   if (!appIsReady) {

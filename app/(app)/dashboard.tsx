@@ -5,6 +5,7 @@ import {
   View,
   Image,
   TouchableOpacity,
+  ScrollView
 } from "react-native";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
@@ -15,6 +16,7 @@ import Map from "../../assets/map.svg";
 import Plus from "../../assets/plus.svg";
 import userDataStore from "../../store/user-data";
 import useAuthStore from "../../store/auth-store";
+import { useRouter } from "expo-router";
 
 export interface UserData {
   id: string
@@ -30,6 +32,7 @@ export interface UserData {
 }
 
 export default function Profile() {
+  const router = useRouter();
   const { token } = useAuthStore();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ["30%"], []);
@@ -53,22 +56,14 @@ export default function Profile() {
     return data;
   };
 
-  const { data: userData, isLoading, isError, error } = useQuery<UserData, Error>({
+  const { data: userData } = useQuery<UserData, Error>({
     queryKey: ['userData'],
     queryFn: () => fetchUserData(),
   });
 
-  // if (isLoading) {
-  //   return <Text>Loading...</Text>;
-  // }
-
-  // if (isError) {
-  //   return <Text>Error: {error.message}</Text>;
-  // }
-
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <View className="h-[325px] bg-bondis-black">
+      <View className="h-[300px] bg-bondis-black">
         <View className="flex-row h-[92px] justify-between mx-4 mt-[35px]">
           <Logo />
           {getUserData.avatar_url ? (
@@ -83,7 +78,9 @@ export default function Profile() {
             />
           )}
 
-          <Settings />
+         <TouchableOpacity onPress={() => router.push("/configurations/configInit")}>   
+            <Settings />
+         </TouchableOpacity> 
         </View>
 
         <Text className="text-bondis-green text-lg font-inter-bold text-center mt-[29px]">
@@ -93,7 +90,7 @@ export default function Profile() {
           {getUserData.bio}
         </Text>
 
-        <View className="flex-row justify-between h-[51px] mt-[29px] mx-4">
+        <View className="flex-row justify-between h-[51px] mt-[10px] mx-4">
           <View>
             <Text className="text-white text-lg text-center font-inter-bold">
               1
@@ -121,7 +118,9 @@ export default function Profile() {
         </View>
       </View>
 
-      <View className="h-[61px] pl-5">
+      <View className="h-full">
+
+      <View className="my-[7px] pl-5">
         <Text className="font-inter-bold text-2xl my-auto">Desafios</Text>
       </View>
 
@@ -156,6 +155,8 @@ export default function Profile() {
         </TouchableOpacity>
       </View>
 
+      </View>
+
       <StatusBar style="light" translucent={false} backgroundColor="#252823" />
 
       <BottomSheet
@@ -183,7 +184,7 @@ export default function Profile() {
             </TouchableOpacity>
           </View>
         </BottomSheetView>
-      </BottomSheet>
+      </BottomSheet> 
     </SafeAreaView>
   );
 }
