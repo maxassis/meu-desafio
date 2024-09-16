@@ -47,7 +47,7 @@ export default function RootLayout() {
         router.replace('/dashboard');
       }
     }
-  }, [isAuthenticated, segments, appIsReady]);
+  }, [isAuthenticated]);
 
   // Enquanto o app não está pronto, não renderiza nada (mantém a splash screen)
   if (!appIsReady) {

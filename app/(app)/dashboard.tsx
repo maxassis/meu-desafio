@@ -36,24 +36,6 @@ export default function Profile() {
   const saveUserData = userDataStore((state) => state.setUserData);
   const getUserData = userDataStore((state) => state.data);
 
-  // useEffect(() => {
-  //   async function getUserData() {
-  //   await fetch("http://172.22.0.1:3000/users/getUserData", {
-  //       headers: {
-  //         "Content-type": "application/json",
-  //         authorization:
-  //           "Bearer " + token
-  //       },
-  //     })
-  //       .then((response) => response.json())
-  //       .then((data) => {
-  //         saveUserData(data);
-  //       });
-  //   }
-
-  //   getUserData()
-  // }, []);
-
   const fetchUserData = async (): Promise<UserData> => {
     const response = await fetch("http://172.22.0.1:3000/users/getUserData", {
       headers: {
