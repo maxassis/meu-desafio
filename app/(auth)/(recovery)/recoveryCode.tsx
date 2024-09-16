@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  StatusBar
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import Close from "../../../assets/Close.svg";
@@ -203,6 +204,7 @@ export default function RecoveryGetCode({ route }: any) {
         <Arrow />
       </TouchableOpacity>
       </View>
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </SafeAreaView>
   );
 }

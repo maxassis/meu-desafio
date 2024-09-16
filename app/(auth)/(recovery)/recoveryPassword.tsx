@@ -9,7 +9,8 @@ import {
   NativeSyntheticEvent,
   ScrollView,
   KeyboardAvoidingView,
-  Alert
+  Alert,
+  StatusBar
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { cva } from "class-variance-authority";
@@ -242,6 +243,7 @@ export default function RecoveryCreatePassword({ route }: any) {
           </View>
         </SafeAreaView>
       </ScrollView>
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </KeyboardAvoidingView>
   );
 }

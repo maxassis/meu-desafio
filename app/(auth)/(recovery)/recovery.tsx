@@ -4,7 +4,8 @@ import {
     SafeAreaView,
     TouchableOpacity,
     TextInput,
-    Alert
+    Alert,
+    StatusBar
   } from "react-native";
   import Close from "../../../assets/Close.svg";
   import Logo from "../../../assets/logo2.svg";
@@ -103,6 +104,7 @@ import {
           </TouchableOpacity>
         </View>
         </View>
+        <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
       </SafeAreaView>
     );
   }
