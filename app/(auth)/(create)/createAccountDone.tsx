@@ -1,6 +1,6 @@
 import { SafeAreaView, Text, View, TouchableOpacity, StatusBar } from "react-native"
-import Close from "../../assets/Close.svg"
-import Done from "../../assets/green-check.svg"
+import Close from "../../../assets/Close.svg"
+import Done from "../../../assets/green-check.svg"
 import { useRouter } from "expo-router";
 
 export default function AccountDone() {

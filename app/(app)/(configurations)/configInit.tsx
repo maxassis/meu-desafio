@@ -6,8 +6,10 @@ import Chat from "../../../assets/chat.svg";
 import Lock from "../../../assets/lock.svg"
 import { TouchableOpacity } from "react-native-gesture-handler";
 import useAuthStore from "../../../store/auth-store";
+import { useRouter } from "expo-router";
 
 export default function MenuConfigurations() {
+    const router = useRouter(); 
     const { logout } = useAuthStore();
     function showAlert() {
       Alert.alert("Deseja sair do App ?", "", [
@@ -27,9 +29,9 @@ export default function MenuConfigurations() {
   return (
     <SafeAreaView className="flex-1 bg-white ">
       <View className="px-5 pb-4 pt-[38px] flex-1">
-      <View className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
+      <TouchableOpacity onPress={() => router.back()} className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
         <Left  />
-      </View>
+      </TouchableOpacity>
 
       <View className="mt-4 px-4">
         <TouchableOpacity  className="flex-row items-center gap-x-4 border-b-[0.2px] mb-[bg-bondis-text-gray] py-4">

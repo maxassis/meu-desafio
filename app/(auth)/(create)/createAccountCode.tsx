@@ -10,10 +10,10 @@ import {
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { useLocalSearchParams } from "expo-router"
-import Close from "../../assets/Close.svg";
-import Logo from "../../assets/logo2.svg";
-import Arrow from "../../assets/arrow-right.svg";
-import Refresh from "../../assets/refresh.svg";
+import Close from "../../../assets/Close.svg";
+import Logo from "../../../assets/logo2.svg";
+import Arrow from "../../../assets/arrow-right.svg";
+import Refresh from "../../../assets/refresh.svg";
 import { cva } from "class-variance-authority";
 import { useRouter } from "expo-router";
 

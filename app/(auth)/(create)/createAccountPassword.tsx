@@ -13,9 +13,9 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useMutation } from '@tanstack/react-query'; 
 import { cva } from "class-variance-authority";
-import Close from "../../assets/Close.svg";
-import Logo from "../../assets/logo2.svg";
-import CheckGreen from "../../assets/check-green.svg";
+import Close from "../../../assets/Close.svg";
+import Logo from "../../../assets/logo2.svg";
+import CheckGreen from "../../../assets/check-green.svg";
 
 interface Criteria {
   length: boolean;

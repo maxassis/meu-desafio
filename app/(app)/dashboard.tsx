@@ -78,7 +78,7 @@ export default function Profile() {
             />
           )}
 
-         <TouchableOpacity onPress={() => router.push("/configurations/configInit")}>   
+         <TouchableOpacity onPress={() => router.push("/configInit")}>   
             <Settings />
          </TouchableOpacity> 
         </View>

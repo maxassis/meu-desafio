@@ -7,12 +7,12 @@ import {
     StatusBar
   } from "react-native";
   import { useForm, Controller } from "react-hook-form";
-  import Close from "../../assets/Close.svg";
-  import Google from "../../assets/google.svg";
-  import Facebook from "../../assets/facebook.svg";
-  import Apple from "../../assets/apple.svg";
-  import Logo from "../../assets/logo2.svg";
-  import Arrow from "../../assets/arrow-right.svg";
+  import Close from "../../../assets/Close.svg";
+  import Google from "../../../assets/google.svg";
+  import Facebook from "../../../assets/facebook.svg";
+  import Apple from "../../../assets/apple.svg";
+  import Logo from "../../../assets/logo2.svg";
+  import Arrow from "../../../assets/arrow-right.svg";
   import { useRouter } from "expo-router";
   
   type FormData = {
