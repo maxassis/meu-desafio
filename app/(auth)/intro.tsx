@@ -68,7 +68,7 @@ export default function Intro() {
           </Text>
         </View>
       </ImageBackground>
-      <StatusBar backgroundColor="#000" barStyle="light-content" />
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </SafeAreaView>
   );
 }

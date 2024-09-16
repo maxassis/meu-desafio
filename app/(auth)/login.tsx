@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Alert,
+  StatusBar
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
@@ -162,6 +163,7 @@ export default function Login() {
           <Apple />
         </View>
       </View>
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </SafeAreaView>
   );
 }

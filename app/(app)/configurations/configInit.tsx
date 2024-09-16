@@ -1,4 +1,4 @@
-import { Text, View, SafeAreaView, Alert } from "react-native";
+import { Text, View, SafeAreaView, Alert, StatusBar } from "react-native";
 import Left from "../../../assets/arrow-left.svg";
 import Pen from "../../../assets/pen.svg";
 import Tool from "../../../assets/tool.svg";
@@ -19,8 +19,6 @@ export default function MenuConfigurations() {
           text: "SIM",
           onPress: () => {
             logout()
-            // AsyncStorage.removeItem("@Bondis:token");
-            // authStore();
           },
         },
       ]);
@@ -59,6 +57,7 @@ export default function MenuConfigurations() {
         <Text className="text-center text-sm font-inter-regular text-bg-gray-dark">Versão 1.0</Text>
     </View> 
     </View> 
+    <StatusBar backgroundColor="#000" barStyle="light-content" />
     </SafeAreaView>
   );
 }
