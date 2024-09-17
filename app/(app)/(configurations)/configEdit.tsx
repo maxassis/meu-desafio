@@ -43,6 +43,7 @@ interface UserData {
   createdAt: Date;
   usersId: string;
   name: string;
+  birthDate: string | null;
 }
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024;
@@ -130,12 +131,15 @@ export default function ProfileEdit() {
     })
       .then((response) => response.json() as Promise<UserData>)
       .then((data) => {
+        console.log(data);
+        
         // setUserData(data);
         saveUserData(data);
         setGender(data.gender ?? "");
         setSports(data.sport ?? "");
         setNameValue(data.full_name ?? "");
         setBioValue(data.bio ?? "");
+        setUnmaskedValue(data.birthDate ?? "");
         // setImageUrl(data.avatar_url ?? "");
       });
   }, []);
@@ -262,6 +266,7 @@ export default function ProfileEdit() {
           </Text>
           <MaskedTextInput
             placeholder="__/__/____"
+            value={unMaskedValue}
             mask="99/99/9999"
             onChangeText={(text, rawText) => {
               setUnmaskedValue(rawText);
@@ -273,37 +278,10 @@ export default function ProfileEdit() {
           <Text className="font-inter-bold text-base mt-[23px]">
             Como você se identifica?
           </Text>
-          {/* <RNPickerSelect
-            style={pickerStyle}
-            useNativeAndroidPickerStyle={false}
-            onValueChange={(value) => setGender(value)}
-            Icon={() => <Down />}
-            value={gender}
-            placeholder={{ label: "Selecione", value: null }}
-            items={[
-              { label: "Homem", value: "homem" },
-              { label: "Mulher", value: "mulher" },
-              { label: "Não binário", value: "nao_binario" },
-              {
-                label: "Prefiro não responder",
-                value: "prefiro_nao_responder",
-              },
-            ]}
-          /> */}
+          
 
           <Text className="font-inter-bold text-base mt-[23px]">Esportes</Text>
-          {/* <RNPickerSelect
-            style={pickerStyle}
-            useNativeAndroidPickerStyle={false}
-            onValueChange={(value) => setSports(value)}
-            Icon={() => <Down />}
-            value={sports}
-            placeholder={{ label: "Selecione", value: null }}
-            items={[
-              { label: "Corrida", value: "corrida" },
-              { label: "Ciclismo", value: "ciclismo" },
-            ]}
-          /> */}
+          
 
           <TouchableOpacity
             onPress={submitForm}
@@ -339,32 +317,4 @@ export default function ProfileEdit() {
   );
 }
 
-// const pickerStyle = StyleSheet.create({
-//   inputIOS: {
-//     backgroundColor: "#EEEEEE",
-//     fontSize: 14,
-//     height: 52,
-//     paddingHorizontal: 16,
-//     borderWidth: 1,
-//     borderRadius: 4,
-//     color: "black",
-//     paddingRight: 30,
-//   },
-//   inputAndroid: {
-//     backgroundColor: "#EEEEEE",
-//     fontSize: 14,
-//     height: 52,
-//     paddingHorizontal: 16,
-//     borderRadius: 4,
-//     color: "black",
-//     marginTop: 8,
-//   },
-//   placeholder: {
-//     color: "gray",
-//     fontSize: 14,
-//   },
-//   iconContainer: {
-//     top: 23,
-//     right: 12,
-//   },
-// });
+
