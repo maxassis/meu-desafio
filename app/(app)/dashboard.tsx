@@ -63,6 +63,7 @@ export default function Profile() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      <ScrollView className="flex-1">
       <View className="h-[300px] bg-bondis-black">
         <View className="flex-row h-[92px] justify-between mx-4 mt-[35px]">
           <Logo />
@@ -130,7 +131,7 @@ export default function Profile() {
           source={require("../../assets/Card.png")}
         />
         <TouchableOpacity
-          // onPress={() => navigation.navigate("Map")}
+          onPress={() => router.push("/map")}
           className="h-[79px] w-11/12 flex-row p-4 rounded-xl justify-between bg-white absolute bottom-[63px]"
         >
           <View>
@@ -185,6 +186,7 @@ export default function Profile() {
           </View>
         </BottomSheetView>
       </BottomSheet> 
+      </ScrollView>
     </SafeAreaView>
   );
 }
