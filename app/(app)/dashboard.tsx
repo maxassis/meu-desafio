@@ -5,13 +5,13 @@ import {
   View,
   Image,
   TouchableOpacity,
-  ScrollView
+  ScrollView,
+  StatusBar
 } from "react-native";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import Logo from "../../assets/logo-white.svg";
 import Settings from "../../assets/settings.svg";
-import { StatusBar } from "expo-status-bar";
 import Map from "../../assets/map.svg";
 import Plus from "../../assets/plus.svg";
 import userDataStore from "../../store/user-data";
@@ -158,8 +158,6 @@ export default function Profile() {
 
       </View>
 
-      <StatusBar style="light" translucent={false} backgroundColor="#252823" />
-
       <BottomSheet
         ref={bottomSheetRef}
         snapPoints={snapPoints}
@@ -187,6 +185,7 @@ export default function Profile() {
         </BottomSheetView>
       </BottomSheet> 
       </ScrollView>
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </SafeAreaView>
   );
 }

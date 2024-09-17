@@ -5,6 +5,7 @@ import {
   Text,
   View,
   TouchableOpacity,
+  StatusBar
 } from "react-native";
 import {
   requestForegroundPermissionsAsync,
@@ -451,6 +452,7 @@ export default function Map() {
           </SafeAreaView>
         </BottomSheetScrollView>
       </BottomSheet>
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </View>
   );
 }
