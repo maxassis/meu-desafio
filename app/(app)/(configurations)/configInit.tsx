@@ -59,7 +59,7 @@ export default function MenuConfigurations() {
         <Text className="text-center text-sm font-inter-regular text-bg-gray-dark">Versão 1.0</Text>
     </View> 
     </View> 
-    <StatusBar backgroundColor="#000" barStyle="light-content" />
+    <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </SafeAreaView>
   );
 }
