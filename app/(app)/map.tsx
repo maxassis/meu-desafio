@@ -133,6 +133,7 @@ export default function Map() {
   const [userDistance, setUserDistance] = useState<number>(0);
   const [totalDistance, setTotalDistance] = useState<number>(0);
   const [userLocation, setUserLocation] = useState<any>([]);
+  const [showMap, setShowMap] = useState<boolean>(false);
   const getUserData = userDataStore((state) => state.data);
   const mapRef = useRef<MapView>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -167,38 +168,38 @@ export default function Map() {
     return path;
   };
 
-   async function requestLocationPermissions() {
-    const { granted } = await requestForegroundPermissionsAsync();
+  //  async function requestLocationPermissions() {
+  //   const { granted } = await requestForegroundPermissionsAsync();
 
-    if (granted) {
-      const currentPosition = await getCurrentPositionAsync();
+  //   if (granted) {
+  //     const currentPosition = await getCurrentPositionAsync();
 
-      setLocation(currentPosition);
-    }
-  }
+  //     setLocation(currentPosition);
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   requestLocationPermissions();
+  // }, []);
+
+  // useEffect(() => {
+  //   watchPositionAsync(
+  //     {
+  //       accuracy: LocationAccuracy.Highest,
+  //       timeInterval: 1000,
+  //       distanceInterval: 0,
+  //     },
+  //     (response) => {
+  //       setLocation(response);
+  //       mapRef.current?.animateCamera({
+  //         center: response.coords,
+  //       });
+  //     }
+  //   );
+  // }, []);
 
   useEffect(() => {
-    requestLocationPermissions();
-  }, []);
-
-  useEffect(() => {
-    watchPositionAsync(
-      {
-        accuracy: LocationAccuracy.Highest,
-        timeInterval: 1000,
-        distanceInterval: 0,
-      },
-      (response) => {
-        setLocation(response);
-        mapRef.current?.animateCamera({
-          center: response.coords,
-        });
-      }
-    );
-  }, []);
-
-  useEffect(() => {
-    fetch("http://172.22.0.1:3000/desafio/getdesafio/24", {
+    fetch("https://bondis-app-backend.onrender.com/desafio/getdesafio/1", {
       headers: {
         "Content-type": "application/json",
         authorization:
@@ -206,8 +207,9 @@ export default function Map() {
       },
     })
     .then((response) => response.json() as Promise<DesafioType>)
-    .then((data) => {
+    .then((data) => {      
       setDesafio(data);
+      setShowMap(true);
       
       const totalDistance = calculateTotalDistance(data.location);
       const updatedParticipants = data.participation.map(dta => {
@@ -241,7 +243,7 @@ export default function Map() {
 
   return (
     <View className="flex-1 bg-white justify-center items-center relative">
-      {location && (
+      {showMap && (
         <MapView
           provider={PROVIDER_GOOGLE}
           customMapStyle={mapStyle}

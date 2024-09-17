@@ -67,7 +67,7 @@ export default function RecoveryGetCode({ route }: any) {
   };
 
   function sendMail() {
-    fetch("http://172.22.0.1:3000/sendMailRecovery", {
+    fetch("https://bondis-app-backend.onrender.com/sendMailRecovery", {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({ email }),
@@ -78,7 +78,7 @@ export default function RecoveryGetCode({ route }: any) {
     // console.log("teste");
     
     try {
-      const response = await fetch("http://172.22.0.1:3000/confirmcode/", {
+      const response = await fetch("https://bondis-app-backend.onrender.com/confirmcode/", {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ code, email }),
