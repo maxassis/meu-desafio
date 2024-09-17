@@ -34,7 +34,7 @@ export default function MenuConfigurations() {
       </TouchableOpacity>
 
       <View className="mt-4 px-4">
-        <TouchableOpacity  className="flex-row items-center gap-x-4 border-b-[0.2px] mb-[bg-bondis-text-gray] py-4">
+        <TouchableOpacity onPress={() => router.replace("/configEdit")}  className="flex-row items-center gap-x-4 border-b-[0.2px] mb-[bg-bondis-text-gray] py-4">
             <Pen />
             <Text className="text-base font-inter-regular">Editar perfil</Text>
         </TouchableOpacity>
