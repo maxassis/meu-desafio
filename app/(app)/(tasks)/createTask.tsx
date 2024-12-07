@@ -23,6 +23,7 @@ import { Calendar, DateData, LocaleConfig } from "react-native-calendars";
 import { ptBR } from "../../../utils/localeCalendar";
 import dayjs from 'dayjs';
 import TimePickerModal, { TimePickerModalRef } from "../../../components/timePicker";
+import { router } from 'expo-router';
 
 LocaleConfig.locales["pt-br"] = ptBR;
 LocaleConfig.defaultLocale = "pt-br";
@@ -32,7 +33,7 @@ interface Distance {
   meters: number;
 }
 
-interface RouteParams { participationId: number, desafioName: string } 
+// interface RouteParams { participationId: number, desafioName: string } 
 
 export default function TaskCreate({ route }: any) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -88,7 +89,7 @@ export default function TaskCreate({ route }: any) {
          "distance": +`${distance.kilometers}.${distance.meters}`,
          "environment": ambience,
          "calories": +calories,
-         "participationId": participationId,
+         "participationId": +participationId,
          "date": !day ? formatDateToISO(dayjs().format('YYYY-MM-DD')) : formatDateToISO(day.dateString),
          "duration": convertTimeToISO(selectedTime.hours + ':' + selectedTime.minutes + ':' + selectedTime.seconds),
        })
@@ -97,7 +98,13 @@ export default function TaskCreate({ route }: any) {
     .then(json => {      
       console.log(json);
       
-      navigation.navigate("TaskList", {participationId, desafioName})
+      router.push({
+        pathname: '/taskList',
+        params: {
+          participationId: participationId,
+          desafioName: desafioName
+        }
+      });
       clearInputs()
     })
     .catch(error => console.error(error));
@@ -147,7 +154,7 @@ export default function TaskCreate({ route }: any) {
       >
         <View className="mb-[10px] pt-[38px]">
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
+            onPress={() => router.back()}
             className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center"
           >
             <Left />
@@ -155,7 +162,7 @@ export default function TaskCreate({ route }: any) {
         </View>
 
         <Text className="text-2xl font-inter-bold mt-7">
-          Como foi o sua atividade? 
+          Como foi o sua atividade?  { participationId }
         </Text>
 
         <Text className="font-inter-bold text-base mt-7">
