@@ -96,7 +96,7 @@ export default function ProfileEdit() {
 
       try {
         const response = await fetch(
-          "http://172.22.0.1:3000/users/uploadavatar",
+          "http://192.168.1.18:3000/users/uploadavatar",
           {
             method: "POST",
             headers: {
@@ -123,7 +123,7 @@ export default function ProfileEdit() {
 
   useEffect(() => {
     // setReloadImage(reloadImage + 1);
-    fetch("http://172.22.0.1:3000/users/getUserData", {
+    fetch("http://192.168.1.18:3000/users/getUserData", {
       headers: {
         "Content-type": "application/json",
         authorization: "Bearer " + token,

@@ -34,7 +34,7 @@ export interface DesafioType {
   id:            number;
   name:          string;
   description:   string;
-  location:      Array<number[]>;
+  location:      Location[];
   participation: Participation[];
 }
 
@@ -80,18 +80,17 @@ const haversine = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   return R * c;
 };
 
-const findPointAtDistance = (coordinates: number[][], distance: number) => {
+const findPointAtDistance = (coordinates: Location[], distance: number): Location => {
   let traveled = 0;
   for (let i = 0; i < coordinates.length - 1; i++) {
-    const [startLat, startLon] = coordinates[i];
-    const [endLat, endLon] = coordinates[i + 1];
-    const segmentDistance = haversine(startLat, startLon, endLat, endLon);
+    const start = coordinates[i];
+    const end = coordinates[i + 1];
+    const segmentDistance = haversine(start.latitude, start.longitude, end.latitude, end.longitude);
     if (traveled + segmentDistance >= distance) {
       const remainingDistance = distance - traveled;
       const ratio = remainingDistance / segmentDistance;
-      const newLat = startLat + (endLat - startLat) * ratio;
-      const newLon = startLon + (endLon - startLon) * ratio;
-      // return [newLat, newLon];
+      const newLat = start.latitude + (end.latitude - start.latitude) * ratio;
+      const newLon = start.longitude + (end.longitude - start.longitude) * ratio;
       return { latitude: newLat, longitude: newLon };
     }
     traveled += segmentDistance;
@@ -99,19 +98,19 @@ const findPointAtDistance = (coordinates: number[][], distance: number) => {
   return coordinates[coordinates.length - 1];
 };
 
-const calculateTotalDistance = (coordinates: number[][]): number => {
+const calculateTotalDistance = (coordinates: Location[]): number => {
   let totalDistance = 0;
 
   for (let i = 0; i < coordinates.length - 1; i++) {
-    const [startLat, startLon] = coordinates[i];
-    const [endLat, endLon] = coordinates[i + 1];
-    totalDistance += haversine(startLat, startLon, endLat, endLon);
+    const start = coordinates[i];
+    const end = coordinates[i + 1];
+    totalDistance += haversine(start.latitude, start.longitude, end.latitude, end.longitude);
   }
 
   return totalDistance;
 };
 
-const calculateUserDistance = (coordinates: number[][], progress: number): number => {
+const calculateUserDistance = (coordinates: Location[], progress: number): number => {
   return progress;
 };
 
@@ -132,7 +131,7 @@ export default function Map() {
   const [userProgress, setUserProgress] = useState<any>(0);
   const [userDistance, setUserDistance] = useState<number>(0);
   const [totalDistance, setTotalDistance] = useState<number>(0);
-  const [userLocation, setUserLocation] = useState<any>([]);
+  const [userLocation, setUserLocation] = useState<Location | null>(null);
   const getUserData = userDataStore((state) => state.data);
   const mapRef = useRef<MapView>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -145,21 +144,21 @@ export default function Map() {
     let traveled = 0;
 
     for (let i = 0; i < desafio.location.length - 1; i++) {
-      const [startLat, startLon] = desafio.location[i];
-      const [endLat, endLon] = desafio.location[i + 1];
-      const segmentDistance = haversine(startLat, startLon, endLat, endLon);
+      const start = desafio.location[i];
+      const end = desafio.location[i + 1];
+      const segmentDistance = haversine(start.latitude, start.longitude, end.latitude, end.longitude);
 
       if (traveled + segmentDistance >= userDistance) {
         const remainingDistance = userDistance - traveled;
         const ratio = remainingDistance / segmentDistance;
-        const newLat = startLat + (endLat - startLat) * ratio;
-        const newLon = startLon + (endLon - startLon) * ratio;
+        const newLat = start.latitude + (end.latitude - start.latitude) * ratio;
+        const newLon = start.longitude + (end.longitude - start.longitude) * ratio;
 
-        path.push({ latitude: startLat, longitude: startLon });
+        path.push(start);
         path.push({ latitude: newLat, longitude: newLon });
         break;
       } else {
-        path.push({ latitude: startLat, longitude: startLon });
+        path.push(start);
         traveled += segmentDistance;
       }
     }
@@ -198,7 +197,7 @@ export default function Map() {
   }, []);
 
   useEffect(() => {
-    fetch("http://172.22.0.1:3000/desafio/getdesafio/24", {
+    fetch("http://192.168.1.18:3000/desafio/getdesafio/1", {
       headers: {
         "Content-type": "application/json",
         authorization:
@@ -248,25 +247,23 @@ export default function Map() {
           className="flex-1 w-full"
           // ref={mapRef}
           initialRegion={{
-            latitude: userLocation?.latitude || desafio?.location[0][0],        
-            longitude: userLocation?.longitude || desafio?.location[0][1],
+            latitude: userLocation?.latitude || desafio?.location[0]?.latitude,        
+            longitude: userLocation?.longitude || desafio?.location[0]?.longitude,
             latitudeDelta: 0.1,
             longitudeDelta: 0.1,
           }}
         >
           {desafio && (
             <>
-            <Polyline coordinates={desafio.location.map(coord => ({
-              latitude: coord[0],
-              longitude: coord[1]
-            }))}
-            strokeWidth={4}
+            <Polyline 
+              coordinates={desafio.location}
+              strokeWidth={4}
             />
             <Polyline
-                coordinates={getUserPath()}
-                strokeWidth={2}
-                strokeColor="#12FF55"
-              />
+              coordinates={getUserPath()}
+              strokeWidth={2}
+              strokeColor="#12FF55"
+            />
             </> 
           )}
 
@@ -274,8 +271,8 @@ export default function Map() {
         <Marker 
           key={index}
           coordinate={user.distance > totalDistance ? {
-            latitude: desafio.location[desafio.location.length -1][0],
-            longitude: desafio.location[desafio.location.length -1][1],
+            latitude: desafio.location[desafio.location.length -1].latitude,
+            longitude: desafio.location[desafio.location.length -1].longitude,
           } : user.location} 
           style={user.userId === getUserData?.usersId ? {zIndex: 100000, elevation: 100000}: {zIndex: index, elevation: index}}
           > 
@@ -298,8 +295,8 @@ export default function Map() {
         {desafio && (
           <Marker
             coordinate={{
-              latitude: desafio.location[desafio.location.length -1][0],
-              longitude: desafio.location[desafio.location.length -1][1],
+              latitude: desafio.location[desafio.location.length -1].latitude,
+              longitude: desafio.location[desafio.location.length -1].longitude,
             }}
           >
             <Image source={require("../../assets/final-pin.png")} />
@@ -479,5 +476,3 @@ const userPin = cva(
       },
     }
   );
-
-

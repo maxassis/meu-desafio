@@ -57,7 +57,7 @@ export default function CreatePassword() {
   };
 
   const createUser = async (newPassword: string) => {
-    const response = await fetch("http://172.22.0.1:3000/users", {
+    const response = await fetch("http://192.168.1.18:3000/users", {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({ name, email, password: newPassword }),

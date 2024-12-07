@@ -24,7 +24,7 @@ import {
     const onSubmit = async ({ email }: { email: string }) => {
   
       try {
-        const response = await fetch("http://172.22.0.1:3000/checkemail", {
+        const response = await fetch("http://192.168.1.18:3000/checkemail", {
           method: "POST",
           headers: { "Content-type": "application/json" },
           body: JSON.stringify({ email }),

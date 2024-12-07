@@ -67,7 +67,7 @@ export default function CreateAccountGetCode() {
   };
 
   function sendMail() {
-     fetch("http://172.22.0.1:3000/sendmail", {
+     fetch("http://192.168.1.18:3000/sendmail", {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({ name, email }),
@@ -76,7 +76,7 @@ export default function CreateAccountGetCode() {
 
   const onSubmit = async ({ code }: { code: string}) => {
     try {
-      const response = await fetch("http://172.22.0.1:3000/confirmcode/", {
+      const response = await fetch("http://192.168.1.18:3000/confirmcode/", {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ code, email }),
