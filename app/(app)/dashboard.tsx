@@ -178,7 +178,7 @@ export default function Profile() {
             <View className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400">
               <Text>Via Apple Saúde</Text>
             </View>
-            <TouchableOpacity className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400">
+            <TouchableOpacity onPress={() => router.push("/desafios")} className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400">
               <Text>Cadastrar manualmente</Text>
             </TouchableOpacity>
           </View>
