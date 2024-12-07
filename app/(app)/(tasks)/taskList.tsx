@@ -1,29 +1,14 @@
-// import { useLocalSearchParams } from 'expo-router';
-// import { Text, View } from 'react-native';
-
-// export default function TaskList() {
-//   const { participationId, desafioName } = useLocalSearchParams();
-
-//   console.log(participationId, desafioName); // Verifique os valores recebidos no console.
-
-//   return (
-//     <View>
-//       <Text>Tarefa relacionada ao desafio: {desafioName ?? "hehehe"}</Text>
-//       <Text>ID de participação: {participationId ?? "dsadasdd"}</Text>
-//     </View>
-//   );
-// }
-
-
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useLocalSearchParams } from 'expo-router';
 import tokenExists from "../../../store/auth-store";
-import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import Left from "../../../assets/Icon-left.svg";
 import TaskItem from "../../../components/taskItem";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import Plus from "../../../assets/plus.svg";
+import { router } from 'expo-router';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export type TasksData = Data[];
 export interface Data {
@@ -39,31 +24,64 @@ export interface Data {
   usersId: string;
 }
 
+// Funções de API separadas para melhor organização
+const fetchTasks = async (participationId: string, token: string): Promise<TasksData> => {
+  const response = await fetch(`http://192.168.1.18:3000/tasks/get-tasks/${participationId}`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.json();
+};
+
+const deleteTaskApi = async (id: number, token: string) => {
+  const response = await fetch(`http://192.168.1.18:3000/tasks/delete-task/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+};
+
 export default function TaskList({ route }: any) {
   const { participationId, desafioName } = useLocalSearchParams();
-  const navigation = useNavigation<any>();
   const token = tokenExists((state) => state.token);
-  const [data, setData] = useState<TasksData>();
   const [task, setTask] = useState<Data>();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const bottomSheetEditRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ["30%"], []);
   const snapPointsEdit = useMemo(() => ["20%"], []);
+  const queryClient = useQueryClient();
 
-  const fetchTasks = useCallback(() => {
-    fetch(`http://192.168.1.18:3000/tasks/get-tasks/${participationId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json() as Promise<TasksData>)
-      .then((data) => {
-        setData(data);
-      })
-      .catch((error) => console.error(error));
-  }, [participationId, token]);
+  // Query para buscar as tasks
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['tasks', participationId],
+    queryFn: () => fetchTasks(participationId as string, token),
+  });
+
+  // Mutation para deletar task
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteTaskApi(id, token),
+    onSuccess: () => {
+      // Invalida e refaz a query das tasks após deletar
+      queryClient.invalidateQueries({ queryKey: ['tasks', participationId] });
+      bottomSheetEditRef.current?.close();
+    },
+    onError: (error) => {
+      Alert.alert("Erro ao excluir tarefa", "", [
+        {
+          text: "Ok",
+          style: "cancel",
+        }
+      ]);
+    },
+  });
 
   function deleteTask(id: number) {
     Alert.alert(
@@ -77,47 +95,29 @@ export default function TaskList({ route }: any) {
         {
           text: "Excluir",
           style: "destructive", 
-          onPress: () => {
-            fetch(`http://192.168.1.18:3000/tasks/delete-task/${id}`, {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-            })
-              .then((response) => {
-                if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                bottomSheetEditRef.current?.close()
-                return response.json();
-              })
-              .then((json) => {
-                console.log("Task deleted:", json);
-                fetchTasks(); 
-              })
-              .catch((error) => {
-                console.error("Failed to delete the task:", error);
-                Alert.alert("Erro ao excluir tarefa", "", [
-                  {
-                    text: "Ok",
-                    style: "cancel",
-                  }
-                ])
-              });
-          },
+          onPress: () => deleteMutation.mutate(id),
         },
       ],
-      { cancelable: true } // O alerta pode ser cancelado ao tocar fora dele
+      { cancelable: true }
     );
   }
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchTasks();
-    }, [fetchTasks])
-  );
+  // Tratamento de loading e erro
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#12FF55" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text>Erro ao carregar tarefas</Text>
+      </View>
+    );
+  }
 
   function openModalEdit(taskData: Data) {
     setTask(taskData);
@@ -129,7 +129,10 @@ export default function TaskList({ route }: any) {
       <ScrollView overScrollMode="never" className="bg-[#F1F1F1] flex-1 ">
         <View className="bg-white mb-7">
           <View className="flex-row mt-[49.5] px-5 bg-white">
-            <TouchableOpacity className="w-[30px] h-[30px]" onPress={() => navigation.navigate("DesafioSelect")} >
+            <TouchableOpacity 
+              className="w-[30px] h-[30px]" 
+              onPress={() => router.push('/desafios')}
+            >
               <Left />
             </TouchableOpacity>
             <Text className="text-base font-inter-bold mx-auto ">
@@ -178,7 +181,13 @@ export default function TaskList({ route }: any) {
             <View className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400">
               <Text>Via Apple Saúde</Text>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate("TaskCreate", { participationId, desafioName })}  className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400">
+            <TouchableOpacity 
+              onPress={() => router.push({
+                pathname: "/createTask",
+                params: { participationId, desafioName }
+              })}
+              className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400"
+            >
               <Text>Cadastrar manualmente</Text>
             </TouchableOpacity>
           </View>
@@ -196,8 +205,20 @@ export default function TaskList({ route }: any) {
       >
         <BottomSheetView className="flex-1">
           <View className="mx-5">
-            <TouchableOpacity onPress={() => { navigation.navigate("TaskEdit", { participationId: participationId, taskData: task, desafioName }); bottomSheetEditRef.current?.close()}} 
-            className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400">
+            <TouchableOpacity 
+              onPress={() => { 
+                router.push({
+                  pathname: '/taskEdit',
+                  params: { 
+                    taskId: task?.id,
+                    participationId: participationId,
+                    desafioName: desafioName
+                  }
+                });
+                bottomSheetEditRef.current?.close();
+              }}
+              className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400"
+            >
               <Text>Editar atividade</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => deleteTask(task!.id)} className="h-[51px] justify-center items-center">
