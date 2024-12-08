@@ -1,13 +1,15 @@
-import { useLocalSearchParams } from 'expo-router';
-import {View, Text} from "react-native"
+import { View, Text } from "react-native";
+import useDesafioStore from "../../../store/desafio-store";
 
 export default function TaskEdit() {
-  const { taskId, participationId, desafioName } = useLocalSearchParams();
+  const { participationId, desafioName, task } = useDesafioStore();
   
-  <View>
-    <Text>{taskId}</Text>
-    <Text>{participationId}</Text>
-    <Text>{desafioName}</Text>
-  </View>
-
+  return (
+    <View>
+      <Text>heheheehehehe!!!!!!</Text>
+      <Text>Desafio: {desafioName}</Text>
+      <Text>Atividade: {participationId}</Text>
+      <Text>Distância: {JSON.stringify(task)}km</Text>
+    </View>
+  );
 }

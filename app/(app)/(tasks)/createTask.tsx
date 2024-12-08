@@ -99,12 +99,7 @@ export default function TaskCreate({ route }: any) {
       console.log(json);
       
       router.push({
-        pathname: '/taskList',
-        params: {
-          participationId: participationId,
-          desafioName: desafioName
-        }
-      });
+        pathname: '/taskList'});
       clearInputs()
     })
     .catch(error => console.error(error));
@@ -162,7 +157,7 @@ export default function TaskCreate({ route }: any) {
         </View>
 
         <Text className="text-2xl font-inter-bold mt-7">
-          Como foi o sua atividade?  { participationId }
+          Como foi o sua atividade? 
         </Text>
 
         <Text className="font-inter-bold text-base mt-7">

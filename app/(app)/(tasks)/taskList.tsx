@@ -9,6 +9,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import Plus from "../../../assets/plus.svg";
 import { router } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import useDesafioStore from "../../../store/desafio-store";
 
 export type TasksData = Data[];
 export interface Data {
@@ -25,7 +26,7 @@ export interface Data {
 }
 
 // Funções de API separadas para melhor organização
-const fetchTasks = async (participationId: string, token: string): Promise<TasksData> => {
+const fetchTasks = async (participationId: number, token: string): Promise<TasksData> => {
   const response = await fetch(`http://192.168.1.18:3000/tasks/get-tasks/${participationId}`, {
     headers: {
       "Content-Type": "application/json",
@@ -49,8 +50,8 @@ const deleteTaskApi = async (id: number, token: string) => {
   return response.json();
 };
 
-export default function TaskList({ route }: any) {
-  const { participationId, desafioName } = useLocalSearchParams();
+export default function TaskList() {
+  const { participationId, desafioName, setTaskData } = useDesafioStore();
   const token = tokenExists((state) => state.token);
   const [task, setTask] = useState<Data>();
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -62,12 +63,12 @@ export default function TaskList({ route }: any) {
   // Query para buscar as tasks
   const { data, isLoading, error } = useQuery({
     queryKey: ['tasks', participationId],
-    queryFn: () => fetchTasks(participationId as string, token),
+    queryFn: () => fetchTasks(participationId as number, token! ),
   });
 
   // Mutation para deletar task
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => deleteTaskApi(id, token),
+    mutationFn: (id: number) => deleteTaskApi(id, token!),
     onSuccess: () => {
       // Invalida e refaz a query das tasks após deletar
       queryClient.invalidateQueries({ queryKey: ['tasks', participationId] });
@@ -182,10 +183,13 @@ export default function TaskList({ route }: any) {
               <Text>Via Apple Saúde</Text>
             </View>
             <TouchableOpacity 
-              onPress={() => router.push({
-                pathname: "/createTask",
-                params: { participationId, desafioName }
-              })}
+              onPress={() => {
+                if (task) {
+                  setTaskData(task);
+                }
+                router.push("/taskEdit");
+                bottomSheetRef.current?.close();
+              }}
               className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400"
             >
               <Text>Cadastrar manualmente</Text>
@@ -207,15 +211,11 @@ export default function TaskList({ route }: any) {
           <View className="mx-5">
             <TouchableOpacity 
               onPress={() => { 
-                router.push({
-                  pathname: '/taskEdit',
-                  params: { 
-                    taskId: task?.id,
-                    participationId: participationId,
-                    desafioName: desafioName
-                  }
-                });
-                bottomSheetEditRef.current?.close();
+                if (task) {
+                  setTaskData(task);
+                  router.push('/taskEdit');
+                  bottomSheetEditRef.current?.close();
+                }
               }}
               className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400"
             >

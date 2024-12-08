@@ -10,6 +10,8 @@ import Left from "../../assets/arrow-left.svg";
 import { router } from "expo-router";
 import tokenExists from "../../store/auth-store";
 
+import useDesafioStore from "../../store/desafio-store";
+
 export type DesafioData = Data[];
 
 export interface Data {
@@ -29,6 +31,8 @@ export interface Desafio {
 export default function DesafioSelect() {
   const [desafios, setDesafios] = useState<DesafioData | null>(null);
   const token = tokenExists((state) => state.token);
+ 
+  const setDesafioData = useDesafioStore((state) => state.setDesafioData);
 
   useEffect(() => {
     fetch("http://192.168.1.18:3000/desafio/getuserdesafio/", {
@@ -39,7 +43,12 @@ export default function DesafioSelect() {
       },
     })
       .then((response) => response.json() as Promise<DesafioData>)
-      .then((res) => setDesafios(res))
+      .then((res) => {
+        setDesafios(res)
+        
+
+
+      } )
       .catch((error) => {
         console.error("Failed to fetch desafios:", error);
         setDesafios([]);
@@ -66,16 +75,10 @@ export default function DesafioSelect() {
           desafios.map((item) => (
             <TouchableOpacity
               key={item.id}
-
-              onPress={() =>
-                router.push({
-                  pathname: "/createTask",
-                  params: {
-                    participationId: item.id,
-                    desafioName: item.desafio.name,
-                  },
-                })
-              }
+              onPress={() => {
+                setDesafioData(item.id, item.desafio.name);
+                router.push("/createTask");
+              }}
               className="h-[94px] flex-row items-center px-3 py-[15px] border-b-[1px] border-b-[#D9D9D9]"
             >
               <Image source={require("../../assets/Bg.png")} />
