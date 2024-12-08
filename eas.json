@@ -1,22 +1,28 @@
 {
-    "build": {
-      "preview": {
-        "android": {
-          "buildType": "apk"
-        }
-      },
-      "preview2": {
-        "android": {
-          "gradleCommand": ":app:assembleRelease"
-        }
-      },
-      "preview3": {
-        "developmentClient": true
-      },
-      "preview4": {
-        "distribution": "internal"
-      },
-      "production": {}
+  "cli": {
+    "version": ">= 5.9.1"
+  },
+  "build": {
+    "preview": {
+      "android": {
+        "buildType": "apk" // Gera um .apk
+      }
+    },
+    "preview2": {
+      "android": {
+        "gradleCommand": ":app:assembleRelease" // Personaliza o comando Gradle
+      }
+    },
+    "preview3": {
+      "developmentClient": true // Gera um cliente de desenvolvimento
+    },
+    "preview4": {
+      "distribution": "internal" // Define o modo de distribuição como "internal"
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle" // Configuração padrão para produção
+      }
     }
   }
-  
+}
