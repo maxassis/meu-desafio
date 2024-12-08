@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { useLocalSearchParams } from 'expo-router';
 import {
   SafeAreaView,
   ScrollView,
@@ -24,6 +23,7 @@ import { ptBR } from "../../../utils/localeCalendar";
 import dayjs from 'dayjs';
 import TimePickerModal, { TimePickerModalRef } from "../../../components/timePicker";
 import { router } from 'expo-router';
+import useDesafioStore from "../../../store/desafio-store";
 
 LocaleConfig.locales["pt-br"] = ptBR;
 LocaleConfig.defaultLocale = "pt-br";
@@ -33,9 +33,7 @@ interface Distance {
   meters: number;
 }
 
-// interface RouteParams { participationId: number, desafioName: string } 
-
-export default function TaskCreate({ route }: any) {
+export default function TaskCreate() {
   const [modalVisible, setModalVisible] = useState(false);
   const [ambience, setAmbience] = useState("livre");
   const [distance, setDistance] = useState<{
@@ -51,13 +49,13 @@ export default function TaskCreate({ route }: any) {
     day: 0,
     timestamp: 0,
     dateString: dayjs().format('YYYY-MM-DD')
-});
+  });
   const [calendar, setCalendarVisible] = useState(false);
   const [isModalTimeVisible, setModalTimeVisible] = useState(false);
   const [selectedTime, setSelectedTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const navigation = useNavigation<any>();
   const token = tokenExists((state) => state.token);
-  const { participationId, desafioName } = useLocalSearchParams();
+  const { participationId, desafioName } = useDesafioStore();
   const childRef = useRef<KilometerMeterPickerModalRef>(null);
   const timePickerRef = useRef<TimePickerModalRef>(null);
 
@@ -89,7 +87,7 @@ export default function TaskCreate({ route }: any) {
          "distance": +`${distance.kilometers}.${distance.meters}`,
          "environment": ambience,
          "calories": +calories,
-         "participationId": +participationId,
+         "participationId": participationId,
          "date": !day ? formatDateToISO(dayjs().format('YYYY-MM-DD')) : formatDateToISO(day.dateString),
          "duration": convertTimeToISO(selectedTime.hours + ':' + selectedTime.minutes + ':' + selectedTime.seconds),
        })
