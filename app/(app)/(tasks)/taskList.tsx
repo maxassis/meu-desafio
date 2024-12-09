@@ -1,11 +1,9 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { useLocalSearchParams } from 'expo-router';
 import tokenExists from "../../../store/auth-store";
 import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import Left from "../../../assets/Icon-left.svg";
 import TaskItem from "../../../components/taskItem";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { useFocusEffect } from "@react-navigation/native";
 import Plus from "../../../assets/plus.svg";
 import { router } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -25,7 +23,6 @@ export interface Data {
   usersId: string;
 }
 
-// Funções de API separadas para melhor organização
 const fetchTasks = async (participationId: number, token: string): Promise<TasksData> => {
   const response = await fetch(`http://192.168.1.18:3000/tasks/get-tasks/${participationId}`, {
     headers: {
