@@ -103,23 +103,6 @@ export default function TaskList() {
     );
   }
 
-  // Tratamento de loading e erro
-  if (isLoading) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#12FF55" />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <Text>Erro ao carregar tarefas</Text>
-      </View>
-    );
-  }
-
   function openModalEdit(taskData: Data) {
     setTask(taskData);
     bottomSheetEditRef.current?.expand()
@@ -149,9 +132,19 @@ export default function TaskList() {
           </View>
         </View>
 
-        {data && data.map((task) => (
-             <TaskItem task={task} key={task.id} openModalEdit={openModalEdit} />
-        ))}
+        {isLoading ? (
+          <View className="flex-1 justify-center items-center py-10">
+            <ActivityIndicator size="large" color="#12FF55" />
+          </View>
+        ) : error ? (
+          <View className="flex-1 justify-center items-center py-10">
+            <Text>Erro ao carregar tarefas</Text>
+          </View>
+        ) : (
+          data && data.map((task) => (
+            <TaskItem task={task} key={task.id} openModalEdit={openModalEdit} />
+          ))
+        )}
 
       </ScrollView>
 
