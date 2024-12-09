@@ -215,7 +215,7 @@ const Map: React.FC = () => {
     const fetchGPXFile = async () => {
       try {
         const desafioResponse = await fetch(
-          "http://192.168.1.18:3000/desafio/getdesafio/1",
+          "http://192.168.1.18:3000/desafio/getdesafio/2",
           {
             headers: {
               "Content-type": "application/json",
@@ -296,8 +296,8 @@ const Map: React.FC = () => {
       routeCoordinates.length > 0 ? routeCoordinates[0].latitude : -23.5505,
     longitude:
       routeCoordinates.length > 0 ? routeCoordinates[0].longitude : -46.6333,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
+    latitudeDelta: 0.2,
+    longitudeDelta: 0.2,
   };
 
   return (
