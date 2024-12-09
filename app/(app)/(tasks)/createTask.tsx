@@ -94,7 +94,7 @@ export default function TaskCreate() {
     })
     .then(response => response.json())
     .then(json => {      
-      console.log(json);
+      // console.log(json);
       
       router.push({
         pathname: '/taskList'});

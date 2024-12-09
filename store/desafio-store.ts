@@ -16,9 +16,9 @@ interface Task {
 interface DesafioStore {
   participationId: number | null;
   desafioName: string | null;
-  task: Task | null;
+  taskData: Task | null;
   setDesafioData: (participationId: number, desafioName: string) => void;
-  setTaskData: (task: Task) => void;
+  setTaskData: (taskData: Task) => void;
   clearDesafioData: () => void;
   clearTaskData: () => void;
 }
@@ -26,15 +26,15 @@ interface DesafioStore {
 const useDesafioStore = create<DesafioStore>((set) => ({
   participationId: null,
   desafioName: null,
-  task: null,
+  taskData: null,
   setDesafioData: (participationId, desafioName) => 
     set({ participationId, desafioName }),
-  setTaskData: (task) =>
-    set({ task }),
+  setTaskData: (taskData) =>
+    set({ taskData }),
   clearDesafioData: () => 
     set({ participationId: null, desafioName: null }),
   clearTaskData: () =>
-    set({ task: null })
+    set({ taskData: null })
 }));
 
 export default useDesafioStore; 
