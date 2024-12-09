@@ -229,20 +229,19 @@ const Map: React.FC = () => {
         }
 
         const desafioData: DesafioResponse = await desafioResponse.json();
-        console.log("Desafio Data:", desafioData);
+        console.log("Coordenadas da rota:", desafioData.location);
         setDesafio(desafioData);
 
-        // Use the location array directly
         const coordinates = desafioData.location;
-        console.log("Route coordinates:", coordinates);
-
+        
         if (!Array.isArray(coordinates) || coordinates.length === 0) {
-          console.error("Invalid or empty coordinates array");
+          console.error("Coordenadas inválidas ou vazias:", coordinates);
           setLoading(false);
           return;
         }
 
         setRouteCoordinates(coordinates);
+        console.log("Route coordinates após setar:", coordinates);
 
         const totalDistance = calculateTotalDistance(
           coordinates.map((coord) => [coord.latitude, coord.longitude])
@@ -282,7 +281,7 @@ const Map: React.FC = () => {
 
         setUsersParticipants(updatedParticipants);
       } catch (error) {
-        console.error("Error in fetchGPXFile:", error);
+        console.error("Erro ao buscar dados:", error);
       } finally {
         setLoading(false);
       }
@@ -315,17 +314,16 @@ const Map: React.FC = () => {
           {routeCoordinates.length > 0 && (
             <>
               <Polyline
-                coordinates={routeCoordinates.map((coord) => ({
-                  latitude: coord.latitude,
-                  longitude: coord.longitude,
-                }))}
+                coordinates={routeCoordinates}
                 strokeWidth={4}
                 strokeColor="#000"
+                zIndex={1}
               />
               <Polyline
                 coordinates={getUserPath()}
                 strokeWidth={2}
                 strokeColor="#12FF55"
+                zIndex={2}
               />
             </>
           )}
@@ -384,15 +382,14 @@ const Map: React.FC = () => {
           {desafio && (
             <Marker
               coordinate={{
-                latitude:
-                  routeCoordinates[routeCoordinates.length - 1].latitude,
-                longitude:
-                  routeCoordinates[routeCoordinates.length - 1].longitude,
+                latitude: routeCoordinates[routeCoordinates.length - 1].latitude,
+                longitude: routeCoordinates[routeCoordinates.length - 1].longitude,
               }}
+              style={{ zIndex: 999999, elevation: 999999 }}
             >
               <Image
                 source={require("../../assets/final-pin.png")}
-                className="h-[40px] w-[40px] rounded-full "
+                className="h-[40px] w-[40px] rounded-full"
               />
             </Marker>
           )}
