@@ -3,25 +3,27 @@
     "version": ">= 5.9.1"
   },
   "build": {
-    "preview": {
+    "test": {
+      "distribution": "internal",
       "android": {
-        "buildType": "apk" // Gera um .apk
+        "buildType": "apk"
       }
     },
-    "preview2": {
+    "development": {
+      "developmentClient": true,
       "android": {
-        "gradleCommand": ":app:assembleRelease" // Personaliza o comando Gradle
+        "buildType": "apk"
       }
     },
-    "preview3": {
-      "developmentClient": true // Gera um cliente de desenvolvimento
-    },
-    "preview4": {
-      "distribution": "internal" // Define o modo de distribuição como "internal"
+    "internal": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "android": {
-        "buildType": "app-bundle" // Configuração padrão para produção
+        "buildType": "app-bundle"
       }
     }
   }
