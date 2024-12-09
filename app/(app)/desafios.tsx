@@ -60,7 +60,7 @@ export default function DesafioSelect() {
       <View className="pt-[38px] px-5">
         <View className="mb-[10px]">
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => router.push("/dashboard")}
             className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center"
           >
             <Left />

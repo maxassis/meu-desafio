@@ -94,7 +94,7 @@ const calculateTotalDistance = (coordinates: [number, number][]): number => {
     totalDistance += haversine(lat1, lon1, lat2, lon2);
   }
 
-  return totalDistance; // Distância total em quilômetros
+  return totalDistance;
 };
 
 const findPointAtDistance = (
@@ -128,22 +128,29 @@ const calculateUserDistance = (
   coordinates: { latitude: number; longitude: number }[],
   progress: number
 ): number => {
+  const progressNumber = Number(progress); // Garante que progress é um número
   let traveled = 0;
 
   for (let i = 0; i < coordinates.length - 1; i++) {
     const { latitude: startLat, longitude: startLon } = coordinates[i];
     const { latitude: endLat, longitude: endLon } = coordinates[i + 1];
 
+    // Calcula a distância entre dois pontos consecutivos
     const segmentDistance = haversine(startLat, startLon, endLat, endLon);
 
-    if (traveled + segmentDistance >= progress) {
-      return traveled + progress;
+    // Verifica se o progresso está dentro deste segmento
+    if (traveled + segmentDistance >= progressNumber) {
+      const remainingProgress = progressNumber - traveled;
+      const segmentFraction = remainingProgress / segmentDistance;
+      
+      // Retorna a distância acumulada, interpolando dentro do segmento atual
+      return traveled + remainingProgress;
     }
 
-    traveled += segmentDistance;
+    traveled += segmentDistance; // Acumula distância percorrida
   }
 
-  return traveled;
+  return traveled; // Retorna a distância total percorrida
 };
 
 const formatPercentage = (progress: number): string => {
@@ -212,7 +219,7 @@ const Map: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchGPXFile = async () => {
+    const fetchDesafio = async () => {
       try {
         const desafioResponse = await fetch(
           "http://192.168.1.18:3000/desafio/getdesafio/2",
@@ -229,7 +236,7 @@ const Map: React.FC = () => {
         }
 
         const desafioData: DesafioResponse = await desafioResponse.json();
-        console.log("Coordenadas da rota:", desafioData.location);
+        // console.log("Coordenadas da rota:", desafioData.location);
         setDesafio(desafioData);
 
         const coordinates = desafioData.location;
@@ -241,13 +248,13 @@ const Map: React.FC = () => {
         }
 
         setRouteCoordinates(coordinates);
-        console.log("Route coordinates após setar:", coordinates);
+        // console.log("Route coordinates após setar:", coordinates);
 
         const totalDistance = calculateTotalDistance(
           coordinates.map((coord) => [coord.latitude, coord.longitude])
         );
         setTotalDistance(totalDistance);
-
+        
         const updatedParticipants = desafioData.participation.map((dta) => {
           let userLocation = null;
           let userDistance = 0;
@@ -256,9 +263,17 @@ const Map: React.FC = () => {
           try {
             userLocation = findPointAtDistance(coordinates, dta.progress);
             userDistance = calculateUserDistance(coordinates, dta.progress);
+           
+           console.log("User distance:", userDistance)
+           console.log("Total distance:", totalDistance);
+           
             progressPercentage = formatPercentage(
               (userDistance / totalDistance) * 100
             );
+
+           
+            
+
           } catch (error) {
             console.error("Error calculating user progress:", error);
           }
@@ -267,6 +282,9 @@ const Map: React.FC = () => {
             setUserProgress(Number(progressPercentage) / 100);
             setUserDistance(dta.progress);
             setUserLocation(userLocation);
+
+            console.log("User progress:", Number(progressPercentage));
+            
           }
 
           return {
@@ -287,7 +305,7 @@ const Map: React.FC = () => {
       }
     };
 
-    fetchGPXFile();
+    fetchDesafio();
   }, []);
 
   // Set initial region based on the first coordinate or default to a location
