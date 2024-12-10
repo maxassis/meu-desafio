@@ -21,6 +21,7 @@ import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import * as Progress from 'react-native-progress';
 import { router } from "expo-router";
 
+
 interface Coordinate {
   latitude: number;
   longitude: number;
@@ -176,8 +177,8 @@ const Map: React.FC = () => {
   const token = tokenExists((state) => state.token);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ["20%", "85%", "100%"], []);
-
-
+  const [teste, setTeste] = useState<boolean>(false);
+  
   const getUserPath = () => {
     if (!routeCoordinates || userDistance === 0) return [];
 
@@ -301,14 +302,16 @@ const Map: React.FC = () => {
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
       } finally {
-        setLoading(false);
+        setLoading(false); 
+        setTimeout(() => {
+          setTeste(true);
+        }, 2000);
       }
     };
 
     fetchDesafio();
-  }, []);
+  });
 
-  // Set initial region based on the first coordinate or default to a location
   const initialRegion: Region = {
     latitude:
       routeCoordinates.length > 0 ? routeCoordinates[0].latitude : -23.5505,
@@ -321,7 +324,7 @@ const Map: React.FC = () => {
   return (
     <View className="flex-1 bg-white justify-center items-center relative">
       {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="##12FF55" />
       ) : (
         <MapView
           className="flex-1 w-full"
@@ -421,15 +424,15 @@ const Map: React.FC = () => {
       >
         <Left />
       </TouchableOpacity>
-
+    
+      {teste ? (
       <BottomSheet
         ref={bottomSheetRef}
         snapPoints={snapPoints}
         backgroundStyle={{
-          backgroundColor: "#fff",
           borderRadius: 20,
         }}
-      >
+      >  
         <BottomSheetScrollView>
           <SafeAreaView className="mx-5">
             <Text className="text-sm font-inter-regular text-bondis-gray-secondary">
@@ -570,10 +573,11 @@ const Map: React.FC = () => {
               <UserTime />
               <UserTime />
               <UserTime />
-            </View>
+            </View>           
           </SafeAreaView>
         </BottomSheetScrollView>
       </BottomSheet>
+       ) : null}
     </View>
   );
 };

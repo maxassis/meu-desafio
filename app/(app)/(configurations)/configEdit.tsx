@@ -11,15 +11,15 @@ import {
   StyleSheet,
 } from "react-native";
 import Left from "../../../assets/arrow-left.svg";
+import { useNavigation } from "@react-navigation/native";
 import User from "../../../assets/user.svg";
 import { MaskedTextInput } from "react-native-mask-text";
 import * as ImagePicker from "expo-image-picker";
-// import Down from "../../assets/down.svg";
-// import RNPickerSelect from "react-native-picker-select";
+import Down from "../../../assets/down.svg";
+import tokenExists from "../../../store/auth-store";
+import RNPickerSelect from "react-native-picker-select";
 import Modal from "react-native-modal";
 import userDataStore from "../../../store/user-data";
-import useAuthStore from "../../../store/auth-store";
-import { useRouter } from "expo-router";
 
 type File = {
   type: string;
@@ -43,14 +43,13 @@ interface UserData {
   createdAt: Date;
   usersId: string;
   name: string;
-  birthDate: string | null;
 }
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024;
 
 export default function ProfileEdit() {
-  const router = useRouter();
-  const { token } = useAuthStore();  
+  const token = tokenExists((state) => state.token);
+  const navigation = useNavigation<any>();
   const [gender, setGender] = useState("");
   const [sports, setSports] = useState("");
   const [bioValue, setBioValue] = useState("");
@@ -131,15 +130,12 @@ export default function ProfileEdit() {
     })
       .then((response) => response.json() as Promise<UserData>)
       .then((data) => {
-        console.log(data);
-        
         // setUserData(data);
         saveUserData(data);
         setGender(data.gender ?? "");
         setSports(data.sport ?? "");
         setNameValue(data.full_name ?? "");
         setBioValue(data.bio ?? "");
-        setUnmaskedValue(data.birthDate ?? "");
         // setImageUrl(data.avatar_url ?? "");
       });
   }, []);
@@ -156,7 +152,7 @@ export default function ProfileEdit() {
   };
 
   async function submitForm() {
-    const result = await fetch("http://172.22.0.1:3000/users/edituserdata", {
+    const result = await fetch("http://192.168.1.18:3000/users/edituserdata", {
       method: "PATCH",
       headers: {
         "Content-type": "application/json",
@@ -186,7 +182,7 @@ export default function ProfileEdit() {
   };
 
   async function deleteAvatar() {
-    const result = await fetch(`http://172.22.0.1:3000/users/deleteavatar`, {
+    const result = await fetch(`http://192.168.1.18:3000/users/deleteavatar`, {
       method: "DELETE",
       headers: {
         "Content-type": "application/json",
@@ -216,7 +212,7 @@ export default function ProfileEdit() {
       <ScrollView overScrollMode="never" bounces={false}>
         <View className="px-5 pb-8 pt-[38px] flex-1">
           <View className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
-            <Left onPress={() => router.back()} />
+            <Left onPress={() => navigation.goBack()} />
           </View>
           <Text className="font-inter-bold text-2xl mt-7">
             Mantenha seu perfil atualizado
@@ -266,7 +262,6 @@ export default function ProfileEdit() {
           </Text>
           <MaskedTextInput
             placeholder="__/__/____"
-            value={unMaskedValue}
             mask="99/99/9999"
             onChangeText={(text, rawText) => {
               setUnmaskedValue(rawText);
@@ -278,10 +273,37 @@ export default function ProfileEdit() {
           <Text className="font-inter-bold text-base mt-[23px]">
             Como você se identifica?
           </Text>
-          
+          <RNPickerSelect
+            style={pickerStyle}
+            useNativeAndroidPickerStyle={false}
+            onValueChange={(value) => setGender(value)}
+            Icon={() => <Down />}
+            value={gender}
+            placeholder={{ label: "Selecione", value: null }}
+            items={[
+              { label: "Homem", value: "homem" },
+              { label: "Mulher", value: "mulher" },
+              { label: "Não binário", value: "nao_binario" },
+              {
+                label: "Prefiro não responder",
+                value: "prefiro_nao_responder",
+              },
+            ]}
+          />
 
           <Text className="font-inter-bold text-base mt-[23px]">Esportes</Text>
-          
+          <RNPickerSelect
+            style={pickerStyle}
+            useNativeAndroidPickerStyle={false}
+            onValueChange={(value) => setSports(value)}
+            Icon={() => <Down />}
+            value={sports}
+            placeholder={{ label: "Selecione", value: null }}
+            items={[
+              { label: "Corrida", value: "corrida" },
+              { label: "Ciclismo", value: "ciclismo" },
+            ]}
+          />
 
           <TouchableOpacity
             onPress={submitForm}
@@ -317,4 +339,32 @@ export default function ProfileEdit() {
   );
 }
 
-
+const pickerStyle = StyleSheet.create({
+  inputIOS: {
+    backgroundColor: "#EEEEEE",
+    fontSize: 14,
+    height: 52,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderRadius: 4,
+    color: "black",
+    paddingRight: 30,
+  },
+  inputAndroid: {
+    backgroundColor: "#EEEEEE",
+    fontSize: 14,
+    height: 52,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+    color: "black",
+    marginTop: 8,
+  },
+  placeholder: {
+    color: "gray",
+    fontSize: 14,
+  },
+  iconContainer: {
+    top: 23,
+    right: 12,
+  },
+});
