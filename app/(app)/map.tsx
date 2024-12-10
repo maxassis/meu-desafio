@@ -27,6 +27,8 @@ import UserTime from "../../components/userTime";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import * as Progress from "react-native-progress";
 import { router } from "expo-router";
+// import Constants from 'expo-constants';
+import { GOOGLE_MAPS_API_KEY } from '@env';
 
 interface Coordinate {
   latitude: number;
@@ -167,6 +169,8 @@ const formatPercentage = (progress: number): string => {
     maximumFractionDigits: 1,
   });
 };
+
+// console.log(GOOGLE_MAPS_API_KEY);
 
 const Map: React.FC = () => {
   const [totalDistance, setTotalDistance] = useState<number>(0);
