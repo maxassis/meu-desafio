@@ -188,6 +188,7 @@ const Map: React.FC = () => {
   const mapRef = useRef<MapView>(null);
   const [showBottom, setShowBottom] = useState<boolean>(false);
   const [showBottom2, setShowBottom2] = useState<boolean>(false);
+  const [showMarker, setShowMarker] = useState<boolean>(true);
 
   const getUserPath = useMemo(() => {
     if (!routeCoordinates || userDistance === 0) return [];
@@ -310,17 +311,17 @@ const Map: React.FC = () => {
         setUsersParticipants(updatedParticipants);
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
-      } finally {
+      } finally {        
         setLoading(false);
+       
         setTimeout(() => {
           setShowBottom(true);
+          setShowMarker(false);
         }, 2000);
 
         setTimeout(() => {
           setShowBottom2(true);
         }, 2500);
-
-
       }
     };
 
@@ -375,7 +376,7 @@ const Map: React.FC = () => {
                   ? { zIndex: 100000, elevation: 100000 }
                   : { zIndex: index, elevation: index }
               }
-              // tracksViewChanges={false}
+              tracksViewChanges={showMarker}
             >
               <View
                 className={userPin({
@@ -419,6 +420,8 @@ const Map: React.FC = () => {
                   routeCoordinates[routeCoordinates.length - 1].longitude,
               }}
               style={{ zIndex: 999999, elevation: 999999 }}
+              title="Final"
+              tracksViewChanges={showMarker}
             >
               <Image
                 source={require("../../assets/final-pin.png")}
