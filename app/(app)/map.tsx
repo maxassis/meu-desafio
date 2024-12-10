@@ -246,7 +246,7 @@ const Map: React.FC = () => {
     const fetchDesafio = async () => {
       try {
         const desafioResponse = await fetch(
-          "https://bondis-app-backend.onrender.com/desafio/getdesafio/7",
+          "https://bondis-app-backend.onrender.com/desafio/getdesafio/1",
           {
             headers: {
               "Content-type": "application/json",
