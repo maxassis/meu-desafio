@@ -21,7 +21,6 @@ import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import * as Progress from 'react-native-progress';
 import { router } from "expo-router";
 
-
 interface Coordinate {
   latitude: number;
   longitude: number;
@@ -164,10 +163,10 @@ const formatPercentage = (progress: number): string => {
 
 const Map: React.FC = () => {
   const [totalDistance, setTotalDistance] = useState<number>(0);
-  const [userProgress, setUserProgress] = useState<any>(0);
+  const [userProgress, setUserProgress] = useState<number>(0);
   const [userDistance, setUserDistance] = useState<number>(0);
-  const [userLocation, setUserLocation] = useState<any>([]);
-  const [usersParticipants, setUsersParticipants] = useState<any>([]);
+  const [userLocation, setUserLocation] = useState<Coordinate | null>(null);
+  const [usersParticipants, setUsersParticipants] = useState<UserParticipation[]>([]);
   const [desafio, setDesafio] = useState<DesafioResponse>(
     {} as DesafioResponse
   );
@@ -179,7 +178,7 @@ const Map: React.FC = () => {
   const snapPoints = useMemo(() => ["20%", "85%", "100%"], []);
   const [teste, setTeste] = useState<boolean>(false);
   
-  const getUserPath = () => {
+  const getUserPath = useMemo(() => {
     if (!routeCoordinates || userDistance === 0) return [];
 
     const path: Coordinate[] = [];
@@ -200,12 +199,8 @@ const Map: React.FC = () => {
         const remainingDistance = userDistance - traveled;
         const ratio = remainingDistance / segmentDistance;
 
-        const newLat =
-          startPoint.latitude +
-          (endPoint.latitude - startPoint.latitude) * ratio;
-        const newLon =
-          startPoint.longitude +
-          (endPoint.longitude - startPoint.longitude) * ratio;
+        const newLat = startPoint.latitude + (endPoint.latitude - startPoint.latitude) * ratio;
+        const newLon = startPoint.longitude + (endPoint.longitude - startPoint.longitude) * ratio;
 
         path.push(startPoint); // Adiciona o ponto inicial do segmento atual
         path.push({ latitude: newLat, longitude: newLon }); // Adiciona o ponto interpolado onde o usuário está
@@ -217,7 +212,14 @@ const Map: React.FC = () => {
     }
 
     return path;
-  };
+  }, [routeCoordinates, userDistance]);
+
+  const initialRegion = useMemo<Region>(() => ({
+    latitude: routeCoordinates.length > 0 ? routeCoordinates[0].latitude : -23.5505,
+    longitude: routeCoordinates.length > 0 ? routeCoordinates[0].longitude : -46.6333,
+    latitudeDelta: 0.2,
+    longitudeDelta: 0.2,
+  }), [routeCoordinates]);
 
   useEffect(() => {
     const fetchDesafio = async () => {
@@ -237,7 +239,6 @@ const Map: React.FC = () => {
         }
 
         const desafioData: DesafioResponse = await desafioResponse.json();
-        // console.log("Coordenadas da rota:", desafioData.location);
         setDesafio(desafioData);
 
         const coordinates = desafioData.location;
@@ -249,7 +250,6 @@ const Map: React.FC = () => {
         }
 
         setRouteCoordinates(coordinates);
-        // console.log("Route coordinates após setar:", coordinates);
 
         const totalDistance = calculateTotalDistance(
           coordinates.map((coord) => [coord.latitude, coord.longitude])
@@ -264,17 +264,9 @@ const Map: React.FC = () => {
           try {
             userLocation = findPointAtDistance(coordinates, dta.progress);
             userDistance = calculateUserDistance(coordinates, dta.progress);
-           
-           console.log("User distance:", userDistance)
-           console.log("Total distance:", totalDistance);
-           
             progressPercentage = formatPercentage(
               (userDistance / totalDistance) * 100
             );
-
-           
-            
-
           } catch (error) {
             console.error("Error calculating user progress:", error);
           }
@@ -283,9 +275,6 @@ const Map: React.FC = () => {
             setUserProgress(Number(progressPercentage) / 100);
             setUserDistance(dta.progress);
             setUserLocation(userLocation);
-
-            console.log("User progress:", Number(progressPercentage));
-            
           }
 
           return {
@@ -310,16 +299,7 @@ const Map: React.FC = () => {
     };
 
     fetchDesafio();
-  });
-
-  const initialRegion: Region = {
-    latitude:
-      routeCoordinates.length > 0 ? routeCoordinates[0].latitude : -23.5505,
-    longitude:
-      routeCoordinates.length > 0 ? routeCoordinates[0].longitude : -46.6333,
-    latitudeDelta: 0.2,
-    longitudeDelta: 0.2,
-  };
+  }, [token, getUserData?.usersId]);
 
   return (
     <View className="flex-1 bg-white justify-center items-center relative">
@@ -331,6 +311,7 @@ const Map: React.FC = () => {
           provider={PROVIDER_GOOGLE}
           customMapStyle={mapStyle}
           initialRegion={initialRegion}
+          showsCompass={false} 
         >
           {routeCoordinates.length > 0 && (
             <>
@@ -341,7 +322,7 @@ const Map: React.FC = () => {
                 zIndex={1}
               />
               <Polyline
-                coordinates={getUserPath()}
+                coordinates={getUserPath}
                 strokeWidth={2}
                 strokeColor="#12FF55"
                 zIndex={2}
@@ -425,7 +406,7 @@ const Map: React.FC = () => {
         <Left />
       </TouchableOpacity>
     
-      {teste ? (
+      
       <BottomSheet
         ref={bottomSheetRef}
         snapPoints={snapPoints}
@@ -433,6 +414,7 @@ const Map: React.FC = () => {
           borderRadius: 20,
         }}
       >  
+      {teste ? (
         <BottomSheetScrollView>
           <SafeAreaView className="mx-5">
             <Text className="text-sm font-inter-regular text-bondis-gray-secondary">
@@ -576,8 +558,9 @@ const Map: React.FC = () => {
             </View>           
           </SafeAreaView>
         </BottomSheetScrollView>
+        ) : <ActivityIndicator size="large" color="##12FF55" className="mt-14" />}
       </BottomSheet>
-       ) : null}
+       
     </View>
   );
 };
