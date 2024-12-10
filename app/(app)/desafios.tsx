@@ -35,7 +35,7 @@ export default function DesafioSelect() {
   const setDesafioData = useDesafioStore((state) => state.setDesafioData);
 
   useEffect(() => {
-    fetch("http://192.168.1.18:3000/desafio/getuserdesafio/", {
+    fetch("https://bondis-app-backend.onrender.com/desafio/getuserdesafio/", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

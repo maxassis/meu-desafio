@@ -24,7 +24,7 @@ export interface Data {
 }
 
 const fetchTasks = async (participationId: number, token: string): Promise<TasksData> => {
-  const response = await fetch(`http://192.168.1.18:3000/tasks/get-tasks/${participationId}`, {
+  const response = await fetch(`https://bondis-app-backend.onrender.com/tasks/get-tasks/${participationId}`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
@@ -34,7 +34,7 @@ const fetchTasks = async (participationId: number, token: string): Promise<Tasks
 };
 
 const deleteTaskApi = async (id: number, token: string) => {
-  const response = await fetch(`http://192.168.1.18:3000/tasks/delete-task/${id}`, {
+  const response = await fetch(`https://bondis-app-backend.onrender.com/tasks/delete-task/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",

@@ -76,7 +76,7 @@ export default function TaskCreate() {
   };
 
   function createTask() { 
-    fetch('http://192.168.1.18:3000/tasks/create', {
+    fetch('https://bondis-app-backend.onrender.com/tasks/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

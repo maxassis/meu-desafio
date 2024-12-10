@@ -95,7 +95,7 @@ export default function ProfileEdit() {
 
       try {
         const response = await fetch(
-          "http://192.168.1.18:3000/users/uploadavatar",
+          "https://bondis-app-backend.onrender.com/users/uploadavatar",
           {
             method: "POST",
             headers: {
@@ -122,7 +122,7 @@ export default function ProfileEdit() {
 
   useEffect(() => {
     // setReloadImage(reloadImage + 1);
-    fetch("http://192.168.1.18:3000/users/getUserData", {
+    fetch("https://bondis-app-backend.onrender.com/users/getUserData", {
       headers: {
         "Content-type": "application/json",
         authorization: "Bearer " + token,
@@ -152,7 +152,7 @@ export default function ProfileEdit() {
   };
 
   async function submitForm() {
-    const result = await fetch("http://192.168.1.18:3000/users/edituserdata", {
+    const result = await fetch("https://bondis-app-backend.onrender.com/users/edituserdata", {
       method: "PATCH",
       headers: {
         "Content-type": "application/json",
@@ -182,7 +182,7 @@ export default function ProfileEdit() {
   };
 
   async function deleteAvatar() {
-    const result = await fetch(`http://192.168.1.18:3000/users/deleteavatar`, {
+    const result = await fetch(`https://bondis-app-backend.onrender.com/users/deleteavatar`, {
       method: "DELETE",
       headers: {
         "Content-type": "application/json",
