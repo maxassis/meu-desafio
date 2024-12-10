@@ -185,7 +185,9 @@ const Map: React.FC = () => {
   const token = tokenExists((state) => state.token);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ["20%", "85%", "100%"], []);
-  const [teste, setTeste] = useState<boolean>(false);
+  const mapRef = useRef<MapView>(null);
+  const [showBottom, setShowBottom] = useState<boolean>(false);
+  const [showBottom2, setShowBottom2] = useState<boolean>(false);
 
   const getUserPath = useMemo(() => {
     if (!routeCoordinates || userDistance === 0) return [];
@@ -311,8 +313,14 @@ const Map: React.FC = () => {
       } finally {
         setLoading(false);
         setTimeout(() => {
-          setTeste(true);
+          setShowBottom(true);
         }, 2000);
+
+        setTimeout(() => {
+          setShowBottom2(true);
+        }, 2500);
+
+
       }
     };
 
@@ -325,12 +333,12 @@ const Map: React.FC = () => {
         <ActivityIndicator size="large" color="##12FF55" />
       ) : (
         <MapView
+          ref={mapRef}
           className="flex-1 w-full"
           provider={PROVIDER_GOOGLE}
           customMapStyle={mapStyle}
           initialRegion={initialRegion}
           showsCompass={false}
-          
         >
           {routeCoordinates.length > 0 && (
             <>
@@ -367,6 +375,7 @@ const Map: React.FC = () => {
                   ? { zIndex: 100000, elevation: 100000 }
                   : { zIndex: index, elevation: index }
               }
+              // tracksViewChanges={false}
             >
               <View
                 className={userPin({
@@ -400,8 +409,9 @@ const Map: React.FC = () => {
             </Marker>
           ))}
 
-          {desafio && (
+          {routeCoordinates.length > 0 && (
             <Marker
+              key="final"
               coordinate={{
                 latitude:
                   routeCoordinates[routeCoordinates.length - 1].latitude,
@@ -428,7 +438,7 @@ const Map: React.FC = () => {
       </TouchableOpacity>
 
 
-      {teste ? (
+      {showBottom ? (
       <BottomSheet
         ref={bottomSheetRef}
         snapPoints={snapPoints}
@@ -436,7 +446,7 @@ const Map: React.FC = () => {
           borderRadius: 20,
         }}
       >
-        {teste ? (
+        {showBottom2 ? (
           <BottomSheetScrollView>
             <SafeAreaView className="mx-5">
               <Text className="text-sm font-inter-regular text-bondis-gray-secondary">
@@ -580,9 +590,9 @@ const Map: React.FC = () => {
               </View>
             </SafeAreaView>
           </BottomSheetScrollView>
-        ) : (
+         ) : (
           <ActivityIndicator size="large" color="#12FF55" className="mt-14" />
-        )}
+        )} 
       </BottomSheet>
       ): null }
     </View>
