@@ -8,7 +8,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
-  StyleSheet,
+  StatusBar
 } from "react-native";
 import Left from "../../../assets/arrow-left.svg";
 import { useNavigation } from "@react-navigation/native";
@@ -358,6 +358,7 @@ export default function ProfileEdit() {
           </Modal> */}
         </View>
       </ScrollView>
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </SafeAreaView>
   );
 }

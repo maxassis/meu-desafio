@@ -177,7 +177,7 @@ export default function TaskList() {
                 if (task) {
                   setTaskData(task);
                 }
-                router.push("/taskEdit");
+                router.push("/createTask");
                 bottomSheetRef.current?.close();
               }}
               className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400"

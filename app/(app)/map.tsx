@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   SafeAreaView,
+  StatusBar
 } from "react-native";
 import MapView, {
   Polyline,
@@ -622,6 +623,7 @@ const Map: React.FC = () => {
         )} 
       </BottomSheet>
       ): null }
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </View>
   );
 };
