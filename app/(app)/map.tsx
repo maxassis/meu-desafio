@@ -13,6 +13,13 @@ import MapView, {
   Marker,
   Callout,
 } from "react-native-maps";
+import {
+  requestForegroundPermissionsAsync,
+  getCurrentPositionAsync,
+  LocationObject,
+  watchPositionAsync,
+  LocationAccuracy,
+} from "expo-location";
 import { mapStyle } from "../../styles/mapStyles";
 import tokenExists from "../../store/auth-store";
 import userDataStore from "../../store/user-data";
@@ -27,8 +34,6 @@ import UserTime from "../../components/userTime";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import * as Progress from "react-native-progress";
 import { router } from "expo-router";
-// import Constants from 'expo-constants';
-import { GOOGLE_MAPS_API_KEY } from '@env';
 
 interface Coordinate {
   latitude: number;
@@ -177,6 +182,7 @@ const Map: React.FC = () => {
   const [userProgress, setUserProgress] = useState<number>(0);
   const [userDistance, setUserDistance] = useState<number>(0);
   const [userLocation, setUserLocation] = useState<Coordinate | null>(null);
+  const [location, setLocation] = useState<LocationObject | null>(null);
   const [usersParticipants, setUsersParticipants] = useState<
     UserParticipation[]
   >([]);
@@ -245,6 +251,20 @@ const Map: React.FC = () => {
     }),
     [routeCoordinates],
   );
+
+  async function requestLocationPermissions() {
+    const { granted } = await requestForegroundPermissionsAsync();
+
+    if (granted) {
+      const currentPosition = await getCurrentPositionAsync();
+
+      setLocation(currentPosition);
+    }
+  }
+
+  useEffect(() => {
+    requestLocationPermissions();
+  }, []);
 
   useEffect(() => {
     const fetchDesafio = async () => {

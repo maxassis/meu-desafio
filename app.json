@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "meu-desafio-2",
-    "slug": "meu-desafio-2",
+    "name": "meu-desafio2",
+    "slug": "meu-desafio2",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -62,7 +62,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "15772181-6b59-4e1c-99db-09fe0289e8c0"
+        "projectId": "ea12fd60-0624-4ca4-8553-aa9e7f8d1d65"
       }
     }
   }
