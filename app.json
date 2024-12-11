@@ -1,7 +1,5 @@
 {
   "expo": {
-    "name": "meu-desafio2",
-    "slug": "meu-desafio2",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -58,12 +56,10 @@
       "tsconfigPaths": true
     },
     "extra": {
-      "router": {
-        "origin": false
-      },
       "eas": {
-        "projectId": "ea12fd60-0624-4ca4-8553-aa9e7f8d1d65"
+        "projectId": "230cd5ae-e636-4f24-a992-74172495dd48"
       }
-    }
+    },
+    "owner": "maxassis"
   }
 }
