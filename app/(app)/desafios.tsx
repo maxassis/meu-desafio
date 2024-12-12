@@ -78,7 +78,7 @@ export default function DesafioSelect() {
           </Text>
         )}
 
-        {desafios && desafios.length > 0 ? (
+        {desafios && desafios.length > 0  ? (
           desafios.map((item) => (
             <TouchableOpacity
               key={item.id}
@@ -97,10 +97,12 @@ export default function DesafioSelect() {
               </View>
             </TouchableOpacity>
           ))
-        ) : (
+        ) : null}
+
+        {!isLoading && desafios && desafios.length === 0 && (
           <Text className="text-center text-gray-500">
-            Nenhum desafio disponível no momento.
-          </Text>
+          Nenhum desafio disponível no momento.
+        </Text>
         )}
       </View>
       <StatusBar

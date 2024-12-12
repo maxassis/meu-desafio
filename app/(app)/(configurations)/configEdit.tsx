@@ -122,7 +122,6 @@ export default function ProfileEdit() {
       // const data = await result.json();
       throw new Error("Erro ao deletar avatar");
     }
-
     console.log("Avatar deletado com sucesso!");
   
     return result.json();
@@ -199,14 +198,6 @@ export default function ProfileEdit() {
     },
   });
   
-  // ... resto do código ...
-  
-  async function deleteAvatar() {
-    deleteAvatarRequest();
-  }
-
-  
-
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView overScrollMode="never" bounces={false}>
@@ -299,7 +290,7 @@ export default function ProfileEdit() {
 
               <View className="border-b-[0.2px] mb-[bg-bondis-text-gray w-full"></View>
 
-              <TouchableOpacity onPress={deleteAvatar}>
+              <TouchableOpacity className="w-full" onPress={deleteAvatarRequest}>
                 <Text className="text-center text-base pt-4  text-[#EB4335] ">
                   Remover foto
                 </Text>
