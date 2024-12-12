@@ -23,8 +23,6 @@ import userDataStore from "../../../store/user-data";
 import { router } from "expo-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
   
-
-
 type File = {
   type: string;
   uri: string;
@@ -51,21 +49,6 @@ interface UserData {
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024;
 
-async function fetchUserData(token: string): Promise<UserData> {
-  const response = await fetch("https://bondis-app-backend.onrender.com/users/getUserData", {
-    headers: {
-      "Content-type": "application/json",
-      authorization: "Bearer " + token,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Erro ao buscar os dados do usuário");
-  }
-
-  return response.json();
-}
-
 const getFileSize = async (uri: string) => {
   try {
     const response = await fetch(uri);
@@ -76,8 +59,6 @@ const getFileSize = async (uri: string) => {
     return 0;
   }
 };
-
-
 
 export default function ProfileEdit() {
   const token = tokenExists((state) => state.token);
@@ -91,6 +72,21 @@ export default function ProfileEdit() {
   const saveUserData = userDataStore((state) => state.setUserData);
   const getUserData = userDataStore((state) => state.data);
   
+
+  async function fetchUserData(): Promise<UserData> {
+    const response = await fetch("https://bondis-app-backend.onrender.com/users/getUserData", {
+      headers: {
+        "Content-type": "application/json",
+        authorization: "Bearer " + token,
+      },
+    });
+  
+    if (!response.ok) {
+      throw new Error("Erro ao buscar os dados do usuário");
+    }
+  
+    return response.json();
+  }
 
   async function uploadAvatar(formData: FormData): Promise<uploadAvatarResponse> {
     const response = await fetch("https://bondis-app-backend.onrender.com/users/uploadavatar", {
@@ -109,9 +105,32 @@ export default function ProfileEdit() {
     return response.json();
   }
 
-  const { data: userData, isLoading, error } = useQuery({
+
+  async function deleteAvatarRequest() {
+    const result = await fetch(`https://bondis-app-backend.onrender.com/users/deleteavatar`, {
+      method: "DELETE",
+      headers: {
+        "Content-type": "application/json",
+        authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({
+        filename: getUserData.avatar_filename
+      }),
+    });
+  
+    if (!result.ok) {
+      // const data = await result.json();
+      throw new Error("Erro ao deletar avatar");
+    }
+
+    console.log("Avatar deletado com sucesso!");
+  
+    return result.json();
+  }
+
+  const { data: userData, isLoading: errorFetchData, error: errorData } = useQuery({
     queryKey: ["userData"],
-    queryFn: () => fetchUserData(token!),
+    queryFn: () => fetchUserData(),
     enabled: !!token,
   });
 
@@ -172,6 +191,21 @@ export default function ProfileEdit() {
     setModalVisible(false);
     pickImage();
   };
+
+  const { mutate: deletePhoto, error } = useMutation({
+    mutationFn: deleteAvatarRequest,
+    onSuccess: () => {
+      saveUserData({ ...getUserData, avatar_url: null });
+    },
+  });
+  
+  // ... resto do código ...
+  
+  async function deleteAvatar() {
+    deleteAvatarRequest();
+  }
+
+  
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -265,7 +299,7 @@ export default function ProfileEdit() {
 
               <View className="border-b-[0.2px] mb-[bg-bondis-text-gray w-full"></View>
 
-              <TouchableOpacity>
+              <TouchableOpacity onPress={deleteAvatar}>
                 <Text className="text-center text-base pt-4  text-[#EB4335] ">
                   Remover foto
                 </Text>
