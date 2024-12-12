@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Image,
+  StatusBar
 } from "react-native";
 import Left from "../../assets/arrow-left.svg";
 import { router } from "expo-router";
@@ -96,6 +97,7 @@ export default function DesafioSelect() {
           </Text>
         )}
       </View>
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </SafeAreaView>
   );
 }

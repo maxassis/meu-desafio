@@ -631,20 +631,20 @@ const Map: React.FC = () => {
 export default Map;
 
 const userPin = cva(
-  "h-[32px] w-[32px] rounded-full bg-black justify-center items-center",
+  "h-[50px] w-[50px] rounded-full bg-black justify-center items-center",
   {
     variants: {
       intent: {
-        user: "bg-bondis-green h-[35px] w-[35px] ",
+        user: "bg-bondis-green h-[58px] w-[58px] ",
       },
     },
   },
 );
 
-const photoUser = cva("h-[25px] w-[25px] rounded-full", {
+const photoUser = cva("h-[42px] w-[42px] rounded-full", {
   variants: {
     intent: {
-      user: "h-[28px] w-[28px]",
+      user: "h-[50px] w-[50px]",
     },
   },
 });

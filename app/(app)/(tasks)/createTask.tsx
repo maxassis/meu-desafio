@@ -7,7 +7,8 @@ import {
   View,
   TextInput,
   Modal,
-  Pressable
+  Pressable,
+  StatusBar
 } from "react-native";
 import KilometerMeterPicker, { KilometerMeterPickerModalRef } from "../../../components/distancePicker";
 import Left from "../../../assets/arrow-left.svg";
@@ -310,6 +311,7 @@ export default function TaskCreate() {
           <Text className="font-inter-bold text-base">Cadastrar atividade</Text>
         </TouchableOpacity>
       </ScrollView>
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </SafeAreaView>
   );
 }

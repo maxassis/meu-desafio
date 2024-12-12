@@ -8,6 +8,7 @@ import {
   TextInput,
   Modal,
   Pressable,
+  StatusBar
 } from "react-native";
 import KilometerMeterPicker, {
   KilometerMeterPickerModalRef,
@@ -357,6 +358,7 @@ export default function TaskEdit() {
           <Text className="font-inter-bold text-base">Cadastrar atividade</Text>
         </TouchableOpacity>
       </ScrollView>
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </SafeAreaView>
   );
 }

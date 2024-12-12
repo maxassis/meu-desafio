@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import tokenExists from "../../../store/auth-store";
-import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, StatusBar } from "react-native";
 import Left from "../../../assets/Icon-left.svg";
 import TaskItem from "../../../components/taskItem";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
@@ -217,7 +217,7 @@ export default function TaskList() {
           </View>
         </BottomSheetView>
       </BottomSheet>  
-
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />        
     </SafeAreaView>
   );
 }
