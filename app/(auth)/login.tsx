@@ -77,7 +77,7 @@ export default function Login() {
   };
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-white">
       <ScrollView>
       <View className="pt-[38px] px-5 bg-white flex-1">
         <View className="items-end mb-[10px]">

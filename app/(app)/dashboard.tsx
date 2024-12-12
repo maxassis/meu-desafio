@@ -69,7 +69,7 @@ export default function Profile() {
           <Logo />
           {getUserData.avatar_url ? (
              <Image
-             source={{ uri: `${getUserData.avatar_url}?t=${new Date().getTime()}` }}
+             source={{ uri: `${getUserData.avatar_url}` }}
              className="w-[72px] h-[72px] mt-auto rounded-full"
            />
           ) : (

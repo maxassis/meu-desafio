@@ -8,7 +8,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
-  StatusBar
+  StyleSheet,
 } from "react-native";
 import Left from "../../../assets/arrow-left.svg";
 import { useNavigation } from "@react-navigation/native";
@@ -20,6 +20,7 @@ import tokenExists from "../../../store/auth-store";
 import RNPickerSelect from "react-native-picker-select";
 import Modal from "react-native-modal";
 import userDataStore from "../../../store/user-data";
+import { router } from "expo-router";
 
 type File = {
   type: string;
@@ -112,7 +113,7 @@ export default function ProfileEdit() {
           // setImageUrl(responseData.avatar_url);
           // setReloadImage(reloadImage + 1);
           saveUserData({ ...getUserData, avatar_url: responseData.avatar_url });
-        }
+        } 
       } catch (error) {
         console.error("Upload error", error);
         Alert.alert("Erro", "Falha ao enviar imagem, tente novamente");
@@ -152,46 +153,28 @@ export default function ProfileEdit() {
   };
 
   async function submitForm() {
-    const result = await fetch(
-      "https://bondis-app-backend.onrender.com/users/edituserdata",
-      {
-        method: "PATCH",
-        headers: {
-          "Content-type": "application/json",
-          authorization: "Bearer " + token,
-        },
-        body: JSON.stringify({
-          full_name: nameValue ? nameValue : null,
-          bio: bioValue ? bioValue : null,
-          birthDate: unMaskedValue ? unMaskedValue : null,
-          gender: gender ? gender : null,
-          sport: sports ? sports : null,
-        }),
-      }
-    );
+    const result = await fetch("https://bondis-app-backend.onrender.com/users/edituserdata", {
+      method: "PATCH",
+      headers: {
+        "Content-type": "application/json",
+        authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({
+        full_name: nameValue ? nameValue : null,
+        bio: bioValue ? bioValue : null,
+        birthDate: unMaskedValue ? unMaskedValue : null,
+        gender: gender ? gender : null,
+        sport: sports ? sports : null,
+      }),
+    });
 
     const data = await result.json();
     if (result.ok) {
       console.log("success", data);
-
-      Alert.alert("Dados alterados com sucesso", "", [
-        {
-          text: "Ok",
-          style: "cancel",
-        },
-      ]);
     } else {
       console.log("error");
-
-      Alert.alert("Erro ao alterar dados", "", [
-        {
-          text: "Ok",
-          style: "cancel",
-        },
-      ]);
+      throw new Error(data.message);
     }
-
-    throw new Error(data.message);
   }
 
   const selectAvatar = () => {
@@ -200,22 +183,19 @@ export default function ProfileEdit() {
   };
 
   async function deleteAvatar() {
-    const result = await fetch(
-      `https://bondis-app-backend.onrender.com/users/deleteavatar`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-type": "application/json",
-          authorization: "Bearer " + token,
-        },
-        body: JSON.stringify({
-          filename: getUserData.avatar_url,
-        }),
-      }
-    );
+    const result = await fetch(`https://bondis-app-backend.onrender.com/users/deleteavatar`, {
+      method: "DELETE",
+      headers: {
+        "Content-type": "application/json",
+        authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({
+        filename: getUserData.avatar_url
+      }),
+    })
 
     const data = await result.json();
-    console.log(data);
+    console.log(data)
     if (result.ok) {
       console.log("success deleted", data);
       // setImageUrl("");
@@ -226,14 +206,14 @@ export default function ProfileEdit() {
       setModalVisible(false);
       throw new Error(data.message);
     }
-  }
+  } 
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView overScrollMode="never" bounces={false}>
         <View className="px-5 pb-8 pt-[38px] flex-1">
           <View className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
-            <Left onPress={() => navigation.goBack()} />
+            <Left onPress={() => router.back()} />
           </View>
           <Text className="font-inter-bold text-2xl mt-7">
             Mantenha seu perfil atualizado
@@ -245,9 +225,7 @@ export default function ProfileEdit() {
           >
             {getUserData.avatar_url ? (
               <Image
-                source={{
-                  uri: `${getUserData.avatar_url}?t=${new Date().getTime()}`,
-                }}
+                source={{ uri: `${getUserData.avatar_url}` }}
                 className="w-[94px] h-[94px] rounded-full"
               />
             ) : (
@@ -293,10 +271,10 @@ export default function ProfileEdit() {
             keyboardType="numeric"
           />
 
-          {/* <Text className="font-inter-bold text-base mt-[23px]">
+          <Text className="font-inter-bold text-base mt-[23px]">
             Como você se identifica?
           </Text>
-          <RNPickerSelect
+          {/* <RNPickerSelect
             style={pickerStyle}
             useNativeAndroidPickerStyle={false}
             onValueChange={(value) => setGender(value)}
@@ -335,7 +313,7 @@ export default function ProfileEdit() {
             <Text className="font-inter-bold text-base">Salvar alterações</Text>
           </TouchableOpacity>
 
-          {/* <Modal 
+          <Modal 
           isVisible={isModalVisible}
           onBackdropPress={() => setModalVisible(false)}
           onBackButtonPress={() => setModalVisible(false)} 
@@ -355,40 +333,39 @@ export default function ProfileEdit() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </Modal> */}
+          </Modal>
         </View>
       </ScrollView>
-      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </SafeAreaView>
   );
 }
 
-// const pickerStyle = StyleSheet.create({
-//   inputIOS: {
-//     backgroundColor: "#EEEEEE",
-//     fontSize: 14,
-//     height: 52,
-//     paddingHorizontal: 16,
-//     borderWidth: 1,
-//     borderRadius: 4,
-//     color: "black",
-//     paddingRight: 30,
-//   },
-//   inputAndroid: {
-//     backgroundColor: "#EEEEEE",
-//     fontSize: 14,
-//     height: 52,
-//     paddingHorizontal: 16,
-//     borderRadius: 4,
-//     color: "black",
-//     marginTop: 8,
-//   },
-//   placeholder: {
-//     color: "gray",
-//     fontSize: 14,
-//   },
-//   iconContainer: {
-//     top: 23,
-//     right: 12,
-//   },
-// });
+const pickerStyle = StyleSheet.create({
+  inputIOS: {
+    backgroundColor: "#EEEEEE",
+    fontSize: 14,
+    height: 52,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderRadius: 4,
+    color: "black",
+    paddingRight: 30,
+  },
+  inputAndroid: {
+    backgroundColor: "#EEEEEE",
+    fontSize: 14,
+    height: 52,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+    color: "black",
+    marginTop: 8,
+  },
+  placeholder: {
+    color: "gray",
+    fontSize: 14,
+  },
+  iconContainer: {
+    top: 23,
+    right: 12,
+  },
+});
