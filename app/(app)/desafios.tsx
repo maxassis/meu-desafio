@@ -46,7 +46,7 @@ export default function DesafioSelect() {
 
   const { data: desafios, isLoading, error } = useQuery({
     queryKey: ["desafios"],
-    queryFn: () => fetchDesafios(token),
+    queryFn: () => fetchDesafios(token!),
     enabled: !!token, // Só faz a requisição se o token existir
     retry: 1, // Número de tentativas em caso de erro
     staleTime: 1000 * 60 * 5, // Dados são considerados frescos por 5 minutos

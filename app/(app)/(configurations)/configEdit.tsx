@@ -21,6 +21,9 @@ import RNPickerSelect from "react-native-picker-select";
 import Modal from "react-native-modal";
 import userDataStore from "../../../store/user-data";
 import { router } from "expo-router";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+  
+
 
 type File = {
   type: string;
@@ -48,6 +51,34 @@ interface UserData {
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024;
 
+async function fetchUserData(token: string): Promise<UserData> {
+  const response = await fetch("https://bondis-app-backend.onrender.com/users/getUserData", {
+    headers: {
+      "Content-type": "application/json",
+      authorization: "Bearer " + token,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Erro ao buscar os dados do usuário");
+  }
+
+  return response.json();
+}
+
+const getFileSize = async (uri: string) => {
+  try {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    return blob.size;
+  } catch (error) {
+    console.error("Erro ao obter o tamanho do arquivo:", error);
+    return 0;
+  }
+};
+
+
+
 export default function ProfileEdit() {
   const token = tokenExists((state) => state.token);
   const navigation = useNavigation<any>();
@@ -56,26 +87,58 @@ export default function ProfileEdit() {
   const [bioValue, setBioValue] = useState("");
   const [nameValue, setNameValue] = useState("");
   const [unMaskedValue, setUnmaskedValue] = useState("");
-  // const [imageUrl, setImageUrl] = useState("");
-  // const [userData, setUserData] = useState<UserData>({} as UserData);
-  // const [reloadImage, setReloadImage] = useState(0);
   const [isModalVisible, setModalVisible] = useState(false);
   const saveUserData = userDataStore((state) => state.setUserData);
   const getUserData = userDataStore((state) => state.data);
+  
 
-  const pickImage = async () => {
+  async function uploadAvatar(formData: FormData): Promise<uploadAvatarResponse> {
+    const response = await fetch("https://bondis-app-backend.onrender.com/users/uploadavatar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "multipart/form-data",
+        authorization: "Bearer " + token,
+      },
+      body: formData,
+    });
+  
+    if (!response.ok) {
+      throw new Error("Erro ao fazer upload do avatar");
+    }
+  
+    return response.json();
+  }
+
+  const { data: userData, isLoading, error } = useQuery({
+    queryKey: ["userData"],
+    queryFn: () => fetchUserData(token!),
+    enabled: !!token,
+  });
+
+  useEffect(() => {
+    if (userData) {
+      saveUserData(userData);
+      setGender(userData.gender ?? "");
+      setSports(userData.sport ?? "");
+      setNameValue(userData.full_name ?? "");
+      setBioValue(userData.bio ?? "");
+    }
+  }, [userData]);
+
+  const pickImage = async (
+  ) => {
     let { assets, canceled } = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
       aspect: [4, 4],
-      quality: 0,
+      quality: 0.5,
       base64: true,
       allowsMultipleSelection: false,
     });
-
+  
     if (!canceled && assets) {
       const fileSize = assets[0].uri ? await getFileSize(assets[0].uri) : 0;
-
+  
       if (fileSize > MAX_FILE_SIZE) {
         Alert.alert(
           "Erro",
@@ -83,37 +146,21 @@ export default function ProfileEdit() {
         );
         return;
       }
-
+  
       const filename = assets[0].uri.split("/").pop();
       const extend = filename!.split(".").pop();
-
+  
       const formData = new FormData();
       formData.append("file", {
         name: filename,
         uri: assets[0].uri,
         type: "image/" + extend,
       } as any);
-
+  
       try {
-        const response = await fetch(
-          "https://bondis-app-backend.onrender.com/users/uploadavatar",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "multipart/form-data",
-              authorization: "Bearer " + token,
-            },
-            body: formData,
-          }
-        );
-
-        if (response.ok) {
-          const responseData: uploadAvatarResponse = await response.json();
-          console.log("Upload successful", responseData);
-          // setImageUrl(responseData.avatar_url);
-          // setReloadImage(reloadImage + 1);
-          saveUserData({ ...getUserData, avatar_url: responseData.avatar_url });
-        } 
+        const responseData = await uploadAvatar(formData);
+        console.log("Upload successful", responseData);
+        saveUserData({ ...getUserData, avatar_url: responseData.avatar_url });
       } catch (error) {
         console.error("Upload error", error);
         Alert.alert("Erro", "Falha ao enviar imagem, tente novamente");
@@ -121,99 +168,17 @@ export default function ProfileEdit() {
     }
   };
 
-  useEffect(() => {
-    // setReloadImage(reloadImage + 1);
-    fetch("https://bondis-app-backend.onrender.com/users/getUserData", {
-      headers: {
-        "Content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-    })
-      .then((response) => response.json() as Promise<UserData>)
-      .then((data) => {
-        // setUserData(data);
-        saveUserData(data);
-        setGender(data.gender ?? "");
-        setSports(data.sport ?? "");
-        setNameValue(data.full_name ?? "");
-        setBioValue(data.bio ?? "");
-        // setImageUrl(data.avatar_url ?? "");
-      });
-  }, []);
-
-  const getFileSize = async (uri: string) => {
-    try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      return blob.size;
-    } catch (error) {
-      console.error("Erro ao obter o tamanho do arquivo:", error);
-      return 0;
-    }
-  };
-
-  async function submitForm() {
-    const result = await fetch("https://bondis-app-backend.onrender.com/users/edituserdata", {
-      method: "PATCH",
-      headers: {
-        "Content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-      body: JSON.stringify({
-        full_name: nameValue ? nameValue : null,
-        bio: bioValue ? bioValue : null,
-        birthDate: unMaskedValue ? unMaskedValue : null,
-        gender: gender ? gender : null,
-        sport: sports ? sports : null,
-      }),
-    });
-
-    const data = await result.json();
-    if (result.ok) {
-      console.log("success", data);
-    } else {
-      console.log("error");
-      throw new Error(data.message);
-    }
-  }
-
   const selectAvatar = () => {
     setModalVisible(false);
     pickImage();
   };
-
-  async function deleteAvatar() {
-    const result = await fetch(`https://bondis-app-backend.onrender.com/users/deleteavatar`, {
-      method: "DELETE",
-      headers: {
-        "Content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-      body: JSON.stringify({
-        filename: getUserData.avatar_url
-      }),
-    })
-
-    const data = await result.json();
-    console.log(data)
-    if (result.ok) {
-      console.log("success deleted", data);
-      // setImageUrl("");
-      saveUserData({ ...getUserData, avatar_url: "" });
-      setModalVisible(false);
-    } else {
-      console.log("error");
-      setModalVisible(false);
-      throw new Error(data.message);
-    }
-  } 
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView overScrollMode="never" bounces={false}>
         <View className="px-5 pb-8 pt-[38px] flex-1">
           <View className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
-            <Left onPress={() => router.back()} />
+            <Left onPress={() => navigation.goBack()} />
           </View>
           <Text className="font-inter-bold text-2xl mt-7">
             Mantenha seu perfil atualizado
@@ -274,40 +239,13 @@ export default function ProfileEdit() {
           <Text className="font-inter-bold text-base mt-[23px]">
             Como você se identifica?
           </Text>
-          {/* <RNPickerSelect
-            style={pickerStyle}
-            useNativeAndroidPickerStyle={false}
-            onValueChange={(value) => setGender(value)}
-            Icon={() => <Down />}
-            value={gender}
-            placeholder={{ label: "Selecione", value: null }}
-            items={[
-              { label: "Homem", value: "homem" },
-              { label: "Mulher", value: "mulher" },
-              { label: "Não binário", value: "nao_binario" },
-              {
-                label: "Prefiro não responder",
-                value: "prefiro_nao_responder",
-              },
-            ]}
-          /> */}
+        
 
           <Text className="font-inter-bold text-base mt-[23px]">Esportes</Text>
-          {/* <RNPickerSelect
-            style={pickerStyle}
-            useNativeAndroidPickerStyle={false}
-            onValueChange={(value) => setSports(value)}
-            Icon={() => <Down />}
-            value={sports}
-            placeholder={{ label: "Selecione", value: null }}
-            items={[
-              { label: "Corrida", value: "corrida" },
-              { label: "Ciclismo", value: "ciclismo" },
-            ]}
-          /> */}
+         
 
           <TouchableOpacity
-            onPress={submitForm}
+            // onPress={submitForm}
             className="h-[52px] bg-bondis-green mt-8 rounded-full justify-center items-center"
           >
             <Text className="font-inter-bold text-base">Salvar alterações</Text>
@@ -327,7 +265,7 @@ export default function ProfileEdit() {
 
               <View className="border-b-[0.2px] mb-[bg-bondis-text-gray w-full"></View>
 
-              <TouchableOpacity onPress={deleteAvatar}>
+              <TouchableOpacity>
                 <Text className="text-center text-base pt-4  text-[#EB4335] ">
                   Remover foto
                 </Text>
@@ -339,33 +277,3 @@ export default function ProfileEdit() {
     </SafeAreaView>
   );
 }
-
-const pickerStyle = StyleSheet.create({
-  inputIOS: {
-    backgroundColor: "#EEEEEE",
-    fontSize: 14,
-    height: 52,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderRadius: 4,
-    color: "black",
-    paddingRight: 30,
-  },
-  inputAndroid: {
-    backgroundColor: "#EEEEEE",
-    fontSize: 14,
-    height: 52,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-    color: "black",
-    marginTop: 8,
-  },
-  placeholder: {
-    color: "gray",
-    fontSize: 14,
-  },
-  iconContainer: {
-    top: 23,
-    right: 12,
-  },
-});
