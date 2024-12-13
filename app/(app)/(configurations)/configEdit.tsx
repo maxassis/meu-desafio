@@ -15,9 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import User from "../../../assets/user.svg";
 import { MaskedTextInput } from "react-native-mask-text";
 import * as ImagePicker from "expo-image-picker";
-import Down from "../../../assets/down.svg";
 import tokenExists from "../../../store/auth-store";
-import RNPickerSelect from "react-native-picker-select";
 import Modal from "react-native-modal";
 import userDataStore from "../../../store/user-data";
 import { router } from "expo-router";
@@ -266,7 +264,7 @@ export default function ProfileEdit() {
       <ScrollView overScrollMode="never" bounces={false}>
         <View className="px-5 pb-8 pt-[38px] flex-1">
           <View className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
-            <Left onPress={() => navigation.goBack()} />
+            <Left onPress={() => router.back()} />
           </View>
           <Text className="font-inter-bold text-2xl mt-7">
             Mantenha seu perfil atualizado
