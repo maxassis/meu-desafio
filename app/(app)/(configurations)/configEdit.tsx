@@ -19,7 +19,8 @@ import tokenExists from "../../../store/auth-store";
 import Modal from "react-native-modal";
 import userDataStore from "../../../store/user-data";
 import { router } from "expo-router";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 type File = {
   type: string;
@@ -43,6 +44,7 @@ interface UserData {
   createdAt: Date;
   usersId: string;
   name: string;
+  birthDate: string | null;
 }
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024;
@@ -67,9 +69,10 @@ export default function ProfileEdit() {
   const [nameValue, setNameValue] = useState("");
   const [unMaskedValue, setUnmaskedValue] = useState("");
   const [isModalVisible, setModalVisible] = useState(false);
-  const saveUserData = userDataStore((state) => state.setUserData);
   const getUserData = userDataStore((state) => state.data);
+  const saveUserData = userDataStore((state) => state.setUserData);
 
+  
   async function fetchUserData(): Promise<UserData> {
     const response = await fetch(
       "https://bondis-app-backend.onrender.com/users/getUserData",
@@ -87,6 +90,26 @@ export default function ProfileEdit() {
 
     return response.json();
   }
+
+  const {
+    data: userData,
+    isLoading: errorFetchData,
+    error: errorData,
+  } = useQuery({
+    queryKey: ["userData"],
+    queryFn: () => fetchUserData(),
+    enabled: !!token,
+  });
+
+  useEffect(() => {
+    if (userData) {
+      setGender(userData.gender ?? "");
+      setSports(userData.sport ?? "");
+      setNameValue(userData.full_name ?? ""); 
+      setBioValue(userData.bio ?? "");
+      setUnmaskedValue(userData.birthDate ?? "");
+    }
+  }, [userData]);
 
   async function uploadAvatar(
     formData: FormData
@@ -106,8 +129,7 @@ export default function ProfileEdit() {
     if (!response.ok) {
       Alert.alert("Erro ao fazer upload do avatar");
       throw new Error("Erro ao fazer upload do avatar");
-    }
-
+    }    
     Alert.alert("Avatar atualizado com sucesso!");
 
     return response.json();
@@ -128,34 +150,21 @@ export default function ProfileEdit() {
       }
     );
 
+    setModalVisible(false);
+
     if (!result.ok) {
-      // const data = await result.json();
+      console.log("Erro ao deletar avatar", result);
+      
+      Alert.alert("Erro ao deletar avatar");
       throw new Error("Erro ao deletar avatar");
     }
-    console.log("Avatar deletado com sucesso!");
+    saveUserData({ usersId: getUserData.usersId, avatar_url: null, avatar_filename: null });
+    Alert.alert("Avatar deletado com sucesso!");
+
     return result.json();
   }
 
-  const {
-    data: userData,
-    isLoading: errorFetchData,
-    error: errorData,
-  } = useQuery({
-    queryKey: ["userData"],
-    queryFn: () => fetchUserData(),
-    enabled: !!token,
-  });
-
-  useEffect(() => {
-    if (userData) {
-      saveUserData(userData);
-      setGender(userData.gender ?? "");
-      setSports(userData.sport ?? "");
-      setNameValue(userData.full_name ?? "");
-      setBioValue(userData.bio ?? "");
-    }
-  }, [userData]);
-
+ 
   const pickImage = async () => {
     let { assets, canceled } = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -203,19 +212,6 @@ export default function ProfileEdit() {
     pickImage();
   };
 
-  const { mutate: deleteAvatar, isPending: isDeleting } = useMutation({
-    mutationFn: deleteAvatarRequest,
-    onSuccess: () => {
-      saveUserData({ ...getUserData, avatar_url: null, avatar_filename: null });
-      console.log("Avatar deletado com sucesso!");
-      Alert.alert("Sucesso", "Avatar removido com sucesso.");
-    },
-    onError: (error) => {
-      console.error("Erro ao deletar avatar:", error);
-      Alert.alert("Erro", "Não foi possível remover o avatar.");
-    },
-  });
-
   const {
     mutate: submitForm,
     isPending: isSubmitting,
@@ -233,9 +229,9 @@ export default function ProfileEdit() {
           body: JSON.stringify({
             full_name: nameValue || null,
             bio: bioValue || null,
-            birthDate: unMaskedValue || null,
             gender: gender || null,
             sport: sports || null,
+            birthDate: unMaskedValue || null,
           }),
         }
       );
@@ -276,7 +272,7 @@ export default function ProfileEdit() {
           >
             {getUserData.avatar_url ? (
               <Image
-                source={{ uri: `${getUserData.avatar_url}` }}
+                source={{ uri: getUserData.avatar_url }}
                 className="w-[94px] h-[94px] rounded-full"
               />
             ) : (
@@ -318,6 +314,7 @@ export default function ProfileEdit() {
             onChangeText={(text, rawText) => {
               setUnmaskedValue(rawText);
             }}
+            value={unMaskedValue}
             className="bg-bondis-text-gray rounded-[4px] h-[52px] mt-2 pl-4"
             keyboardType="numeric"
           />
