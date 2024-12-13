@@ -8,7 +8,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
-  StyleSheet,
+  StatusBar
 } from "react-native";
 import Left from "../../../assets/arrow-left.svg";
 import { useNavigation } from "@react-navigation/native";
@@ -22,7 +22,7 @@ import Modal from "react-native-modal";
 import userDataStore from "../../../store/user-data";
 import { router } from "expo-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-  
+
 type File = {
   type: string;
   uri: string;
@@ -71,63 +71,78 @@ export default function ProfileEdit() {
   const [isModalVisible, setModalVisible] = useState(false);
   const saveUserData = userDataStore((state) => state.setUserData);
   const getUserData = userDataStore((state) => state.data);
-  
 
   async function fetchUserData(): Promise<UserData> {
-    const response = await fetch("https://bondis-app-backend.onrender.com/users/getUserData", {
-      headers: {
-        "Content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-    });
-  
+    const response = await fetch(
+      "https://bondis-app-backend.onrender.com/users/getUserData",
+      {
+        headers: {
+          "Content-type": "application/json",
+          authorization: "Bearer " + token,
+        },
+      }
+    );
+
     if (!response.ok) {
       throw new Error("Erro ao buscar os dados do usuário");
     }
-  
+
     return response.json();
   }
 
-  async function uploadAvatar(formData: FormData): Promise<uploadAvatarResponse> {
-    const response = await fetch("https://bondis-app-backend.onrender.com/users/uploadavatar", {
-      method: "POST",
-      headers: {
-        "Content-Type": "multipart/form-data",
-        authorization: "Bearer " + token,
-      },
-      body: formData,
-    });
-  
+  async function uploadAvatar(
+    formData: FormData
+  ): Promise<uploadAvatarResponse> {
+    const response = await fetch(
+      "https://bondis-app-backend.onrender.com/users/uploadavatar",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "multipart/form-data",
+          authorization: "Bearer " + token,
+        },
+        body: formData,
+      }
+    );
+
     if (!response.ok) {
+      Alert.alert("Erro ao fazer upload do avatar");
       throw new Error("Erro ao fazer upload do avatar");
     }
-  
+
+    Alert.alert("Avatar atualizado com sucesso!");
+
     return response.json();
   }
 
-
   async function deleteAvatarRequest() {
-    const result = await fetch(`https://bondis-app-backend.onrender.com/users/deleteavatar`, {
-      method: "DELETE",
-      headers: {
-        "Content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-      body: JSON.stringify({
-        filename: getUserData.avatar_filename
-      }),
-    });
-  
+    const result = await fetch(
+      `https://bondis-app-backend.onrender.com/users/deleteavatar`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-type": "application/json",
+          authorization: "Bearer " + token,
+        },
+        body: JSON.stringify({
+          filename: getUserData.avatar_filename,
+        }),
+      }
+    );
+
     if (!result.ok) {
       // const data = await result.json();
       throw new Error("Erro ao deletar avatar");
     }
     console.log("Avatar deletado com sucesso!");
-  
     return result.json();
   }
 
-  const { data: userData, isLoading: errorFetchData, error: errorData } = useQuery({
+  const {
+    data: userData,
+    isLoading: errorFetchData,
+    error: errorData,
+  } = useQuery({
     queryKey: ["userData"],
     queryFn: () => fetchUserData(),
     enabled: !!token,
@@ -143,8 +158,7 @@ export default function ProfileEdit() {
     }
   }, [userData]);
 
-  const pickImage = async (
-  ) => {
+  const pickImage = async () => {
     let { assets, canceled } = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
@@ -153,10 +167,10 @@ export default function ProfileEdit() {
       base64: true,
       allowsMultipleSelection: false,
     });
-  
+
     if (!canceled && assets) {
       const fileSize = assets[0].uri ? await getFileSize(assets[0].uri) : 0;
-  
+
       if (fileSize > MAX_FILE_SIZE) {
         Alert.alert(
           "Erro",
@@ -164,17 +178,17 @@ export default function ProfileEdit() {
         );
         return;
       }
-  
+
       const filename = assets[0].uri.split("/").pop();
       const extend = filename!.split(".").pop();
-  
+
       const formData = new FormData();
       formData.append("file", {
         name: filename,
         uri: assets[0].uri,
         type: "image/" + extend,
       } as any);
-  
+
       try {
         const responseData = await uploadAvatar(formData);
         console.log("Upload successful", responseData);
@@ -191,13 +205,62 @@ export default function ProfileEdit() {
     pickImage();
   };
 
-  const { mutate: deletePhoto, error } = useMutation({
+  const { mutate: deleteAvatar, isPending: isDeleting } = useMutation({
     mutationFn: deleteAvatarRequest,
     onSuccess: () => {
-      saveUserData({ ...getUserData, avatar_url: null });
+      saveUserData({ ...getUserData, avatar_url: null, avatar_filename: null });
+      console.log("Avatar deletado com sucesso!");
+      Alert.alert("Sucesso", "Avatar removido com sucesso.");
+    },
+    onError: (error) => {
+      console.error("Erro ao deletar avatar:", error);
+      Alert.alert("Erro", "Não foi possível remover o avatar.");
     },
   });
-  
+
+  const {
+    mutate: submitForm,
+    isPending: isSubmitting,
+    error: submitError,
+  } = useMutation({
+    mutationFn: async () => {
+      const result = await fetch(
+        "https://bondis-app-backend.onrender.com/users/edituserdata",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-type": "application/json",
+            authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            full_name: nameValue || null,
+            bio: bioValue || null,
+            birthDate: unMaskedValue || null,
+            gender: gender || null,
+            sport: sports || null,
+          }),
+        }
+      );
+
+      if (!result.ok) {
+        const data = await result.json();
+        Alert.alert("Erro ao salvar alterações");
+        throw new Error(data.message || "Erro ao salvar alterações");        
+      }
+
+      Alert.alert("Sucesso", "Alterações salvas com sucesso!");
+      return result.json();
+    },
+    onSuccess: (data) => {
+      console.log("Alterações salvas com sucesso", data);
+      Alert.alert("Sucesso", "Alterações salvas com sucesso!");
+    },
+    onError: (error) => {
+      console.error("Erro ao salvar alterações:", error);
+      Alert.alert("Erro", "Não foi possível salvar as alterações.");
+    },
+  });
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView overScrollMode="never" bounces={false}>
@@ -264,22 +327,23 @@ export default function ProfileEdit() {
           <Text className="font-inter-bold text-base mt-[23px]">
             Como você se identifica?
           </Text>
-        
 
           <Text className="font-inter-bold text-base mt-[23px]">Esportes</Text>
-         
 
           <TouchableOpacity
-            // onPress={submitForm}
-            className="h-[52px] bg-bondis-green mt-8 rounded-full justify-center items-center"
+            onPress={() => submitForm()}
+            disabled={isSubmitting}
+            className="h-[52px] mt-8 rounded-full justify-center items-center bg-bondis-green"
           >
-            <Text className="font-inter-bold text-base">Salvar alterações</Text>
+            <Text className="font-inter-bold text-base">
+              {isSubmitting ? "Salvando..." : "Salvar alterações"}
+            </Text>
           </TouchableOpacity>
 
-          <Modal 
-          isVisible={isModalVisible}
-          onBackdropPress={() => setModalVisible(false)}
-          onBackButtonPress={() => setModalVisible(false)} 
+          <Modal
+            isVisible={isModalVisible}
+            onBackdropPress={() => setModalVisible(false)}
+            onBackButtonPress={() => setModalVisible(false)}
           >
             <View className="w-full h-32 bg-white rounded-lg justify-center items-center px-4">
               <TouchableOpacity className="w-full pb-4" onPress={selectAvatar}>
@@ -290,7 +354,10 @@ export default function ProfileEdit() {
 
               <View className="border-b-[0.2px] mb-[bg-bondis-text-gray w-full"></View>
 
-              <TouchableOpacity className="w-full" onPress={deleteAvatarRequest}>
+              <TouchableOpacity
+                className="w-full"
+                onPress={deleteAvatarRequest}
+              >
                 <Text className="text-center text-base pt-4  text-[#EB4335] ">
                   Remover foto
                 </Text>
@@ -299,6 +366,7 @@ export default function ProfileEdit() {
           </Modal>
         </View>
       </ScrollView>
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </SafeAreaView>
   );
 }
