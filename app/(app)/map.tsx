@@ -171,19 +171,17 @@ const calculateUserDistance = (
 const formatPercentage = (progress: number): string => {
   return progress.toLocaleString("en-US", {
     minimumIntegerDigits: 2,
-    // minimumFractionDigits: 2,
     maximumFractionDigits: 1,
   });
 };
 
-// console.log(GOOGLE_MAPS_API_KEY);
 
 const Map: React.FC = () => {
   const [totalDistance, setTotalDistance] = useState<number>(0);
   const [userProgress, setUserProgress] = useState<number>(0);
   const [userDistance, setUserDistance] = useState<number>(0);
   const [userLocation, setUserLocation] = useState<Coordinate | null>(null);
-  const [location, setLocation] = useState<LocationObject | null>(null);
+  // const [location, setLocation] = useState<LocationObject | null>(null);
   const [usersParticipants, setUsersParticipants] = useState<
     UserParticipation[]
   >([]);
@@ -253,19 +251,20 @@ const Map: React.FC = () => {
     [routeCoordinates],
   );
 
-  async function requestLocationPermissions() {
-    const { granted } = await requestForegroundPermissionsAsync();
+  // async function requestLocationPermissions() {
+  //   const { granted } = await requestForegroundPermissionsAsync();
 
-    if (granted) {
-      const currentPosition = await getCurrentPositionAsync();
+  //   if (granted) {
+  //     const currentPosition = await getCurrentPositionAsync();
+      
 
-      setLocation(currentPosition);
-    }
-  }
+  //     // setLocation(currentPosition);
+  //   }
+  // }
 
-  useEffect(() => {
-    requestLocationPermissions();
-  }, []);
+  // useEffect(() => {
+  //   requestLocationPermissions();
+  // }, []);
 
   useEffect(() => {
     const fetchDesafio = async () => {
@@ -402,6 +401,7 @@ const Map: React.FC = () => {
                   : { zIndex: index, elevation: index }
               }
               tracksViewChanges={showMarker}
+              title={`${user.name} - ${user.distance} Km`}
             >
               <View
                 className={userPin({
@@ -420,18 +420,18 @@ const Map: React.FC = () => {
                 ) : (
                   <Image
                     source={require("../../assets/user2.png")}
-                    className="h-[30px] w-[30px] rounded-full "
+                    className="h-[32px] w-[32px] rounded-full "
                   />
                 )}
               </View>
-              <Callout tooltip>
+              {/* <Callout tooltip>
                 <View className="p-1 w-[150px] bg-bondis-black mb-2 justify-center items-center rounded-md">
                   <Text className="text-bondis-green font-inter-bold">
                     {user.name}
                   </Text>
                   <Text className="text-white">{user.distance} Km</Text>
                 </View>
-              </Callout>
+              </Callout> */}
             </Marker>
           ))}
 
@@ -631,20 +631,20 @@ const Map: React.FC = () => {
 export default Map;
 
 const userPin = cva(
-  "h-[50px] w-[50px] rounded-full bg-black justify-center items-center",
+  "h-[35px] w-[35px] rounded-full bg-black justify-center items-center",
   {
     variants: {
       intent: {
-        user: "bg-bondis-green h-[58px] w-[58px] ",
+        user: "bg-bondis-green h-[40px] w-[40px] ",
       },
     },
   },
 );
 
-const photoUser = cva("h-[42px] w-[42px] rounded-full", {
+const photoUser = cva("h-[30px] w-[30px] rounded-full", {
   variants: {
     intent: {
-      user: "h-[50px] w-[50px]",
+      user: "h-[35px] w-[35px]",
     },
   },
 });
