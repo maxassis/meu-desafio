@@ -10,9 +10,10 @@ import {
   StatusBar,
   FlatList,
   StyleSheet,
+  ActivityIndicator,
+  BackHandler 
 } from "react-native";
 import Left from "../../../assets/arrow-left.svg";
-import { useNavigation } from "@react-navigation/native";
 import User from "../../../assets/user.svg";
 import { MaskedTextInput } from "react-native-mask-text";
 import * as ImagePicker from "expo-image-picker";
@@ -22,6 +23,7 @@ import userDataStore from "../../../store/user-data";
 import { router } from "expo-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import DropDownPicker from "react-native-dropdown-picker";
+import { cva } from "class-variance-authority";
 
 type File = {
   type: string;
@@ -63,7 +65,6 @@ const getFileSize = async (uri: string) => {
 
 export default function ProfileEdit() {
   const token = tokenExists((state) => state.token);
-  const [sports, setSports] = useState("");
   const [bioValue, setBioValue] = useState("");
   const [nameValue, setNameValue] = useState("");
   const [unMaskedValue, setUnmaskedValue] = useState("");
@@ -87,6 +88,8 @@ export default function ProfileEdit() {
     { label: "Bicicleta", value: "bicicleta" },
   ]);
 
+  const [loadingUpload, setLoadingUpload] = useState(false);
+ 
   async function fetchUserData(): Promise<UserData> {
     const response = await fetch(
       "https://bondis-app-backend.onrender.com/users/getUserData",
@@ -128,6 +131,8 @@ export default function ProfileEdit() {
   async function uploadAvatar(
     formData: FormData
   ): Promise<uploadAvatarResponse> {
+    setLoadingUpload(true);
+
     const response = await fetch(
       "https://bondis-app-backend.onrender.com/users/uploadavatar",
       {
@@ -144,12 +149,15 @@ export default function ProfileEdit() {
       Alert.alert("Erro ao fazer upload do avatar");
       throw new Error("Erro ao fazer upload do avatar");
     }
-    Alert.alert("Avatar atualizado com sucesso!");
-
+    setModalVisible(false);
+    setLoadingUpload(false);
+    
     return response.json();
   }
 
   async function deleteAvatarRequest() {
+    setLoadingUpload(true);
+
     const result = await fetch(
       `https://bondis-app-backend.onrender.com/users/deleteavatar`,
       {
@@ -165,6 +173,7 @@ export default function ProfileEdit() {
     );
 
     setModalVisible(false);
+    setLoadingUpload(false);
 
     if (!result.ok) {
       console.log("Erro ao deletar avatar", result);
@@ -177,7 +186,6 @@ export default function ProfileEdit() {
       avatar_url: null,
       avatar_filename: null,
     });
-    Alert.alert("Avatar deletado com sucesso!");
 
     return result.json();
   }
@@ -217,6 +225,7 @@ export default function ProfileEdit() {
         const responseData = await uploadAvatar(formData);
         console.log("Upload successful", responseData);
         saveUserData({ ...getUserData, avatar_url: responseData.avatar_url });
+        // setModalVisible(false);
       } catch (error) {
         console.error("Upload error", error);
         Alert.alert("Erro", "Falha ao enviar imagem, tente novamente");
@@ -224,10 +233,6 @@ export default function ProfileEdit() {
     }
   };
 
-  const selectAvatar = () => {
-    setModalVisible(false);
-    pickImage();
-  };
 
   const {
     mutate: submitForm,
@@ -272,6 +277,23 @@ export default function ProfileEdit() {
     },
   });
 
+
+  const onBackPress = () => {
+    if (genderOpen || sportsOpen) {
+      setGenderOpen(false);
+      setSportsOpen(false);
+      return true; 
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+    return () => backHandler.remove(); 
+  }, [genderOpen, sportsOpen]);
+
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <FlatList
@@ -282,7 +304,7 @@ export default function ProfileEdit() {
         ListHeaderComponent={
           <View className="px-5 pb-8 pt-[38px] flex-1">
             <View className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
-              <Left onPress={() => router.back()} />
+              <Left onPress={() => router.push("/configInit")} />
             </View>
             <Text className="font-inter-bold text-2xl mt-7">
               Mantenha seu perfil atualizado
@@ -291,6 +313,7 @@ export default function ProfileEdit() {
             <TouchableOpacity
               onPress={() => setModalVisible(true)}
               className="h-[94px] w-[94px] mt-8 relative"
+              disabled={loadingUpload}
             >
               {getUserData.avatar_url ? (
                 <Image
@@ -345,36 +368,36 @@ export default function ProfileEdit() {
               Como você se identifica?
             </Text>
             <View style={{ zIndex: 2000 }}>
-            <DropDownPicker
-              placeholder="Selecione"
-              open={genderOpen}
-              value={genderValue}
-              items={genderItems}
-              setOpen={setGenderOpen}
-              setValue={setGenderValue}
-              setItems={setGenderItems}
-              style={styles.picker}
-              dropDownDirection="BOTTOM"
-              dropDownContainerStyle={styles.drop}
-            />
-           </View>
+              <DropDownPicker
+                placeholder="Selecione"
+                open={genderOpen}
+                value={genderValue}
+                items={genderItems}
+                setOpen={setGenderOpen}
+                setValue={setGenderValue}
+                setItems={setGenderItems}
+                style={styles.picker}
+                dropDownDirection="BOTTOM"
+                dropDownContainerStyle={styles.drop}
+              />
+            </View>
 
             <Text className="font-inter-bold text-base mt-[23px]">
               Esportes
             </Text>
             <View style={{ zIndex: 1000 }}>
-            <DropDownPicker
-              placeholder="Selecione"
-              open={sportsOpen}
-              value={sportsValue}
-              items={sportsItems}
-              setOpen={setSportsOpen}
-              setValue={setSportsValue}
-              setItems={setSportsItems}
-              style={styles.picker}
-              dropDownDirection="BOTTOM"
-              dropDownContainerStyle={styles.drop}
-            />
+              <DropDownPicker
+                placeholder="Selecione"
+                open={sportsOpen}
+                value={sportsValue}
+                items={sportsItems}
+                setOpen={setSportsOpen}
+                setValue={setSportsValue}
+                setItems={setSportsItems}
+                style={styles.picker}
+                dropDownDirection="BOTTOM"
+                dropDownContainerStyle={styles.drop}
+              />
             </View>
 
             <TouchableOpacity
@@ -393,25 +416,37 @@ export default function ProfileEdit() {
               onBackButtonPress={() => setModalVisible(false)}
             >
               <View className="w-full h-32 bg-white rounded-lg justify-center items-center px-4">
-                <TouchableOpacity
-                  className="w-full pb-4"
-                  onPress={selectAvatar}
-                >
-                  <Text className="text-center text-base ">
-                    Escolher uma foto na galeria
-                  </Text>
-                </TouchableOpacity>
+                {!loadingUpload ? (
+                  <>
+                    <TouchableOpacity
+                      className="w-full pb-4"
+                      onPress={pickImage}
+                    >
+                      <Text className="text-center text-base ">
+                        Escolher uma foto na galeria
+                      </Text>
+                    </TouchableOpacity>
 
-                <View className="border-b-[0.2px] mb-[bg-bondis-text-gray w-full"></View>
+                    <View className="border-b-[0.2px] mb-[bg-bondis-text-gray w-full"></View>
 
-                <TouchableOpacity
-                  className="w-full"
-                  onPress={deleteAvatarRequest}
-                >
-                  <Text className="text-center text-base pt-4  text-[#EB4335] ">
-                    Remover foto
-                  </Text>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                      className="w-full"
+                      onPress={deleteAvatarRequest}
+                      disabled={getUserData.avatar_url ? false : true}
+                    >
+                      <Text className={disabledDeleteBtn({intent: !getUserData.avatar_url ? "disabled" : null})}>
+                        Remover foto
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <View className="flex-row justify-center items-center">
+                    <Text className="font-inter-bold text-base mr-3">
+                      Carregando...
+                    </Text>
+                    <ActivityIndicator size="large" color="#12FF55" />
+                  </View>
+                )}
               </View>
             </Modal>
           </View>
@@ -431,12 +466,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#EEEEEE",
     marginTop: 8,
     borderColor: "transparent",
-    zIndex: 1000
+    zIndex: 1000,
   },
   drop: {
     borderColor: "transparent",
     borderWidth: 0,
     backgroundColor: "#EEEEEE",
     marginTop: 9,
-  }
+  },
 });
+
+const disabledDeleteBtn = cva("text-center text-base pt-4 text-[#EB4335]", {
+  variants: {
+    intent: {
+      disabled: "opacity-50",
+    },
+  },
+});
+
+

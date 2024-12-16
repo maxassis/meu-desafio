@@ -29,7 +29,7 @@ export default function MenuConfigurations() {
   return (
     <SafeAreaView className="flex-1 bg-white ">
       <View className="px-5 pb-4 pt-[38px] flex-1">
-      <TouchableOpacity onPress={() => router.back()} className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
+      <TouchableOpacity onPress={() => router.push("/dashboard")} className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
         <Left  />
       </TouchableOpacity>
 

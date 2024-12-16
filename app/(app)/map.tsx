@@ -14,13 +14,6 @@ import MapView, {
   Marker,
   Callout,
 } from "react-native-maps";
-import {
-  requestForegroundPermissionsAsync,
-  getCurrentPositionAsync,
-  LocationObject,
-  watchPositionAsync,
-  LocationAccuracy,
-} from "expo-location";
 import { mapStyle } from "../../styles/mapStyles";
 import tokenExists from "../../store/auth-store";
 import userDataStore from "../../store/user-data";
