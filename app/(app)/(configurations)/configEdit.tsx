@@ -11,7 +11,7 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
-  BackHandler 
+  BackHandler,
 } from "react-native";
 import Left from "../../../assets/arrow-left.svg";
 import User from "../../../assets/user.svg";
@@ -89,7 +89,7 @@ export default function ProfileEdit() {
   ]);
 
   const [loadingUpload, setLoadingUpload] = useState(false);
- 
+
   async function fetchUserData(): Promise<UserData> {
     const response = await fetch(
       "https://bondis-app-backend.onrender.com/users/getUserData",
@@ -152,7 +152,7 @@ export default function ProfileEdit() {
       Alert.alert("Erro ao fazer upload do avatar");
       throw new Error("Erro ao fazer upload do avatar");
     }
-       
+
     return response.json();
   }
 
@@ -233,7 +233,6 @@ export default function ProfileEdit() {
     }
   };
 
-
   const {
     mutate: submitForm,
     isPending: isSubmitting,
@@ -277,22 +276,23 @@ export default function ProfileEdit() {
     },
   });
 
-
   const onBackPress = () => {
     if (genderOpen || sportsOpen) {
       setGenderOpen(false);
       setSportsOpen(false);
-      return true; 
+      return true;
     }
     return false;
   };
 
   useEffect(() => {
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      onBackPress
+    );
 
-    return () => backHandler.remove(); 
+    return () => backHandler.remove();
   }, [genderOpen, sportsOpen]);
-
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -414,6 +414,7 @@ export default function ProfileEdit() {
               isVisible={isModalVisible}
               onBackdropPress={() => setModalVisible(false)}
               onBackButtonPress={() => setModalVisible(false)}
+              useNativeDriver={true}
             >
               <View className="w-full h-32 bg-white rounded-lg justify-center items-center px-4">
                 {!loadingUpload ? (
@@ -434,7 +435,11 @@ export default function ProfileEdit() {
                       onPress={deleteAvatarRequest}
                       disabled={getUserData.avatar_url ? false : true}
                     >
-                      <Text className={disabledDeleteBtn({intent: !getUserData.avatar_url ? "disabled" : null})}>
+                      <Text
+                        className={disabledDeleteBtn({
+                          intent: !getUserData.avatar_url ? "disabled" : null,
+                        })}
+                      >
                         Remover foto
                       </Text>
                     </TouchableOpacity>
@@ -483,5 +488,3 @@ const disabledDeleteBtn = cva("text-center text-base pt-4 text-[#EB4335]", {
     },
   },
 });
-
-
