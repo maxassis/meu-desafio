@@ -145,13 +145,14 @@ export default function ProfileEdit() {
       }
     );
 
+    setModalVisible(false);
+    setLoadingUpload(false);
+
     if (!response.ok) {
       Alert.alert("Erro ao fazer upload do avatar");
       throw new Error("Erro ao fazer upload do avatar");
     }
-    setModalVisible(false);
-    setLoadingUpload(false);
-    
+       
     return response.json();
   }
 
@@ -225,7 +226,6 @@ export default function ProfileEdit() {
         const responseData = await uploadAvatar(formData);
         console.log("Upload successful", responseData);
         saveUserData({ ...getUserData, avatar_url: responseData.avatar_url });
-        // setModalVisible(false);
       } catch (error) {
         console.error("Upload error", error);
         Alert.alert("Erro", "Falha ao enviar imagem, tente novamente");
