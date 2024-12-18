@@ -40,7 +40,7 @@ export default function Profile() {
   const getUserData = userDataStore((state) => state.data);
 
   const fetchUserData = async (): Promise<UserData> => {
-    const response = await fetch("http://192.168.1.18:3000/users/getUserData", {
+    const response = await fetch("https://bondis-app-backend.onrender.com/users/getUserData", {
       headers: {
         "Content-type": "application/json",
         authorization: "Bearer " + token
@@ -69,7 +69,7 @@ export default function Profile() {
           <Logo />
           {getUserData.avatar_url ? (
              <Image
-             source={{ uri: `${getUserData.avatar_url}?t=${new Date().getTime()}` }}
+             source={{ uri: `${getUserData.avatar_url}` }}
              className="w-[72px] h-[72px] mt-auto rounded-full"
            />
           ) : (

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import tokenExists from "../../../store/auth-store";
-import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, StatusBar } from "react-native";
 import Left from "../../../assets/Icon-left.svg";
 import TaskItem from "../../../components/taskItem";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
@@ -24,7 +24,7 @@ export interface Data {
 }
 
 const fetchTasks = async (participationId: number, token: string): Promise<TasksData> => {
-  const response = await fetch(`http://192.168.1.18:3000/tasks/get-tasks/${participationId}`, {
+  const response = await fetch(`https://bondis-app-backend.onrender.com/tasks/get-tasks/${participationId}`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
@@ -34,7 +34,7 @@ const fetchTasks = async (participationId: number, token: string): Promise<Tasks
 };
 
 const deleteTaskApi = async (id: number, token: string) => {
-  const response = await fetch(`http://192.168.1.18:3000/tasks/delete-task/${id}`, {
+  const response = await fetch(`https://bondis-app-backend.onrender.com/tasks/delete-task/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -177,7 +177,7 @@ export default function TaskList() {
                 if (task) {
                   setTaskData(task);
                 }
-                router.push("/taskEdit");
+                router.push("/createTask");
                 bottomSheetRef.current?.close();
               }}
               className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400"
@@ -217,7 +217,7 @@ export default function TaskList() {
           </View>
         </BottomSheetView>
       </BottomSheet>  
-
+      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />        
     </SafeAreaView>
   );
 }
