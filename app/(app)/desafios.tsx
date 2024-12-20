@@ -23,7 +23,7 @@ export interface Desafio {
 
 async function fetchDesafios(token: string): Promise<DesafioData> {
   const response = await fetch(
-    "https://bondis-app-backend.onrender.com/desafio/getuserdesafio/",
+    "http://192.168.1.19:3000/desafio/getuserdesafio/",
     {
       method: "GET",
       headers: {

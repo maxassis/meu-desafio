@@ -67,7 +67,7 @@ export default function CreateAccountGetCode() {
   };
 
   function sendMail() {
-     fetch("https://bondis-app-backend.onrender.com/sendmail", {
+     fetch("http://192.168.1.19:3000/sendmail", {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({ name, email }),
@@ -76,7 +76,7 @@ export default function CreateAccountGetCode() {
 
   const onSubmit = async ({ code }: { code: string}) => {
     try {
-      const response = await fetch("https://bondis-app-backend.onrender.com/confirmcode/", {
+      const response = await fetch("http://192.168.1.19:3000/confirmcode/", {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ code, email }),

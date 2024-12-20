@@ -45,7 +45,7 @@ interface DesafioResponse {
   id: string;
   name: string;
   description: string;
-  location: Coordinate[];
+  location: string;
   participation: Participation[];
 }
 
@@ -174,7 +174,6 @@ const Map: React.FC = () => {
   const [userProgress, setUserProgress] = useState<number>(0);
   const [userDistance, setUserDistance] = useState<number>(0);
   const [userLocation, setUserLocation] = useState<Coordinate | null>(null);
-  // const [location, setLocation] = useState<LocationObject | null>(null);
   const [usersParticipants, setUsersParticipants] = useState<
     UserParticipation[]
   >([]);
@@ -263,7 +262,7 @@ const Map: React.FC = () => {
     const fetchDesafio = async () => {
       try {
         const desafioResponse = await fetch(
-          "https://bondis-app-backend.onrender.com/desafio/getdesafio/1",
+          "http://192.168.1.19:3000/desafio/getdesafio/2",
           {
             headers: {
               "Content-type": "application/json",
@@ -279,7 +278,7 @@ const Map: React.FC = () => {
         const desafioData: DesafioResponse = await desafioResponse.json();
         setDesafio(desafioData);
 
-        const coordinates = desafioData.location;
+        const coordinates = JSON.parse(desafioData.location);
 
         if (!Array.isArray(coordinates) || coordinates.length === 0) {
           console.error("Coordenadas inválidas ou vazias:", coordinates);

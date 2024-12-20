@@ -57,7 +57,7 @@ export default function CreatePassword() {
   };
 
   const createUser = async (newPassword: string) => {
-    const response = await fetch("https://bondis-app-backend.onrender.com/users", {
+    const response = await fetch("http://192.168.1.19:3000/users", {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({ name, email, password: newPassword }),

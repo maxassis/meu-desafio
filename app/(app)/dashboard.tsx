@@ -40,7 +40,7 @@ export default function Profile() {
   const getUserData = userDataStore((state) => state.data);
 
   const fetchUserData = async (): Promise<UserData> => {
-    const response = await fetch("https://bondis-app-backend.onrender.com/users/getUserData", {
+    const response = await fetch("http://192.168.1.19:3000/users/getUserData", {
       headers: {
         "Content-type": "application/json",
         authorization: "Bearer " + token

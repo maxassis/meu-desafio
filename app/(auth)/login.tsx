@@ -28,7 +28,7 @@ type TokenType = {
 };
 
 const loginRequest = async ({ email, password }: FormData): Promise<TokenType> => {
-  const response = await fetch("https://bondis-app-backend.onrender.com/signin/", {
+  const response = await fetch("http://192.168.1.19:3000/signin/", {
     method: "POST",
     headers: { "Content-type": "application/json" },
     body: JSON.stringify({ email, password }),
