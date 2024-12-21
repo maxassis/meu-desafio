@@ -25,6 +25,7 @@ import dayjs from 'dayjs';
 import TimePickerModal, { TimePickerModalRef } from "../../../components/timePicker";
 import { router } from 'expo-router';
 import useDesafioStore from "../../../store/desafio-store";
+import { useQueryClient } from '@tanstack/react-query';
 
 LocaleConfig.locales["pt-br"] = ptBR;
 LocaleConfig.defaultLocale = "pt-br";
@@ -59,6 +60,7 @@ export default function TaskCreate() {
   const { participationId, desafioName } = useDesafioStore();
   const childRef = useRef<KilometerMeterPickerModalRef>(null);
   const timePickerRef = useRef<TimePickerModalRef>(null);
+  const queryClient = useQueryClient();
 
   function closeModalDistance({ kilometers, meters }: Distance) {
     setDistance({ kilometers, meters });
@@ -95,7 +97,8 @@ export default function TaskCreate() {
     })
     .then(response => response.json())
     .then(json => {      
-      // console.log(json);
+
+      queryClient.invalidateQueries({ queryKey: ['desafios'] });
       
       router.push({
         pathname: '/taskList'});

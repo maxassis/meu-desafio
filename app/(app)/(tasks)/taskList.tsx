@@ -69,6 +69,7 @@ export default function TaskList() {
     onSuccess: () => {
       // Invalida e refaz a query das tasks após deletar
       queryClient.invalidateQueries({ queryKey: ['tasks', participationId] });
+      queryClient.invalidateQueries({ queryKey: ['desafios'] });
       bottomSheetEditRef.current?.close();
     },
     onError: (error) => {

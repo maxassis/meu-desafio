@@ -27,6 +27,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import TimePickerModal, { TimePickerModalRef } from "../../../components/timePicker";
 import useDesafioStore from "../../../store/desafio-store";
+import { useQueryClient } from '@tanstack/react-query';
 
 dayjs.extend(utc);
 
@@ -57,6 +58,7 @@ export default function TaskEdit() {
   const [selectedTime, setSelectedTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const timePickerRef = useRef<TimePickerModalRef>(null)
   const childRef = useRef<KilometerMeterPickerModalRef>(null);
+  const queryClient = useQueryClient();
 
   if (!taskData) {
     router.back();
@@ -145,6 +147,7 @@ export default function TaskEdit() {
     })
       .then((response) => response.json())
       .then((json) => {
+        queryClient.invalidateQueries({ queryKey: ['desafios'] });
         console.log(json);
         router.push("/taskList");
       })
