@@ -267,6 +267,7 @@ const Map: React.FC = () => {
 
         const desafioData: DesafioResponse = await desafioResponse.json();
         setDesafio(desafioData);
+        setTotalDistance(Number(desafioData.distance));
         
         const coordinates = JSON.parse(desafioData.location)
 
@@ -283,12 +284,12 @@ const Map: React.FC = () => {
           let userDistance = 0;
           let progressPercentage = "0";
         
-          try {
+          try {            
             userLocation = findPointAtDistance(coordinates, dta.progress) || coordinates[0];
             userDistance = calculateUserDistance(coordinates, dta.progress);
             progressPercentage = formatPercentage(
-              (userDistance / Number(desafio.distance)) * 100,
-            );
+              (userDistance / Number(desafioData.distance)) * 100,
+            );  
           } catch (error) {
             console.error("Error calculating user progress:", error);
           }
@@ -318,11 +319,11 @@ const Map: React.FC = () => {
         setTimeout(() => {
           setShowBottom(true);
           setShowMarker(false);
-        }, 2000);
+        }, 1000);
 
         setTimeout(() => {
           setShowBottom2(true);
-        }, 2500);
+        }, 1500);
       }
     };
 
@@ -470,7 +471,7 @@ const Map: React.FC = () => {
                 borderColor="transparent"
                 borderWidth={0}
               />
-
+             
               <Text className="font-inter-bold text-base mt-2">
                 {userDistance > Number(desafio.distance)
                   ? Number(desafio.distance).toFixed(3)
