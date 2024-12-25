@@ -47,6 +47,7 @@ interface DesafioResponse {
   description: string;
   location: string;
   participation: Participation[];
+  distance: string;
 }
 
 interface Participation {
@@ -91,18 +92,6 @@ const haversine = (lat1: number, lon1: number, lat2: number, lon2: number) => {
       Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
-};
-
-const calculateTotalDistance = (coordinates: [number, number][]): number => {
-  let totalDistance = 0;
-
-  for (let i = 0; i < coordinates.length - 1; i++) {
-    const [lat1, lon1] = coordinates[i];
-    const [lat2, lon2] = coordinates[i + 1];
-    totalDistance += haversine(lat1, lon1, lat2, lon2);
-  }
-
-  return totalDistance;
 };
 
 const findPointAtDistance = (
@@ -263,7 +252,7 @@ const Map: React.FC = () => {
     const fetchDesafio = async () => {
       try {
         const desafioResponse = await fetch(
-          "https://bondis-app-backend.onrender.com/desafio/getdesafio/8",
+          "https://bondis-app-backend.onrender.com/desafio/getdesafio/10",
           {
             headers: {
               "Content-type": "application/json",
@@ -278,7 +267,7 @@ const Map: React.FC = () => {
 
         const desafioData: DesafioResponse = await desafioResponse.json();
         setDesafio(desafioData);
-
+        
         const coordinates = JSON.parse(desafioData.location)
 
         if (!Array.isArray(coordinates) || coordinates.length === 0) {
@@ -289,11 +278,6 @@ const Map: React.FC = () => {
 
         setRouteCoordinates(coordinates);
 
-        const totalDistance = calculateTotalDistance(
-          coordinates.map((coord) => [coord.latitude, coord.longitude]),
-        );
-        setTotalDistance(totalDistance);
-
         const updatedParticipants: UserParticipation[] = desafioData.participation.map((dta) => {
           let userLocation: LatLng = { latitude: 0, longitude: 0 };
           let userDistance = 0;
@@ -303,7 +287,7 @@ const Map: React.FC = () => {
             userLocation = findPointAtDistance(coordinates, dta.progress) || coordinates[0];
             userDistance = calculateUserDistance(coordinates, dta.progress);
             progressPercentage = formatPercentage(
-              (userDistance / totalDistance) * 100,
+              (userDistance / Number(desafio.distance)) * 100,
             );
           } catch (error) {
             console.error("Error calculating user progress:", error);
@@ -379,7 +363,7 @@ const Map: React.FC = () => {
             <Marker
               key={index}
               coordinate={
-                user.distance > totalDistance
+                user.distance > Number(desafio.distance)
                   ? {
                       latitude:
                         routeCoordinates[routeCoordinates.length - 1].latitude,
@@ -488,10 +472,10 @@ const Map: React.FC = () => {
               />
 
               <Text className="font-inter-bold text-base mt-2">
-                {userDistance > totalDistance
-                  ? totalDistance.toFixed(3)
+                {userDistance > Number(desafio.distance)
+                  ? Number(desafio.distance).toFixed(3)
                   : userDistance}{" "}
-                de {totalDistance.toFixed(3) + " km"}
+                de {Number(desafio.distance).toFixed(3) + " km"}       
               </Text>
 
               <View className="flex-row justify-between mt-6">
