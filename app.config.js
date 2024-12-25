@@ -8,8 +8,8 @@ export default {
     userInterfaceStyle: "light",
     newArchEnabled: true,
     splash: {
-      image: "./assets/splash.png",
-      resizeMode: "contain",
+      image: "./assets/splash-black.png",
+      resizeMode: "cover",
       backgroundColor: "#ffffff"
     },
     assetBundlePatterns: ["**/*"],

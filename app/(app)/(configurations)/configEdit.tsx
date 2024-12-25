@@ -193,7 +193,7 @@ export default function ProfileEdit() {
 
   const pickImage = async () => {
     let { assets, canceled } = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [4, 4],
       quality: 0.5,
