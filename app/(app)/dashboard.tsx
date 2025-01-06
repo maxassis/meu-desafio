@@ -6,7 +6,8 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  StatusBar
+  StatusBar,
+  BackHandler 
 } from "react-native";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
@@ -38,6 +39,29 @@ export default function Profile() {
   const snapPoints = useMemo(() => ["30%"], []);
   const saveUserData = userDataStore((state) => state.setUserData);
   const getUserData = userDataStore((state) => state.data);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (isBottomSheetOpen) {
+        bottomSheetRef.current?.close();
+        setIsBottomSheetOpen(false);
+        return true;
+      }
+      return false;
+    };
+  
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+  
+    return () => backHandler.remove();
+  }, [isBottomSheetOpen]);
+  
+  const handleSheetChanges = (index: number) => {
+    setIsBottomSheetOpen(index >= 0);
+  };
 
   const fetchUserData = async (): Promise<UserData> => {
     const response = await fetch("https://bondis-app-backend.onrender.com/users/getUserData", {
@@ -64,13 +88,13 @@ export default function Profile() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1">
-      <View className="h-[300px] bg-bondis-black">
-        <View className="flex-row h-[92px] justify-between mx-4 mt-[35px]">
+      <View className="h-[375px] bg-bondis-black">
+        <View className="flex-row h-[92px] justify-between mx-4 mt-[45px]">
           <Logo />
           {getUserData.avatar_url ? (
              <Image
              source={{ uri: `${getUserData.avatar_url}` }}
-             className="w-[72px] h-[72px] mt-auto rounded-full"
+             className="w-[82px] h-[82px] mt-auto rounded-full"
            />
           ) : (
             <Image 
@@ -79,19 +103,19 @@ export default function Profile() {
             />
           )}
 
-         <TouchableOpacity onPress={() => router.push("/configInit")}>   
+         <TouchableOpacity onPress={() => router.push("/configInit")} className="h-12">   
             <Settings />
          </TouchableOpacity> 
         </View>
 
-        <Text className="text-bondis-green text-lg font-inter-bold text-center mt-[29px]">
+        <Text className="text-bondis-green text-lg font-inter-bold text-center mt-[41px]">
           {getUserData.username}
         </Text>
         <Text className="text-center text-bondis-text-gray font-inter-regular text-sm mt-2">
           {getUserData.bio}
         </Text>
 
-        <View className="flex-row justify-between h-[51px] mt-[10px] mx-4">
+        <View className="flex-row justify-between h-[51px] mt-[29px] mx-4">
           <View>
             <Text className="text-white text-lg text-center font-inter-bold">
               1
@@ -121,7 +145,7 @@ export default function Profile() {
 
       <View className="h-full">
 
-      <View className="my-[7px] pl-5">
+      <View className="my-[16px] pl-5">
         <Text className="font-inter-bold text-2xl my-auto">Desafios</Text>
       </View>
 
@@ -159,13 +183,14 @@ export default function Profile() {
       </View>
 
       <BottomSheet
-        ref={bottomSheetRef}
-        snapPoints={snapPoints}
-        index={-1}
-        enablePanDownToClose
-        backgroundStyle={{
-          borderRadius: 20,
-        }}
+          ref={bottomSheetRef}
+          snapPoints={snapPoints}
+          index={-1}
+          enablePanDownToClose
+          backgroundStyle={{
+            borderRadius: 20,
+          }}
+          onChange={handleSheetChanges}
       >
         <BottomSheetView className="flex-1">
           <Text className="font-inter-bold mt-[10px] text-base mx-5 mb-4">
