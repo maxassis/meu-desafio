@@ -53,7 +53,7 @@ export default function Buy() {
           Desafio Cidade Maravilhosa
         </Text>
 
-        <Text className="text-base text-bondis-gray-dark text-center mt-4">
+        <Text className="text-base text-bondis-gray-dark text-center mt-4 mx-5">
           150 km virtuais pelos pontos turísticos mais icônicos do Rio 🧡
         </Text>
 
