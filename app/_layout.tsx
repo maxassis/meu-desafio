@@ -38,12 +38,24 @@ export default function RootLayout() {
     prepareApp();
   }, [fontsLoaded]);
 
+  // useEffect(() => {
+  //   if (appIsReady) {
+  //     if (!isAuthenticated && segments[1] !== 'intro') {
+  //       router.replace('/intro');
+  //     } else if (isAuthenticated && segments[1] !== 'dashboard') {
+  //       router.replace('/buy');
+  //     }
+  //   }
+  // }, [isAuthenticated, appIsReady]);
+
   useEffect(() => {
     if (appIsReady) {
-      if (!isAuthenticated && segments[1] !== 'intro') {
+      const currentSegment = segments[0]; // Acesse o primeiro segmento com segurança
+  
+      if (!isAuthenticated && currentSegment !== 'intro') {
         router.replace('/intro');
-      } else if (isAuthenticated && segments[1] !== 'dashboard') {
-        router.replace('/dashboard');
+      } else if (isAuthenticated && currentSegment !== 'dashboard') {
+        router.replace('/buy');
       }
     }
   }, [isAuthenticated, appIsReady]);
