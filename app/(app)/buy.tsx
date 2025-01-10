@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   View,
   Text,
@@ -14,6 +15,7 @@ import Track from "../../assets/track.svg";
 
 export default function Buy() {
   const router = useRouter();
+  const [show, setShow] = useState(false);
 
   return (
     <SafeAreaView className="flex-1">
@@ -74,13 +76,17 @@ export default function Buy() {
           </View>
         </View>
 
-        {/* <TouchableOpacity className="h-[52px] bg-bondis-green mt-[45px] mb-4 rounded-full justify-center mx-5">
+        {!show && (
+        <TouchableOpacity onPress={() => setShow(!show)} className="h-[52px] bg-bondis-green mt-[45px] mb-8 rounded-full justify-center mx-5">
           <Text className="text-center font-inter-bold text-base">
             Quero escolher meu kit
           </Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
+        )}        
 
 
+          {show && (
+          <View>
           <Text className="mx-5 mt-8 text-base font-inter-bold">Descrição:</Text>
 
           <Text className="mx-5 mt-4 text-base text-justify">Bem-vindo ao Desafio Cidade Maravilhosa, uma jornada única que leva você a percorrer virtualmente 150 km pelos pontos mais icônicos e deslumbrantes do Rio de Janeiro! Este desafio é uma oportunidade imperdível para corredores de todos os níveis, proporcionando uma experiência enriquecedora e motivadora enquanto você se mantém ativo e saudável</Text>
@@ -126,6 +132,8 @@ export default function Buy() {
             Aceito o desafio 💪
           </Text>
         </TouchableOpacity>
+        </View>
+        )}
 
       </ScrollView>
     </SafeAreaView>
