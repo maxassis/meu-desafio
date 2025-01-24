@@ -22,7 +22,7 @@ Meu Desafio é um aplicativo desenvolvido em **React Native** que permite aos us
 
 O backend da aplicação foi desenvolvido utilizando **NestJS** e está disponível neste repositório:
 
-[Repositório do Backend](https://github.com/seu-usuario/meu-desafio-backend)
+[Repositório do Backend](https://github.com/maxassis/meu_desafio_backend.git)
 
 ---
 
@@ -31,7 +31,7 @@ O backend da aplicação foi desenvolvido utilizando **NestJS** e está disponí
 1. Clone este repositório:
 
 ```bash
-https://github.com/seu-usuario/meu-desafio.git
+https://github.com/maxassis/meu-desafio.git
 ```
 
 2. Instale as dependências:
