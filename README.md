@@ -1,11 +1,11 @@
-![React Native](https://img.shields.io/badge/React%20Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![React Native](https://img.shields.io/badge/React%20Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![NativeWind](https://img.shields.io/badge/NativeWind-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Zustand](https://img.shields.io/badge/Zustand-FF4154?style=for-the-badge&logo=zustand&logoColor=white)
 ![React Hook Form](https://img.shields.io/badge/React%20Hook%20Form-EC5990?style=for-the-badge&logo=reacthookform&logoColor=white)
 ![React Query](https://img.shields.io/badge/React%20Query-FF4154?style=for-the-badge&logo=react-query&logoColor=white)
 
-Meu Desafio é um aplicativo desenvolvido em **React Native** que permite aos usuários registrar suas corridas e pedaladas de bicicleta. O app calcula a distância percorrida e exibe os resultados totais em um mapa do **Google Maps**.
+Meu Desafio é um aplicativo desenvolvido em **React Native** que permite aos usuários registrar suas corridas e pedaladas de bicicleta. O app calcula a distância percorrida e exibe os resultados totais em um mapa do **Google Maps**.
 
 ---
 
