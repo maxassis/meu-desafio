@@ -92,16 +92,10 @@ Contribuições são bem-vindas! Siga os passos abaixo para colaborar:
 
 ---
 
-## Licença
-
-Este projeto está licenciado sob a Licença MIT. Consulte o arquivo [LICENSE](LICENSE) para mais informações.
-
----
-
 ## Contato
 
 - **Desenvolvedor**: Max Assis
-- **E-mail**: max.assis@oputlook.com
+- **E-mail**: max.assis@outlook.com
 - **GitHub**: [@maxassis](https://github.com/maxassis)
 
 Aproveite o **Meu Desafio** para monitorar suas atividades e explorar novos caminhos!
