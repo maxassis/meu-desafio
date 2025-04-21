@@ -67,7 +67,7 @@ export default function RecoveryGetCode({ route }: any) {
   };
 
   function sendMail() {
-    fetch("http://192.168.1.19:3000/sendMailRecovery", {
+    fetch("http://10.0.2.2:3000/sendMailRecovery", {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({ email }),
@@ -78,7 +78,7 @@ export default function RecoveryGetCode({ route }: any) {
     // console.log("teste");
     
     try {
-      const response = await fetch("http://192.168.1.19:3000/confirmcode/", {
+      const response = await fetch("http://10.0.2.2:3000/confirmcode/", {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ code, email }),

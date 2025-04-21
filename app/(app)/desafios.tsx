@@ -23,7 +23,7 @@ export interface Desafio {
 
 async function fetchDesafios(token: string): Promise<DesafioData> {
   const response = await fetch(
-    "http://192.168.1.19:3000/desafio/getuserdesafio/",
+    "http://10.0.2.2:3000/desafio/getuserdesafio/",
     {
       method: "GET",
       headers: {

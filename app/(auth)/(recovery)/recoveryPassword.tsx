@@ -69,7 +69,7 @@ export default function RecoveryCreatePassword({ route }: any) {
     if (password !== password2) return
     
     try {
-      const response = await fetch("http://192.168.1.19:3000/users/changepassword", {
+      const response = await fetch("http://10.0.2.2:3000/users/changepassword", {
         method: "PATCH",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ email, new_password: password }),

@@ -92,7 +92,7 @@ export default function ProfileEdit() {
 
   async function fetchUserData(): Promise<UserData> {
     const response = await fetch(
-      "http://192.168.1.19:3000/users/getUserData",
+      "http://10.0.2.2:3000/users/getUserData",
       {
         headers: {
           "Content-type": "application/json",
@@ -134,7 +134,7 @@ export default function ProfileEdit() {
     setLoadingUpload(true);
 
     const response = await fetch(
-      "http://192.168.1.19:3000/users/uploadavatar",
+      "http://10.0.2.2:3000/users/uploadavatar",
       {
         method: "POST",
         headers: {
@@ -160,7 +160,7 @@ export default function ProfileEdit() {
     setLoadingUpload(true);
 
     const result = await fetch(
-      `http://192.168.1.19:3000/users/deleteavatar`,
+      `http://10.0.2.2:3000/users/deleteavatar`,
       {
         method: "DELETE",
         headers: {
@@ -240,7 +240,7 @@ export default function ProfileEdit() {
   } = useMutation({
     mutationFn: async () => {
       const result = await fetch(
-        "http://192.168.1.19:3000/users/edituserdata",
+        "http://10.0.2.2:3000/users/edituserdata",
         {
           method: "PATCH",
           headers: {

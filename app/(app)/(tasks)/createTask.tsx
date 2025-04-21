@@ -77,7 +77,7 @@ export default function TaskCreate() {
   };
 
   function createTask() { 
-    fetch('http://192.168.1.19:3000/tasks/create', {
+    fetch('http://10.0.2.2:3000/tasks/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

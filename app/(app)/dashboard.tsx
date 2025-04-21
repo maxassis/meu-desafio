@@ -40,7 +40,7 @@ export default function Profile() {
   const getUserData = userDataStore((state) => state.data);
 
   const fetchUserData = async (): Promise<UserData> => {
-    const response = await fetch("http://192.168.1.19:3000/users/getUserData", {
+    const response = await fetch("http://10.0.2.2:3000/users/getUserData", {
       headers: {
         "Content-type": "application/json",
         authorization: "Bearer " + token
@@ -52,6 +52,7 @@ export default function Profile() {
 
     const data = await response.json();
     saveUserData(data);
+    console.log(data)
     
     return data;
   };
