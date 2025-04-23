@@ -15,7 +15,7 @@ export interface Data {
   name: string;
   environment: string;
   date: null | Date;
-  duration: null | string;
+  duration: number;
   calories: number;
   local: null | string;
   distanceKm: string;

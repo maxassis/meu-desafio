@@ -86,15 +86,34 @@ export default function TaskEdit() {
 
   const ChangeTimePicker = () => {    
     if (timePickerRef.current && taskData?.duration) {
-      const timeFormated = convertISOToTime(taskData.duration)
-      timePickerRef.current.changeTime(
-        +timeFormated.split(":")[0].padStart(2, '0'), 
-        +timeFormated.split(":")[1].padStart(2, '0'), 
-        +timeFormated.split(":")[2].padStart(2, '0')
-      );
+      const timeFormated = convertHoursToTimeString(taskData.duration);
+      const [h, m, s] = timeFormated.split(":").map(Number);
+  
+      // Atualiza o estado
+      setSelectedTime({ hours: h, minutes: m, seconds: s });
+  
+      // Atualiza o modal (caso necessário)
+      timePickerRef.current.changeTime(h, m, s);
     }
+  };
+
+  function convertHoursToTimeString(totalHours: number): string {
+    const hours = Math.floor(totalHours);
+    const minutes = Math.floor((totalHours - hours) * 60);
+    const seconds = Math.round((((totalHours - hours) * 60) - minutes) * 60);
+  
+    const paddedHours = String(hours).padStart(2, '0');
+    const paddedMinutes = String(minutes).padStart(2, '0');
+    const paddedSeconds = String(seconds).padStart(2, '0');
+  
+    return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
   }
 
+  function convertTimeToHours(time: { hours: number, minutes: number, seconds: number }): number {
+    const { hours, minutes, seconds } = time;
+    return hours + minutes / 60 + seconds / 3600;
+  }
+  
   useEffect(() => {
     if (!taskData) return;
     
@@ -117,12 +136,6 @@ export default function TaskEdit() {
       year: +initialDate!.split("-")[0], 
       timestamp: 0 
     }); 
-    const timeFormated = convertISOToTime(taskData.duration!);
-    setSelectedTime({ 
-      hours: +timeFormated.split(":")[0], 
-      minutes: +timeFormated.split(":")[1], 
-      seconds: +timeFormated.split(":")[2] 
-    });
     ChangeTimePicker();
   }, [taskData]);
 
@@ -140,7 +153,7 @@ export default function TaskEdit() {
         distanceKm: +`${distance.kilometers}.${distance.meters}`,
         environment: ambience,
         date: initialDate ? formatDateToISO(initialDate) : formatDateToISO(day.dateString),
-        duration: convertTimeToISO(selectedTime.hours.toString().padStart(2, '0') + ':' + selectedTime.minutes.toString().padStart(2, '0') + ':' + selectedTime.seconds.toString().padStart(2, '0')),
+        duration: convertTimeToHours(selectedTime),
       }),
     })
       .then((response) => response.json())
@@ -289,7 +302,7 @@ export default function TaskEdit() {
           Duração da atividade
         </Text>
         <TouchableOpacity onPress={() => setModalTimeVisible(true)} className="bg-bondis-text-gray rounded-[4px] h-[52px] flex-row mt-2 items-center justify-between pr-[22px] pl-4">
-          <Text>{ selectedTime.hours.toString().padStart(2, '0') + ':' + selectedTime.minutes.toString().padStart(2, '0') + ':' + selectedTime.seconds.toString().padStart(2, '0') }</Text>
+          <Text>{convertHoursToTimeString(convertTimeToHours(selectedTime))}</Text>
           <Down />
         </TouchableOpacity>
         <TimePickerModal

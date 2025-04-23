@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import KilometerMeterPicker, { KilometerMeterPickerModalRef } from "../../../components/distancePicker";
 import Left from "../../../assets/arrow-left.svg";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+// import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import Outdoor from "../../../assets/Outdoor.svg";
 import Indoor from "../../../assets/Indoor.svg";
 import { LinearGradient } from "expo-linear-gradient";
@@ -54,7 +54,7 @@ export default function TaskCreate() {
   const [calendar, setCalendarVisible] = useState(false);
   const [isModalTimeVisible, setModalTimeVisible] = useState(false);
   const [selectedTime, setSelectedTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
-  const navigation = useNavigation<any>();
+  // const navigation = useNavigation<any>();
   const token = tokenExists((state) => state.token);
   const { participationId, desafioName } = useDesafioStore();
   const childRef = useRef<KilometerMeterPickerModalRef>(null);
@@ -90,7 +90,7 @@ export default function TaskCreate() {
          "calories": +calories,
          "participationId": participationId,
          "date": !day ? formatDateToISO(dayjs().format('YYYY-MM-DD')) : formatDateToISO(day.dateString),
-         "duration": convertTimeToISO(selectedTime.hours + ':' + selectedTime.minutes + ':' + selectedTime.seconds),
+         "duration": convertTimeToHours(selectedTime),
        })
     })
     .then(response => response.json())
@@ -122,21 +122,26 @@ export default function TaskCreate() {
     return formattedDate;
   };
 
-  function convertTimeToISO(time: string): string {
-    const currentDate = new Date();  
-    const [hours, minutes, seconds] = time.split(':').map(Number);
-    currentDate.setUTCHours(hours, minutes, seconds, 0);
+  // function convertTimeToISO(time: string): string {
+  //   const currentDate = new Date();  
+  //   const [hours, minutes, seconds] = time.split(':').map(Number);
+  //   currentDate.setUTCHours(hours, minutes, seconds, 0);
   
-    return currentDate.toISOString();
-  }
+  //   return currentDate.toISOString();
+  // }
 
-  function convertISOToTime(isoString: string): string {
-    const date = new Date(isoString);  
-    const hours = date.getUTCHours().toString().padStart(2, '0');
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-    const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+  // function convertISOToTime(isoString: string): string {
+  //   const date = new Date(isoString);  
+  //   const hours = date.getUTCHours().toString().padStart(2, '0');
+  //   const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+  //   const seconds = date.getUTCSeconds().toString().padStart(2, '0');
   
-    return `${hours}:${minutes}:${seconds}`;
+  //   return `${hours}:${minutes}:${seconds}`;
+  // }
+
+  function convertTimeToHours(time: { hours: number, minutes: number, seconds: number }): number {
+    const { hours, minutes, seconds } = time;
+    return hours + minutes / 60 + seconds / 3600;
   }
 
   return (
