@@ -15,7 +15,7 @@ export interface TaskItemProps {
   name: string
   environment: string
   date: Date | null
-  duration: string | null
+  duration: number
   calories: number
   local: string | null
   distanceKm: string
@@ -27,6 +27,19 @@ export interface TaskListProps {
   task: TaskItemProps
   openModalEdit: (taskData: TaskItemProps) => void
 }
+
+function convertHoursToTimeString(totalHours: number): string {
+  const hours = Math.floor(totalHours);
+  const minutes = Math.floor((totalHours - hours) * 60);
+  const seconds = Math.round((((totalHours - hours) * 60) - minutes) * 60);
+
+  const paddedHours = String(hours).padStart(2, '0');
+  const paddedMinutes = String(minutes).padStart(2, '0');
+  const paddedSeconds = String(seconds).padStart(2, '0');
+
+  return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
+}
+
 
 function convertISOToTime(isoString: string): string {
   const date = new Date(isoString);  
@@ -100,7 +113,7 @@ export default function TaskItem({ task, openModalEdit }: TaskListProps) {
                 <Text className="text-bondis-gray-dark text-[10px]">KM</Text>
             </View>
             <View className="w-[100px] h-[44px] border-l-2 border-[#D1D5DA] pl-2">
-                <Text className="text-[18px] font-inter-bold">{ convertISOToTime(task.duration!) }</Text>
+                <Text className="text-[18px] font-inter-bold">{ convertHoursToTimeString(task.duration) }</Text>
                 <Text className="text-bondis-gray-dark text-[10px]">DURAÇÃO</Text>
             </View>
             <View className="w-[98px] h-[44px] border-l-2 border-[#D1D5DA] pl-2">

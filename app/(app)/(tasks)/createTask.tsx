@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import KilometerMeterPicker, { KilometerMeterPickerModalRef } from "../../../components/distancePicker";
 import Left from "../../../assets/arrow-left.svg";
-// import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import Outdoor from "../../../assets/Outdoor.svg";
 import Indoor from "../../../assets/Indoor.svg";
 import { LinearGradient } from "expo-linear-gradient";
@@ -54,7 +53,6 @@ export default function TaskCreate() {
   const [calendar, setCalendarVisible] = useState(false);
   const [isModalTimeVisible, setModalTimeVisible] = useState(false);
   const [selectedTime, setSelectedTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
-  // const navigation = useNavigation<any>();
   const token = tokenExists((state) => state.token);
   const { participationId, desafioName } = useDesafioStore();
   const childRef = useRef<KilometerMeterPickerModalRef>(null);
@@ -121,23 +119,6 @@ export default function TaskCreate() {
     const formattedDate = isoDate.toISOString().replace(/\.\d{3}Z$/, 'Z');
     return formattedDate;
   };
-
-  // function convertTimeToISO(time: string): string {
-  //   const currentDate = new Date();  
-  //   const [hours, minutes, seconds] = time.split(':').map(Number);
-  //   currentDate.setUTCHours(hours, minutes, seconds, 0);
-  
-  //   return currentDate.toISOString();
-  // }
-
-  // function convertISOToTime(isoString: string): string {
-  //   const date = new Date(isoString);  
-  //   const hours = date.getUTCHours().toString().padStart(2, '0');
-  //   const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-  //   const seconds = date.getUTCSeconds().toString().padStart(2, '0');
-  
-  //   return `${hours}:${minutes}:${seconds}`;
-  // }
 
   function convertTimeToHours(time: { hours: number, minutes: number, seconds: number }): number {
     const { hours, minutes, seconds } = time;
@@ -262,6 +243,11 @@ export default function TaskCreate() {
         onClose={closeModalTime}
         onlyClose={setModalTimeVisible}
         />
+        { (selectedTime.hours === 0 && selectedTime.minutes === 0 && selectedTime.seconds === 0) &&
+          <Text className="mt-1 text-bondis-alert-red">
+              Campo obrigatório
+          </Text>
+        } 
 
         <Text className="font-inter-bold text-base mt-7">
           Distancia percorrida
@@ -309,9 +295,9 @@ export default function TaskCreate() {
 
         <TouchableOpacity onPress={() => createTask()} 
         className={buttonDisabled({
-          intent: activityName == "" || (distance.kilometers == 0 && distance.meters == 0) ? "disabled" : null ,
+          intent: activityName == "" || (distance.kilometers == 0 && distance.meters == 0) || (selectedTime.hours === 0 && selectedTime.minutes === 0 && selectedTime.seconds === 0)  ? "disabled" : null ,
         })}
-        disabled={activityName == "" || (distance.kilometers == 0 && distance.meters == 0)}        
+        disabled={activityName == "" || (distance.kilometers == 0 && distance.meters == 0) || (selectedTime.hours === 0 && selectedTime.minutes === 0 && selectedTime.seconds === 0 )}        
         >
           <Text className="font-inter-bold text-base">Cadastrar atividade</Text>
         </TouchableOpacity>
