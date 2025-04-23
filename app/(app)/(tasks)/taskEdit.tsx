@@ -8,7 +8,8 @@ import {
   TextInput,
   Modal,
   Pressable,
-  StatusBar
+  StatusBar,
+  ActivityIndicator
 } from "react-native";
 import KilometerMeterPicker, {
   KilometerMeterPickerModalRef,
@@ -27,6 +28,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import TimePickerModal, { TimePickerModalRef } from "../../../components/timePicker";
 import useDesafioStore from "../../../store/desafio-store";
+import { useMutation } from '@tanstack/react-query';
 
 dayjs.extend(utc);
 
@@ -55,7 +57,7 @@ export default function TaskEdit() {
   const [initialDate, setInitialDate] = useState<any>();
   const [isModalTimeVisible, setModalTimeVisible] = useState(false);
   const [selectedTime, setSelectedTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
-  const timePickerRef = useRef<TimePickerModalRef>(null)
+  const timePickerRef = useRef<TimePickerModalRef>(null);
   const childRef = useRef<KilometerMeterPickerModalRef>(null);
 
   if (!taskData) {
@@ -139,30 +141,40 @@ export default function TaskEdit() {
     ChangeTimePicker();
   }, [taskData]);
 
-  function updateTaskData() {
-    if (!taskData) return;
+  const isDurationValid = selectedTime.hours > 0 || selectedTime.minutes > 0 || selectedTime.seconds > 0;
 
-    fetch(`http://10.0.2.2:3000/tasks/update-task/${taskData.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        name: activityName,
-        distanceKm: +`${distance.kilometers}.${distance.meters}`,
-        environment: ambience,
-        date: initialDate ? formatDateToISO(initialDate) : formatDateToISO(day.dateString),
-        duration: convertTimeToHours(selectedTime),
-      }),
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        console.log(json);
-        router.push("/taskList");
-      })
-      .catch((error) => console.error(error));
-  }
+  const updateTaskMutation = useMutation({
+    mutationFn: async () => {
+      if (!taskData) throw new Error("Task data is missing");
+      
+      const response = await fetch(`http://10.0.2.2:3000/tasks/update-task/${taskData.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: activityName,
+          distanceKm: +`${distance.kilometers}.${distance.meters}`,
+          environment: ambience,
+          date: initialDate ? formatDateToISO(initialDate) : formatDateToISO(day.dateString),
+          duration: convertTimeToHours(selectedTime),
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to update task");
+      }
+      
+      return await response.json();
+    },
+    onSuccess: () => {
+      router.push("/taskList");
+    },
+    onError: (error) => {
+      console.error("Error updating task:", error);
+    }
+  });
 
   const formatDateToISO = (date: string) => {
     if (!date) return null;
@@ -181,25 +193,21 @@ export default function TaskEdit() {
   
     return `${hours}:${minutes}:${seconds}`;
   }
-
-  function convertTimeToISO(time: string): string {
-    const currentDate = new Date();  
-    const [hours, minutes, seconds] = time.split(':').map(Number);  
-    currentDate.setUTCHours(hours, minutes, seconds, 0);
   
-    return currentDate.toISOString();
+  function formatDate(isoDate: string): string {
+    const date = dayjs(isoDate).utc();
+    return date.format('YYYY-MM-DD');
   }
 
-  function formatDate(isoDate: string): string {
-    const date = dayjs(isoDate).utc(); // Apenas converter para UTC sem ajuste adicional
-
-    return date.format('YYYY-MM-DD');
-}
+  const isFormValid = 
+    activityName !== "" && 
+    (distance.kilometers > 0 || distance.meters > 0) &&
+    isDurationValid;
 
   return (
     <SafeAreaView className="flex-1 bg-white px-5">
       <ScrollView
-        className=" flex-1"
+        className="flex-1"
         showsVerticalScrollIndicator={false}
         overScrollMode="never"
       >
@@ -207,7 +215,7 @@ export default function TaskEdit() {
           <TouchableOpacity onPress={() => router.back()}>
             <Left />
           </TouchableOpacity>
-          <Text className="text-base font-inter-bold mx-auto ">
+          <Text className="text-base font-inter-bold mx-auto">
             Editar atividade
           </Text>
         </View>
@@ -305,11 +313,15 @@ export default function TaskEdit() {
           <Text>{convertHoursToTimeString(convertTimeToHours(selectedTime))}</Text>
           <Down />
         </TouchableOpacity>
+        {!isDurationValid && (
+          <Text className="mt-1 text-bondis-alert-red">Campo obrigatório</Text>
+        )}
+
         <TimePickerModal
-        ref={timePickerRef}
-        visible={isModalTimeVisible}
-        onClose={closeModalTime}
-        onlyClose={setModalTimeVisible}
+          ref={timePickerRef}
+          visible={isModalTimeVisible}
+          onClose={closeModalTime}
+          onlyClose={setModalTimeVisible}
         />
 
         <Text className="font-inter-bold text-base mt-7">
@@ -333,7 +345,7 @@ export default function TaskEdit() {
           </Text>
           <Down />
         </TouchableOpacity>
-        {distance.kilometers == 0 && distance.meters == 0 && (
+        {distance.kilometers === 0 && distance.meters === 0 && (
           <Text className="mt-1 text-bondis-alert-red">Campo obrigatório</Text>
         )}
 
@@ -355,20 +367,20 @@ export default function TaskEdit() {
         />
 
         <TouchableOpacity
-          onPress={() => updateTaskData()}
+          onPress={() => updateTaskMutation.mutate()}
           className={buttonDisabled({
-            intent:
-              activityName == "" ||
-              (distance.kilometers == 0 && distance.meters == 0)
-                ? "disabled"
-                : null,
+            intent: !isFormValid || updateTaskMutation.isPending ? "disabled" : null,
           })}
-          disabled={
-            activityName == "" ||
-            (distance.kilometers == 0 && distance.meters == 0)
-          }
+          disabled={!isFormValid || updateTaskMutation.isPending}
         >
-          <Text className="font-inter-bold text-base">Cadastrar atividade</Text>
+          {updateTaskMutation.isPending ? (
+            <View className="flex-row items-center gap-x-2">
+              <Text className="font-inter-bold text-base ml-2">Carregando...</Text>
+              <ActivityIndicator color="#000000" size="small" />
+            </View>
+          ) : (
+            <Text className="font-inter-bold text-base">Cadastrar atividade</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
       <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
