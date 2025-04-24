@@ -17,7 +17,9 @@ interface DesafioStore {
   participationId: number | null;
   desafioName: string | null;
   taskData: Task | null;
-  setDesafioData: (participationId: number, desafioName: string) => void;
+  distanceTotal: number;
+  progress: number;
+  setDesafioData: (participationId: number, desafioName: string, progress: number, distanceTotal: number) => void;
   setTaskData: (taskData: Task) => void;
   clearDesafioData: () => void;
   clearTaskData: () => void;
@@ -27,8 +29,11 @@ const useDesafioStore = create<DesafioStore>((set) => ({
   participationId: null,
   desafioName: null,
   taskData: null,
-  setDesafioData: (participationId, desafioName) => 
-    set({ participationId, desafioName }),
+  distance: 0,
+  distanceTotal: 0,
+  progress: 0,
+  setDesafioData: (participationId, desafioName, progress ,distanceTotal ) => 
+    set({ participationId, desafioName, progress ,distanceTotal }),
   setTaskData: (taskData) =>
     set({ taskData }),
   clearDesafioData: () => 

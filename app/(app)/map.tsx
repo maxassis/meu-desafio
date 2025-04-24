@@ -369,6 +369,8 @@ const Map: React.FC = () => {
   const { data: RankData } = useQuery<RankData[], Error>({
     queryKey: ["rankData", 10],
     queryFn: fetchRankData,
+    staleTime: 1000 * 60 * 10, // Dados são considerados frescos por 10 minutos
+    enabled: !!token,
   });
 
   return (
@@ -463,7 +465,7 @@ const Map: React.FC = () => {
                 longitude:
                   routeCoordinates[routeCoordinates.length - 1].longitude,
               }}
-              style={{ zIndex: 999999, elevation: 999999 }}
+              style={{ zIndex: 9999, elevation: 9999 }}
               title="Final"
               tracksViewChanges={showMarker}
             >

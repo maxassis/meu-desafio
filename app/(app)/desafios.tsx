@@ -19,6 +19,7 @@ export interface Desafio {
   id: number;
   name: string;
   description: string;
+  distance: number;
 }
 
 async function fetchDesafios(token: string): Promise<DesafioData> {
@@ -48,8 +49,8 @@ export default function DesafioSelect() {
     queryKey: ["desafios"],
     queryFn: () => fetchDesafios(token!),
     enabled: !!token, // Só faz a requisição se o token existir
-    retry: 1, // Número de tentativas em caso de erro
-    staleTime: 1000 * 60 * 5, // Dados são considerados frescos por 5 minutos
+    retry: 1, 
+    staleTime: 1000 * 60 * 10,
   });
 
   return (
@@ -83,7 +84,7 @@ export default function DesafioSelect() {
             <TouchableOpacity
               key={item.id}
               onPress={() => {
-                setDesafioData(item.id, item.desafio.name);
+                setDesafioData(item.id, item.desafio.name, +item.progress, item.desafio.distance );
                 router.push("/createTask");
               }}
               className="h-[94px] flex-row items-center px-3 py-[15px] border-b-[1px] border-b-[#D9D9D9]"

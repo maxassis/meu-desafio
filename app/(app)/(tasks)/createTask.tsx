@@ -9,7 +9,8 @@ import {
   Modal,
   Pressable,
   StatusBar,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from "react-native";
 import KilometerMeterPicker, { KilometerMeterPickerModalRef } from "../../../components/distancePicker";
 import Left from "../../../assets/arrow-left.svg";
@@ -25,7 +26,7 @@ import dayjs from 'dayjs';
 import TimePickerModal, { TimePickerModalRef } from "../../../components/timePicker";
 import { router } from 'expo-router';
 import useDesafioStore from "../../../store/desafio-store";
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 LocaleConfig.locales["pt-br"] = ptBR;
 LocaleConfig.defaultLocale = "pt-br";
@@ -66,11 +67,11 @@ export default function TaskCreate() {
   const [isModalTempoVisible, setModalTempoVisible] = useState(false);
   const [tempoSelecionado, setTempoSelecionado] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const token = tokenExists((state) => state.token);
-  const { participationId, desafioName } = useDesafioStore();
+  const { participationId, progress, distanceTotal } = useDesafioStore();
   const childRef = useRef<KilometerMeterPickerModalRef>(null);
   const timePickerRef = useRef<TimePickerModalRef>(null);
+  const queryClient = useQueryClient();
 
-  // Mutação para criação de tarefa com Tanstack Query
   const criarTarefaMutation = useMutation({
     mutationFn: async (dadosTarefa: DadosTarefa) => {
       const response = await fetch('http://10.0.2.2:3000/tasks/create', {
@@ -91,6 +92,7 @@ export default function TaskCreate() {
     },
     onSuccess: () => {
       limparInputs();
+      queryClient.invalidateQueries({ queryKey: ["desafios"] });
       router.push({
         pathname: '/taskList'
       });
@@ -117,10 +119,69 @@ export default function TaskCreate() {
     }
   };
 
+  // function criarTarefa() {
+  //   const dadosTarefa: DadosTarefa = {
+  //     name: nomeAtividade,
+  //     distance: +`${distancia.kilometers}.${distancia.meters}`,
+  //     environment: ambiente,
+  //     calories: +calorias,
+  //     participationId: participationId!,
+  //     date: !dia ? formatarDataParaISO(dayjs().format('YYYY-MM-DD')) : formatarDataParaISO(dia.dateString),
+  //     duration: converterTempoParaHoras(tempoSelecionado),
+  //   };
+   
+  //   console.log(dadosTarefa);
+
+
+  //   criarTarefaMutation.mutate(dadosTarefa);
+  // }
+
   function criarTarefa() {
+    // Converte a distância selecionada para um número (formato km.m)
+    const distanciaSelecionada = +`${distancia.kilometers}.${distancia.meters}`;
+    
+    // Verifica se a soma da distância atual com a nova distância atinge ou ultrapassa a meta
+    const distanciaAtual = progress || 0;
+    const distanciaTotalAposAdicao = distanciaAtual + distanciaSelecionada;
+    const metaAtingida = distanciaTotalAposAdicao >= distanceTotal;
+    
+    // Exibe no console se a meta foi atingida
+    console.log(metaAtingida ? "Sim" : "Não");
+    
+    if(metaAtingida) {
+      Alert.alert(
+        "Atenção",
+        "Ao adicionar esta tarefa, você concluirá o desafio. Uma vez concluído, não será mais possível adicionar nem alterar mais tarefas.",
+        [
+          {
+            text: "Cancelar",
+            style: "cancel"
+          },
+          {
+            text: "Concluir",
+            onPress: () => {
+              const dadosTarefa: DadosTarefa = {
+                name: nomeAtividade,
+                distance: distanciaSelecionada,
+                environment: ambiente,
+                calories: +calorias,
+                participationId: participationId!,
+                date: !dia ? formatarDataParaISO(dayjs().format('YYYY-MM-DD')) : formatarDataParaISO(dia.dateString),
+                duration: converterTempoParaHoras(tempoSelecionado),
+              };
+              
+              criarTarefaMutation.mutate(dadosTarefa);
+            }
+          }
+        ],
+        { cancelable: true }
+      );
+      return;
+    }
+    
     const dadosTarefa: DadosTarefa = {
       name: nomeAtividade,
-      distance: +`${distancia.kilometers}.${distancia.meters}`,
+      distance: distanciaSelecionada,
       environment: ambiente,
       calories: +calorias,
       participationId: participationId!,
@@ -130,6 +191,7 @@ export default function TaskCreate() {
     
     criarTarefaMutation.mutate(dadosTarefa);
   }
+  
 
   function limparInputs() {
     setNomeAtividade("");
