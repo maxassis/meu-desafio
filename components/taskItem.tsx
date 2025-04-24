@@ -40,16 +40,6 @@ function convertHoursToTimeString(totalHours: number): string {
   return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
 }
 
-
-function convertISOToTime(isoString: string): string {
-  const date = new Date(isoString);  
-  const hours = date.getUTCHours().toString().padStart(2, '0');
-  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-  const seconds = date.getUTCSeconds().toString().padStart(2, '0');
-
-  return `${hours}:${minutes}:${seconds}`;
-}
-
 const timeSinceDate = (dateStr: string | Date): string => {
   const targetDate = dayjs(dateStr);
   if (!targetDate.isValid()) {

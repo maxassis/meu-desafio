@@ -6,7 +6,7 @@ import {
   Text,
   TouchableOpacity,
   SafeAreaView,
-  StatusBar
+  StatusBar,
 } from "react-native";
 import MapView, {
   Polyline,
@@ -14,14 +14,12 @@ import MapView, {
   Marker,
   Callout,
 } from "react-native-maps";
+import { useQuery } from "@tanstack/react-query";
 import { mapStyle } from "../../styles/mapStyles";
 import tokenExists from "../../store/auth-store";
 import userDataStore from "../../store/user-data";
 import { cva } from "class-variance-authority";
 import Left from "../../assets/arrow-left.svg";
-import Terceiro from "../../assets/terceira.svg";
-import Segundo from "../../assets/segundo.svg";
-import Primeiro from "../../assets/primeiro.svg";
 import Winner from "../../assets/winner.svg";
 import { LinearGradient } from "expo-linear-gradient";
 import UserTime from "../../components/userTime";
@@ -78,6 +76,16 @@ interface LatLng {
   longitude: number;
 }
 
+interface RankData {
+  position: number;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  totalDistance: number;
+  totalDuration: number;
+  avgSpeed: number;
+}
+
 const haversine = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   const toRad = (x: number) => (x * Math.PI) / 180;
   const R = 6371; // km
@@ -107,7 +115,7 @@ const calculateTotalDistance = (coordinates: [number, number][]): number => {
 
 const findPointAtDistance = (
   coordinates: { latitude: number; longitude: number }[],
-  distance: number,
+  distance: number
 ) => {
   let traveled = 0;
 
@@ -134,7 +142,7 @@ const findPointAtDistance = (
 
 const calculateUserDistance = (
   coordinates: { latitude: number; longitude: number }[],
-  progress: number,
+  progress: number
 ): number => {
   const progressNumber = Number(progress); // Garante que progress é um número
   let traveled = 0;
@@ -168,6 +176,17 @@ const formatPercentage = (progress: number): string => {
   });
 };
 
+function convertHoursToTimeString(totalHours: number): string {
+  const hours = Math.floor(totalHours);
+  const minutes = Math.floor((totalHours - hours) * 60);
+  const seconds = Math.round(((totalHours - hours) * 60 - minutes) * 60);
+
+  const paddedHours = String(hours).padStart(2, "0");
+  const paddedMinutes = String(minutes).padStart(2, "0");
+  const paddedSeconds = String(seconds).padStart(2, "0");
+
+  return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
+}
 
 const Map: React.FC = () => {
   const [totalDistance, setTotalDistance] = useState<number>(0);
@@ -178,7 +197,7 @@ const Map: React.FC = () => {
     UserParticipation[]
   >([]);
   const [desafio, setDesafio] = useState<DesafioResponse>(
-    {} as DesafioResponse,
+    {} as DesafioResponse
   );
   const getUserData = userDataStore((state) => state.data);
   const [routeCoordinates, setRouteCoordinates] = useState<Coordinate[]>([]);
@@ -205,7 +224,7 @@ const Map: React.FC = () => {
         startPoint.latitude,
         startPoint.longitude,
         endPoint.latitude,
-        endPoint.longitude,
+        endPoint.longitude
       );
 
       if (traveled + segmentDistance >= userDistance) {
@@ -240,23 +259,8 @@ const Map: React.FC = () => {
       latitudeDelta: 0.2,
       longitudeDelta: 0.2,
     }),
-    [routeCoordinates],
+    [routeCoordinates]
   );
-
-  // async function requestLocationPermissions() {
-  //   const { granted } = await requestForegroundPermissionsAsync();
-
-  //   if (granted) {
-  //     const currentPosition = await getCurrentPositionAsync();
-      
-
-  //     // setLocation(currentPosition);
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   requestLocationPermissions();
-  // }, []);
 
   useEffect(() => {
     const fetchDesafio = async () => {
@@ -268,7 +272,7 @@ const Map: React.FC = () => {
               "Content-type": "application/json",
               authorization: "Bearer " + token,
             },
-          },
+          }
         );
 
         if (!desafioResponse.ok) {
@@ -289,47 +293,50 @@ const Map: React.FC = () => {
         setRouteCoordinates(coordinates);
 
         const totalDistance = calculateTotalDistance(
-          coordinates.map((coord) => [coord.latitude, coord.longitude]),
+          coordinates.map((coord) => [coord.latitude, coord.longitude])
         );
         setTotalDistance(totalDistance);
 
-        const updatedParticipants: UserParticipation[] = desafioData.participation.map((dta) => {
-          let userLocation: LatLng = { latitude: 0, longitude: 0 };
-          let userDistance = 0;
-          let progressPercentage = "0";
-        
-          try {
-            userLocation = findPointAtDistance(coordinates, dta.progress) || coordinates[0];
-            userDistance = calculateUserDistance(coordinates, dta.progress);
-            progressPercentage = formatPercentage(
-              (userDistance / totalDistance) * 100,
-            );
-          } catch (error) {
-            console.error("Error calculating user progress:", error);
-          }
-        
-          if (dta.user.id === getUserData?.usersId) {
-            setUserProgress(Number(progressPercentage) / 100);
-            setUserDistance(dta.progress);
-            setUserLocation(userLocation);
-          }
-        
-          return {
-            userId: dta.user.id,
-            name: dta.user.name,
-            avatar: dta.user.UserData?.avatar_url || "", // Sempre string
-            location: userLocation || coordinates[0],
-            distance: userDistance,
-            percentage: progressPercentage,
-          };
-        });
+        const updatedParticipants: UserParticipation[] =
+          desafioData.participation.map((dta) => {
+            let userLocation: LatLng = { latitude: 0, longitude: 0 };
+            let userDistance = 0;
+            let progressPercentage = "0";
+
+            try {
+              userLocation =
+                findPointAtDistance(coordinates, dta.progress) ||
+                coordinates[0];
+              userDistance = calculateUserDistance(coordinates, dta.progress);
+              progressPercentage = formatPercentage(
+                (userDistance / totalDistance) * 100
+              );
+            } catch (error) {
+              console.error("Error calculating user progress:", error);
+            }
+
+            if (dta.user.id === getUserData?.usersId) {
+              setUserProgress(Number(progressPercentage) / 100);
+              setUserDistance(dta.progress);
+              setUserLocation(userLocation);
+            }
+
+            return {
+              userId: dta.user.id,
+              name: dta.user.name,
+              avatar: dta.user.UserData?.avatar_url || "", // Sempre string
+              location: userLocation || coordinates[0],
+              distance: userDistance,
+              percentage: progressPercentage,
+            };
+          });
 
         setUsersParticipants(updatedParticipants);
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
-      } finally {        
+      } finally {
         setLoading(false);
-       
+
         setTimeout(() => {
           setShowBottom(true);
           setShowMarker(false);
@@ -343,6 +350,26 @@ const Map: React.FC = () => {
 
     fetchDesafio();
   }, []);
+
+  function fetchRankData(): Promise<RankData[]> {
+    return fetch("http://10.0.2.2:3000/users/getRanking/10", {
+      headers: {
+        "Content-type": "application/json",
+        authorization: "Bearer " + token,
+      },
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      return response.json();
+    });
+  }
+
+  const { data: RankData } = useQuery<RankData[], Error>({
+    queryKey: ["rankData", 10],
+    queryFn: fetchRankData,
+  });
 
   return (
     <View className="flex-1 bg-white justify-center items-center relative">
@@ -457,165 +484,196 @@ const Map: React.FC = () => {
         <Left />
       </TouchableOpacity>
 
-
       {showBottom ? (
-      <BottomSheet
-        ref={bottomSheetRef}
-        snapPoints={snapPoints}
-        backgroundStyle={{
-          borderRadius: 20,
-        }}
-      >
-        {showBottom2 ? (
-          <BottomSheetScrollView>
-            <SafeAreaView className="mx-5">
-              <Text className="text-sm font-inter-regular text-bondis-gray-secondary">
-                Desafio
-              </Text>
-              <Text className="text-2xl font-bold font-inter-bold mt-4 mb-4">
-                {desafio.name}
-              </Text>
-
-              <Progress.Bar
-                progress={userProgress ? userProgress : 0}
-                width={null}
-                height={8}
-                color="#12FF55"
-                unfilledColor="#565656"
-                borderColor="transparent"
-                borderWidth={0}
-              />
-
-              <Text className="font-inter-bold text-base mt-2">
-                {userDistance > totalDistance
-                  ? totalDistance.toFixed(3)
-                  : userDistance}{" "}
-                de {totalDistance.toFixed(3) + " km"}
-              </Text>
-
-              <View className="flex-row justify-between mt-6">
-                <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
-                  <Text className="font-inter-bold text-2xl">1</Text>
-                  <Text className="text-[10px] font-inter-regular">
-                    ATIVIDADE
-                  </Text>
-                </View>
-                <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
-                  <Text className="font-inter-bold text-2xl">00:46</Text>
-                  <Text className="text-[10px] font-inter-regular">TREINO</Text>
-                </View>
-                <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
-                  <Text className="font-inter-bold text-2xl">3,3%</Text>
-                  <Text className="text-[10px] font-inter-regular">
-                    COMPLETADO
-                  </Text>
-                </View>
-              </View>
-
-              <View className="w-full h-[92px] bg-bondis-black mt-6 rounded p-4 flex-row items-center ">
-                <Image source={require("../../assets/top.png")} />
-                <Text className="flex-1 flex-wrap ml-[10px] text-center">
-                  <Text className="text-bondis-green font-inter-bold">
-                    {getUserData.username}
-                  </Text>
-                  <Text
-                    numberOfLines={3}
-                    className="text-bondis-text-gray font-inter-regular text-justify"
-                  >
-                    , Mantenha a média de 5km corridos por semana e conclua seu
-                    desafio em apenas 10 semanas!
-                  </Text>
+        <BottomSheet
+          ref={bottomSheetRef}
+          snapPoints={snapPoints}
+          backgroundStyle={{
+            borderRadius: 20,
+          }}
+        >
+          {showBottom2 ? (
+            <BottomSheetScrollView>
+              <SafeAreaView className="mx-5">
+                <Text className="text-sm font-inter-regular text-bondis-gray-secondary">
+                  Desafio
                 </Text>
-              </View>
+                <Text className="text-2xl font-bold font-inter-bold mt-4 mb-4">
+                  {desafio.name}
+                </Text>
 
-              <Text className="mt-6 font-inter-bold text-lg">
-                Classificação Geral
-              </Text>
+                <Progress.Bar
+                  progress={userProgress ? userProgress : 0}
+                  width={null}
+                  height={8}
+                  color="#12FF55"
+                  unfilledColor="#565656"
+                  borderColor="transparent"
+                  borderWidth={0}
+                />
 
-              <View className="flex-row justify-between items-end mt-6">
-                <View className="w-[87px] h-[230px] items-center justify-between ">
-                  <View className="rounded-full justify-center items-center w-[35.76px] h-[35.76px] bg-bondis-text-gray">
-                    <Text className="text-sm font-inter-bold">3</Text>
+                <Text className="font-inter-bold text-base mt-2">
+                  {userDistance > totalDistance
+                    ? totalDistance.toFixed(3)
+                    : userDistance}{" "}
+                  de {totalDistance.toFixed(3) + " km"}
+                </Text>
+
+                <View className="flex-row justify-between mt-6">
+                  <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
+                    <Text className="font-inter-bold text-2xl">1</Text>
+                    <Text className="text-[10px] font-inter-regular">
+                      ATIVIDADE
+                    </Text>
                   </View>
-
-                  <LinearGradient
-                    colors={["#12FF55", "white"]}
-                    className="w-full h-[140px] relative justify-end items-center"
-                  >
-                    <View className="absolute top-[-50px]">
-                      <Terceiro />
-                    </View>
-                    <Text
-                      numberOfLines={2}
-                      className="font-inter-bold text-sm mb-[10px]"
-                    >
-                      Nildis Silva
+                  <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
+                    <Text className="font-inter-bold text-2xl">00:46</Text>
+                    <Text className="text-[10px] font-inter-regular">
+                      TREINO
                     </Text>
-                    <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                      25:15
-                    </Text>
-                  </LinearGradient>
-                </View>
-                <View className="w-[87px] h-[287px] items-center justify-between">
-                  <Winner />
-                  <LinearGradient
-                    colors={["#12FF55", "white"]}
-                    className="w-full h-[200px] relative items-center justify-end"
-                  >
-                    <View className="absolute top-[-50px]">
-                      <Primeiro />
-                    </View>
-                    <Text
-                      numberOfLines={2}
-                      className="font-inter-bold text-sm mb-[10px]"
-                    >
-                      Nildis Silva
-                    </Text>
-                    <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                      25:15
-                    </Text>
-                  </LinearGradient>
-                </View>
-                <View className="w-[87px] h-[260px] items-center justify-between ">
-                  <View className="rounded-full mb-2 justify-center items-center w-[35.76px] h-[35.76px] bg-bondis-text-gray">
-                    <Text className="text-sm font-inter-bold">2</Text>
                   </View>
-
-                  <LinearGradient
-                    colors={["#12FF55", "white"]}
-                    className="relative w-full h-[170px] justify-end items-center"
-                  >
-                    <View className="absolute top-[-50px] ">
-                      <Segundo />
-                    </View>
-                    <Text
-                      numberOfLines={2}
-                      className="font-inter-bold text-sm mb-[10px]"
-                    >
-                      Nildis Silva
+                  <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
+                    <Text className="font-inter-bold text-2xl">3,3%</Text>
+                    <Text className="text-[10px] font-inter-regular">
+                      COMPLETADO
                     </Text>
-                    <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                      25:15
-                    </Text>
-                  </LinearGradient>
+                  </View>
                 </View>
-              </View>
 
-              <View className="w-full mt-8">
-                <UserTime />
-                <UserTime />
-                <UserTime />
-                <UserTime />
-                <UserTime />
-              </View>
-            </SafeAreaView>
-          </BottomSheetScrollView>
-         ) : (
-          <ActivityIndicator size="large" color="#12FF55" className="mt-14" />
-        )} 
-      </BottomSheet>
-      ): null }
-      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
+                <View className="w-full h-[92px] bg-bondis-black mt-6 rounded p-4 flex-row items-center ">
+                  <Image source={require("../../assets/top.png")} />
+                  <Text className="flex-1 flex-wrap ml-[10px] text-center">
+                    <Text className="text-bondis-green font-inter-bold">
+                      {getUserData.username}
+                    </Text>
+                    <Text
+                      numberOfLines={3}
+                      className="text-bondis-text-gray font-inter-regular text-justify"
+                    >
+                      , Mantenha a média de 5km corridos por semana e conclua
+                      seu desafio em apenas 10 semanas!
+                    </Text>
+                  </Text>
+                </View>
+
+                <Text className="mt-6 font-inter-bold text-lg">
+                  Classificação Geral
+                </Text>
+
+                <View className="flex-row justify-between items-end mt-6">
+                  {/* Terceira Posição */}
+                  {RankData && RankData.length > 2 && RankData[2]?.userId ? (
+                    <View className="w-[87px] h-[230px] items-center justify-between ">
+                      <View className="rounded-full justify-center items-center w-[35.76px] h-[35.76px] bg-bondis-text-gray">
+                        <Text className="text-sm font-inter-bold">3</Text>
+                      </View>
+
+                      <LinearGradient
+                        colors={["#12FF55", "white"]}
+                        className="w-full h-[140px] relative justify-end items-center"
+                      >
+                        <View className="absolute top-[-50px] bg-white rounded-full flex items-center justify-center w-[92px] h-[91px]">
+                          <Image
+                            className="w-[85px] h-[85px] rounded-full"
+                            source={{ uri: RankData[2].userAvatar }}
+                          />
+                        </View>
+                        <Text
+                          numberOfLines={2}
+                          className="font-inter-bold text-sm mb-[10px]"
+                        >
+                          {RankData[2].userName}
+                        </Text>
+                        <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
+                          {convertHoursToTimeString(RankData[2].totalDuration)}
+                        </Text>
+                      </LinearGradient>
+                    </View>
+                  ) : (
+                    <View className="w-[87px] h-[230px]" />
+                  )}
+
+                  {/* Primeira Posição */}
+                  {RankData && RankData.length > 0 && RankData[0]?.userId ? (
+                    <View className="w-[87px] h-[287px] items-center justify-between">
+                      <Winner />
+                      <LinearGradient
+                        colors={["#12FF55", "white"]}
+                        className="w-full h-[200px] relative items-center justify-end"
+                      >
+                        <View className="absolute top-[-50px] bg-white rounded-full flex items-center justify-center w-[92px] h-[91px]">
+                          <Image
+                            className="w-[85px] h-[85px] rounded-full"
+                            source={{ uri: RankData[0].userAvatar }}
+                          />
+                        </View>
+                        <Text
+                          numberOfLines={2}
+                          className="font-inter-bold text-sm mb-[10px]"
+                        >
+                          {RankData[0].userName}
+                        </Text>
+                        <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
+                          {convertHoursToTimeString(RankData[0].totalDuration)}
+                        </Text>
+                      </LinearGradient>
+                    </View>
+                  ) : (
+                    <View className="w-[87px] h-[287px]" />
+                  )}
+
+                  {/* Segunda Posição */}
+                  {RankData && RankData.length > 1 && RankData[1]?.userId ? (
+                    <View className="w-[87px] h-[260px] items-center justify-between ">
+                      <View className="rounded-full mb-2 justify-center items-center w-[35.76px] h-[35.76px] bg-bondis-text-gray">
+                        <Text className="text-sm font-inter-bold">2</Text>
+                      </View>
+
+                      <LinearGradient
+                        colors={["#12FF55", "white"]}
+                        className="relative w-full h-[170px] justify-end items-center"
+                      >
+                        <View className="absolute top-[-50px] bg-white rounded-full flex items-center justify-center w-[92px] h-[91px]">
+                          <Image
+                            className="w-[85px] h-[85px] rounded-full"
+                            source={{ uri: RankData[1].userAvatar }}
+                          />
+                        </View>
+                        <Text
+                          numberOfLines={2}
+                          className="font-inter-bold text-sm mb-[10px]"
+                        >
+                          {RankData[1].userName}
+                        </Text>
+                        <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
+                          {convertHoursToTimeString(RankData[1].totalDuration)}
+                        </Text>
+                      </LinearGradient>
+                    </View>
+                  ) : (
+                    <View className="w-[87px] h-[260px]" />
+                  )}
+                </View>
+
+                <View className="w-full mt-8">
+                  <UserTime />
+                  <UserTime />
+                  <UserTime />
+                  <UserTime />
+                  <UserTime />
+                </View>
+              </SafeAreaView>
+            </BottomSheetScrollView>
+          ) : (
+            <ActivityIndicator size="large" color="#12FF55" className="mt-14" />
+          )}
+        </BottomSheet>
+      ) : null}
+      <StatusBar
+        backgroundColor="#000"
+        barStyle="light-content"
+        translucent={false}
+      />
     </View>
   );
 };
@@ -630,7 +688,7 @@ const userPin = cva(
         user: "bg-bondis-green h-[40px] w-[40px] ",
       },
     },
-  },
+  }
 );
 
 const photoUser = cva("h-[30px] w-[30px] rounded-full", {

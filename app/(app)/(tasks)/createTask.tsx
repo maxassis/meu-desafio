@@ -142,11 +142,7 @@ export default function TaskCreate() {
 
   const formatarDataParaISO = (data: string) => {
     if (!data) return null;
-
-    const [ano, mes, dia] = data.split('-').map(Number);
-    const dataISO = new Date(Date.UTC(ano, mes - 1, dia, 0, 0, 0)); 
-    const dataFormatada = dataISO.toISOString().replace(/\.\d{3}Z$/, 'Z');
-    return dataFormatada;
+    return dayjs(data).toISOString();
   };
 
   function converterTempoParaHoras(tempo: { hours: number, minutes: number, seconds: number }): number {

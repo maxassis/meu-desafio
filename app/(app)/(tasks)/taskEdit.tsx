@@ -184,7 +184,7 @@ export default function TaskEdit() {
     const formattedDate = isoDate.toISOString().replace(/\.\d{3}Z$/, 'Z');
     return formattedDate;
   };
-
+  
   function convertISOToTime(isoString: string): string {
     const date = new Date(isoString);  
     const hours = date.getUTCHours().toString().padStart(2, '0');

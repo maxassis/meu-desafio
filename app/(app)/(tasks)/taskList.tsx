@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo } from "react";
 import tokenExists from "../../../store/auth-store";
 import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, StatusBar } from "react-native";
 import Left from "../../../assets/Icon-left.svg";
