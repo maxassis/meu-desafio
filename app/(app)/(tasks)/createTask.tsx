@@ -82,24 +82,33 @@ export default function TaskCreate() {
         },
         body: JSON.stringify(dadosTarefa)
       });
-      
       if (!response.ok) {
         const dadosErro = await response.json();
         throw new Error(dadosErro.message || 'Falha ao criar tarefa');
       }
-      
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       limparInputs();
       queryClient.invalidateQueries({ queryKey: ["desafios"] });
-      router.push({
-        pathname: '/taskList'
-      });
+
+      const distanciaSelecionada = +`${distancia.kilometers}.${distancia.meters}`;
+      const distanciaAtual = progress || 0;
+      const distanciaTotalAposAdicao = distanciaAtual + distanciaSelecionada;
+      const metaAtingida = distanciaTotalAposAdicao >= distanceTotal;
+
+      if (metaAtingida) {
+        router.push({
+          pathname: '/dashboard'
+        });
+      } else {
+        router.push({
+          pathname: '/taskList'
+        });
+      }
     },
     onError: (erro) => {
       console.error('Erro ao criar tarefa:', erro);
-      // Você poderia adicionar um estado de erro e exibir uma mensagem para o usuário
     }
   });
 
@@ -119,23 +128,6 @@ export default function TaskCreate() {
     }
   };
 
-  // function criarTarefa() {
-  //   const dadosTarefa: DadosTarefa = {
-  //     name: nomeAtividade,
-  //     distance: +`${distancia.kilometers}.${distancia.meters}`,
-  //     environment: ambiente,
-  //     calories: +calorias,
-  //     participationId: participationId!,
-  //     date: !dia ? formatarDataParaISO(dayjs().format('YYYY-MM-DD')) : formatarDataParaISO(dia.dateString),
-  //     duration: converterTempoParaHoras(tempoSelecionado),
-  //   };
-   
-  //   console.log(dadosTarefa);
-
-
-  //   criarTarefaMutation.mutate(dadosTarefa);
-  // }
-
   function criarTarefa() {
     // Converte a distância selecionada para um número (formato km.m)
     const distanciaSelecionada = +`${distancia.kilometers}.${distancia.meters}`;
@@ -144,10 +136,7 @@ export default function TaskCreate() {
     const distanciaAtual = progress || 0;
     const distanciaTotalAposAdicao = distanciaAtual + distanciaSelecionada;
     const metaAtingida = distanciaTotalAposAdicao >= distanceTotal;
-    
-    // Exibe no console se a meta foi atingida
-    console.log(metaAtingida ? "Sim" : "Não");
-    
+     
     if(metaAtingida) {
       Alert.alert(
         "Atenção",
@@ -169,8 +158,8 @@ export default function TaskCreate() {
                 date: !dia ? formatarDataParaISO(dayjs().format('YYYY-MM-DD')) : formatarDataParaISO(dia.dateString),
                 duration: converterTempoParaHoras(tempoSelecionado),
               };
-              
-              criarTarefaMutation.mutate(dadosTarefa);
+
+              criarTarefaMutation.mutate(dadosTarefa);              
             }
           }
         ],

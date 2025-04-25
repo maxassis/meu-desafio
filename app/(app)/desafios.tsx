@@ -93,7 +93,8 @@ export default function DesafioSelect() {
               <View className="ml-5">
                 <Text className="font-inter-bold">{item.desafio.name}</Text>
                 <Text className="font-inter-bold mt-[6.44px]">
-                  {item.progress}km
+                  {/* {item.progress}km */}
+                  {parseFloat(item.progress).toFixed(2)}km
                 </Text>
               </View>
             </TouchableOpacity>
