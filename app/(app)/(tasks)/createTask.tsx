@@ -129,10 +129,8 @@ export default function TaskCreate() {
   };
 
   function criarTarefa() {
-    // Converte a distância selecionada para um número (formato km.m)
     const distanciaSelecionada = +`${distancia.kilometers}.${distancia.meters}`;
     
-    // Verifica se a soma da distância atual com a nova distância atinge ou ultrapassa a meta
     const distanciaAtual = progress || 0;
     const distanciaTotalAposAdicao = distanciaAtual + distanciaSelecionada;
     const metaAtingida = distanciaTotalAposAdicao >= distanceTotal;
