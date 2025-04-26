@@ -59,7 +59,7 @@ export default function Profile() {
       },
     });
     if (!response.ok) {
-      throw new Error('Network response was not ok');
+      throw new Error("Network response was not ok");
     }
     const data = await response.json();
     saveUserData(data);
@@ -74,7 +74,7 @@ export default function Profile() {
       },
     });
     if (!response.ok) {
-      throw new Error('Network response was not ok');
+      throw new Error("Network response was not ok");
     }
     const data = await response.json();
     return data;
@@ -86,7 +86,7 @@ export default function Profile() {
     isError: isUserError,
     isSuccess: isUserSuccess,
   } = useQuery<UserData, Error>({
-    queryKey: ['userData'],
+    queryKey: ["userData"],
     queryFn: fetchUserData,
     staleTime: 60 * 1000,
   });
@@ -97,13 +97,18 @@ export default function Profile() {
     isError: isDesafiosError,
     isSuccess: isDesafiosSuccess,
   } = useQuery<AllDesafios[], Error>({
-    queryKey: ['getAllDesafios'],
+    queryKey: ["getAllDesafios"],
     queryFn: fetchAllDesafios,
   });
 
-  const desafiosEmCurso = allDesafios?.filter((desafio) => desafio.isRegistered && !desafio.completed) || [];
-  const desafiosDisponiveis = allDesafios?.filter((desafio) => !desafio.isRegistered) || [];
-  const desafiosConcluidos = allDesafios?.filter((desafio) => desafio.completed) || [];
+  const desafiosEmCurso =
+    allDesafios?.filter(
+      (desafio) => desafio.isRegistered && !desafio.completed
+    ) || [];
+  const desafiosDisponiveis =
+    allDesafios?.filter((desafio) => !desafio.isRegistered) || [];
+  const desafiosConcluidos =
+    allDesafios?.filter((desafio) => desafio.completed) || [];
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -133,7 +138,9 @@ export default function Profile() {
             <Text className="text-center text-white mt-5"></Text>
           )}
           {isUserError && (
-            <Text className="text-center text-red-500 mt-5">Erro ao carregar usuário</Text>
+            <Text className="text-center text-red-500 mt-5">
+              Erro ao carregar usuário
+            </Text>
           )}
           {isUserSuccess && (
             <>
@@ -148,16 +155,28 @@ export default function Profile() {
 
           <View className="flex-row justify-between h-[51px] mt-[10px] mx-4">
             <View>
-              <Text className="text-white text-lg text-center font-inter-bold">1</Text>
-              <Text className="text-[#828282] font-inter-regular">Desafio ativo</Text>
+              <Text className="text-white text-lg text-center font-inter-bold">
+                1
+              </Text>
+              <Text className="text-[#828282] font-inter-regular">
+                Desafio ativo
+              </Text>
             </View>
             <View>
-              <Text className="text-white text-lg text-center font-inter-bold">0</Text>
-              <Text className="text-[#828282] font-inter-regular">Desafios finalizados</Text>
+              <Text className="text-white text-lg text-center font-inter-bold">
+                0
+              </Text>
+              <Text className="text-[#828282] font-inter-regular">
+                Desafios finalizados
+              </Text>
             </View>
             <View>
-              <Text className="text-white text-lg text-center font-inter-bold">5 km</Text>
-              <Text className="text-[#828282] font-inter-regular">Percorridos</Text>
+              <Text className="text-white text-lg text-center font-inter-bold">
+                5 km
+              </Text>
+              <Text className="text-[#828282] font-inter-regular">
+                Percorridos
+              </Text>
             </View>
           </View>
         </View>
@@ -166,54 +185,82 @@ export default function Profile() {
         <View className="h-full">
           {/* Desafios em Curso */}
           <View className="my-4 pl-5">
-            <Text className="font-inter-bold text-2xl my-auto">Desafios ativos</Text>
+            <Text className="font-inter-bold text-2xl my-auto">
+              Desafios ativos
+            </Text>
           </View>
 
           {isDesafiosLoading && (
             <ActivityIndicator size="large" color="#00ff00" />
           )}
           {isDesafiosError && (
-            <Text className="text-center text-red-500">Erro ao carregar desafios</Text>
+            <Text className="text-center text-red-500">
+              Erro ao carregar desafios
+            </Text>
           )}
-          {isDesafiosSuccess && (
-            desafiosEmCurso.length > 0 ? (
+          {isDesafiosSuccess &&
+            (desafiosEmCurso.length > 0 ? (
               desafiosEmCurso.map((desafio) => (
-                <CardDesafio key={desafio.id} name={desafio.name} distance={desafio.distance} progress={desafio.progress+""} />
+                <CardDesafio
+                  key={desafio.id}
+                  name={desafio.name}
+                  distance={desafio.distance}
+                  progress={desafio.progress + ""}
+                  isRegistered={desafio.isRegistered}
+                  completed={desafio.completed}
+                />
               ))
             ) : (
-              <Text className="text-center text-gray-400">Nenhum desafio em curso</Text>
-            )
-          )}
+              <Text className="text-center text-gray-400">
+                Nenhum desafio em curso
+              </Text>
+            ))}
 
           {/* Desafios Disponíveis */}
           <View className="mb-4 pl-5">
-            <Text className="font-inter-bold text-2xl my-auto">Desafios Disponíveis</Text>
+            <Text className="font-inter-bold text-2xl my-auto">
+              Desafios Disponíveis
+            </Text>
           </View>
 
-          {isDesafiosSuccess && (
-            desafiosDisponiveis.length > 0 ? (
+          {isDesafiosSuccess &&
+            (desafiosDisponiveis.length > 0 ? (
               desafiosDisponiveis.map((desafio) => (
-                <CardDesafio key={desafio.id} name={desafio.name} distance={desafio.distance} progress={desafio.progress+""} />               
+                <CardDesafio
+                  key={desafio.id}
+                  name={desafio.name}
+                  distance={desafio.distance}
+                  progress={desafio.progress + ""}
+                />
               ))
             ) : (
-              <Text className="text-center text-gray-400">Nenhum desafio disponível</Text>
-            )
-          )}
+              <Text className="text-center text-gray-400">
+                Nenhum desafio disponível
+              </Text>
+            ))}
 
           {/* Desafios Concluídos */}
           <View className="mb-4 pl-5">
-            <Text className="font-inter-bold text-2xl my-auto">Desafios Concluídos</Text>
+            <Text className="font-inter-bold text-2xl my-auto">
+              Desafios Concluídos
+            </Text>
           </View>
 
-          {isDesafiosSuccess && (
-            desafiosConcluidos.length > 0 ? (
+          {isDesafiosSuccess &&
+            (desafiosConcluidos.length > 0 ? (
               desafiosConcluidos.map((desafio) => (
-                <CardDesafio key={desafio.id} name={desafio.name} distance={desafio.distance} progress={desafio.progress+""} />
+                <CardDesafio
+                  key={desafio.id}
+                  name={desafio.name}
+                  distance={desafio.distance}
+                  progress={desafio.progress + ""}
+                />
               ))
             ) : (
-              <Text className="text-center text-gray-400">Nenhum desafio concluído</Text>
-            )
-          )}
+              <Text className="text-center text-gray-400">
+                Nenhum desafio concluído
+              </Text>
+            ))}
         </View>
 
         {/* Bottom Sheet */}
@@ -247,8 +294,11 @@ export default function Profile() {
           </BottomSheetView>
         </BottomSheet>
       </ScrollView>
-      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
+      <StatusBar
+        backgroundColor="#000"
+        barStyle="light-content"
+        translucent={false}
+      />
     </SafeAreaView>
   );
 }
-
