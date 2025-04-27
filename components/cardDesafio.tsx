@@ -8,6 +8,7 @@ interface desafioProps {
   progress: string;
   isRegistered?: boolean;
   completed?: boolean;
+  bottomPress?: () => void
 }
 
 export default function CardDesafio({
@@ -15,9 +16,25 @@ export default function CardDesafio({
   distance,
   progress,
   isRegistered,
-  completed
+  completed,
+  bottomPress
 }: desafioProps) {
   const router = useRouter();
+
+  const handlePlusPress = () => {
+    if (bottomPress) {
+      bottomPress();
+    } 
+  };
+
+  const formattedProgress = () => {
+    const progressNumber = parseFloat(progress);
+    if (progressNumber === 100) {
+      return "100%";
+    } else {
+      return `${progressNumber.toFixed(2)}%`;
+    }
+  };
 
   return (
     <View className="items-center mb-4 overflow-hidden h-[375px] mx-[15px] bg-gray-300 rounded-2xl ">
@@ -34,16 +51,15 @@ export default function CardDesafio({
           <View className="flex-row items-center">
             <Text className="font-inter-bold text-base">{parseFloat(distance).toFixed(2)}km</Text>
             <Text className="ml-8 text-[#757575] text-base font-inter-regular">
-            {progress}%
+            {formattedProgress()}
             </Text>
           </View>
         </View>
       </TouchableOpacity>
 
-
       {isRegistered && !completed && (
         <TouchableOpacity
-        // onPress={() => bottomSheetRef.current?.expand()}
+        onPress={handlePlusPress}
         className="rounded-full bg-bondis-green absolute w-16 h-16 justify-center items-center right-0 bottom-2"
       >
         <Plus />

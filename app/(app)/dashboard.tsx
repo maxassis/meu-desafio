@@ -13,8 +13,6 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import Logo from "../../assets/logo-white.svg";
 import Settings from "../../assets/settings.svg";
-import Map from "../../assets/map.svg";
-import Plus from "../../assets/plus.svg";
 import userDataStore from "../../store/user-data";
 import useAuthStore from "../../store/auth-store";
 import { useRouter } from "expo-router";
@@ -88,7 +86,7 @@ export default function Profile() {
   } = useQuery<UserData, Error>({
     queryKey: ["userData"],
     queryFn: fetchUserData,
-    staleTime: 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 
   const {
@@ -99,6 +97,7 @@ export default function Profile() {
   } = useQuery<AllDesafios[], Error>({
     queryKey: ["getAllDesafios"],
     queryFn: fetchAllDesafios,
+    staleTime: 5 * 60 * 1000,
   });
 
   const desafiosEmCurso =
@@ -109,6 +108,13 @@ export default function Profile() {
     allDesafios?.filter((desafio) => !desafio.isRegistered) || [];
   const desafiosConcluidos =
     allDesafios?.filter((desafio) => desafio.completed) || [];
+
+  const handleOpenBottomSheet = () => {  
+    if (bottomSheetRef.current) {
+      bottomSheetRef.current.expand();
+    } else {
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -208,6 +214,7 @@ export default function Profile() {
                   progress={desafio.progress + ""}
                   isRegistered={desafio.isRegistered}
                   completed={desafio.completed}
+                  bottomPress={handleOpenBottomSheet}
                 />
               ))
             ) : (
@@ -219,7 +226,7 @@ export default function Profile() {
           {/* Desafios Disponíveis */}
           <View className="mb-4 pl-5">
             <Text className="font-inter-bold text-2xl my-auto">
-              Desafios Disponíveis
+              Desafios Disponíveis 
             </Text>
           </View>
 
@@ -231,6 +238,7 @@ export default function Profile() {
                   name={desafio.name}
                   distance={desafio.distance}
                   progress={desafio.progress + ""}
+                  bottomPress={handleOpenBottomSheet}
                 />
               ))
             ) : (
@@ -262,38 +270,38 @@ export default function Profile() {
               </Text>
             ))}
         </View>
-
-        {/* Bottom Sheet */}
-        <BottomSheet
-          ref={bottomSheetRef}
-          snapPoints={snapPoints}
-          index={-1}
-          enablePanDownToClose
-          backgroundStyle={{
-            borderRadius: 20,
-          }}
-        >
-          <BottomSheetView className="flex-1">
-            <Text className="font-inter-bold mt-[10px] text-base mx-5 mb-4">
-              Adicione uma atividade
-            </Text>
-            <View className="mx-5">
-              <View className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400">
-                <Text>Via Strava</Text>
-              </View>
-              <View className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400">
-                <Text>Via Apple Saúde</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => router.push("/desafios")}
-                className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400"
-              >
-                <Text>Cadastrar manualmente</Text>
-              </TouchableOpacity>
-            </View>
-          </BottomSheetView>
-        </BottomSheet>
       </ScrollView>
+      
+      <BottomSheet
+        ref={bottomSheetRef}
+        snapPoints={snapPoints}
+        index={-1}
+        enablePanDownToClose
+        backgroundStyle={{
+          borderRadius: 20,
+        }}
+      >
+        <BottomSheetView className="flex-1">
+          <Text className="font-inter-bold mt-[10px] text-base mx-5 mb-4">
+            Adicione uma atividade
+          </Text>
+          <View className="mx-5">
+            <View className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400">
+              <Text>Via Strava</Text>
+            </View>
+            <View className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400">
+              <Text>Via Apple Saúde</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => router.push("/desafios")}
+              className="h-[51px] justify-center items-center border-b-[0.2px] border-b-gray-400"
+            >
+              <Text>Cadastrar manualmente</Text>
+            </TouchableOpacity>
+          </View>
+        </BottomSheetView>
+      </BottomSheet>
+      
       <StatusBar
         backgroundColor="#000"
         barStyle="light-content"
