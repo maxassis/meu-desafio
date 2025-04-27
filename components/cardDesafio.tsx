@@ -31,7 +31,7 @@ export default function CardDesafio({
     if (completed) return; 
 
     if (isRegistered) {
-      router.push("/map");
+      router.push("/map2");
     } else {
       router.push("/buy");
     }
