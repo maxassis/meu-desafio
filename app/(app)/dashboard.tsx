@@ -262,6 +262,7 @@ export default function Profile() {
                   name={desafio.name}
                   distance={desafio.distance}
                   progress={desafio.progress + ""}
+                  completed={desafio.completed}
                 />
               ))
             ) : (
