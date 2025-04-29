@@ -9,6 +9,7 @@ interface desafioProps {
   isRegistered?: boolean;
   completed?: boolean;
   bottomPress?: () => void
+  desafioId: number
 }
 
 export default function CardDesafio({
@@ -17,7 +18,8 @@ export default function CardDesafio({
   progress,
   isRegistered,
   completed,
-  bottomPress
+  bottomPress,
+  desafioId
 }: desafioProps) {
   const router = useRouter();
 
@@ -31,7 +33,7 @@ export default function CardDesafio({
     if (completed) return; 
 
     if (isRegistered) {
-      router.push("/map2");
+      router.push({pathname: "/map2", params: { desafioId }});
     } else {
       router.push("/buy");
     }
