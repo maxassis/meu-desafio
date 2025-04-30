@@ -41,7 +41,7 @@ interface DadosTarefa {
   distance: number;
   environment: string;
   calories: number;
-  participationId: number;
+  inscriptionId: number;
   date: string | null;
   duration: number;
 }
@@ -67,7 +67,7 @@ export default function TaskCreate() {
   const [isModalTempoVisible, setModalTempoVisible] = useState(false);
   const [tempoSelecionado, setTempoSelecionado] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const token = tokenExists((state) => state.token);
-  const { participationId, progress, distanceTotal } = useDesafioStore();
+  const { inscriptionId, progress, distanceTotal } = useDesafioStore();
   const childRef = useRef<KilometerMeterPickerModalRef>(null);
   const timePickerRef = useRef<TimePickerModalRef>(null);
   const queryClient = useQueryClient();
@@ -152,7 +152,7 @@ export default function TaskCreate() {
                 distance: distanciaSelecionada,
                 environment: ambiente,
                 calories: +calorias,
-                participationId: participationId!,
+                inscriptionId: inscriptionId!,
                 date: !dia ? formatarDataParaISO(dayjs().format('YYYY-MM-DD')) : formatarDataParaISO(dia.dateString),
                 duration: converterTempoParaHoras(tempoSelecionado),
               };
@@ -171,7 +171,7 @@ export default function TaskCreate() {
       distance: distanciaSelecionada,
       environment: ambiente,
       calories: +calorias,
-      participationId: participationId!,
+      inscriptionId: inscriptionId!,
       date: !dia ? formatarDataParaISO(dayjs().format('YYYY-MM-DD')) : formatarDataParaISO(dia.dateString),
       duration: converterTempoParaHoras(tempoSelecionado),
     };

@@ -28,10 +28,10 @@ export interface RouteResponse {
   description: string;
   location: string;
   distance: string;
-  participation: Participation[];
+  inscription: Inscription[];
 }
 
-interface Participation {
+interface Inscription {
   user: User;
   progress: number;
 }
@@ -250,7 +250,7 @@ export default function Map2() {
       const totalDistance = +routeData.distance;
 
       const updatedParticipants: UserParticipation[] =
-        routeData.participation.map((dta) => {
+        routeData.inscription.map((dta) => {
           let userLocation: LatLng = { latitude: 0, longitude: 0 };
           let userDistance = 0;
           let progressPercentage = "0";

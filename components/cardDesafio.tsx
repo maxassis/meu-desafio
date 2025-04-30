@@ -10,6 +10,7 @@ interface desafioProps {
   completed?: boolean;
   bottomPress?: () => void
   desafioId: number
+  photo: string
 }
 
 export default function CardDesafio({
@@ -19,7 +20,8 @@ export default function CardDesafio({
   isRegistered,
   completed,
   bottomPress,
-  desafioId
+  desafioId,
+  photo
 }: desafioProps) {
   const router = useRouter();
 
@@ -52,11 +54,12 @@ export default function CardDesafio({
     <TouchableOpacity
       onPress={handleCardPress}
       activeOpacity={completed ? 1 : 0.9} // Sem efeito visual se concluído
-      className="items-center mb-4 overflow-hidden h-[375px] mx-[15px] bg-gray-300 rounded-2xl"
+      className="items-center mb-4 overflow-hidden h-[375px] mx-[15px] bg-gray-200 rounded-2xl"
     >
       <Image
-        className="w-full rounded-2xl"
-        source={require("../assets/Gray.png")}
+        className="w-full h-full rounded-2xl"
+         source={{uri: photo}}
+         resizeMode="cover"
       />
       <View className="w-11/12 flex-row p-4 rounded-xl bg-white absolute bottom-[23px]">
         <View>

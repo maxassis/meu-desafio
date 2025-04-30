@@ -19,7 +19,7 @@ export interface TaskItemProps {
   calories: number
   local: string | null
   distanceKm: string
-  participationId: number
+  inscriptionId: number
   usersId: string
 }
 

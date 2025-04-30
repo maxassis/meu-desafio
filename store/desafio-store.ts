@@ -9,12 +9,12 @@ interface Task {
   calories: number;
   local: null | string;
   distanceKm: string;
-  participationId: number;
+  inscriptionId: number;
   usersId: string;
 }
 
 interface DesafioStore {
-  participationId: number | null;
+  inscriptionId: number | null;
   desafioName: string | null;
   taskData: Task | null;
   distanceTotal: number;
@@ -26,18 +26,18 @@ interface DesafioStore {
 }
 
 const useDesafioStore = create<DesafioStore>((set) => ({
-  participationId: null,
+  inscriptionId: null,
   desafioName: null,
   taskData: null,
   distance: 0,
   distanceTotal: 0,
   progress: 0,
-  setDesafioData: (participationId, desafioName, progress ,distanceTotal ) => 
-    set({ participationId, desafioName, progress ,distanceTotal }),
+  setDesafioData: (inscriptionId, desafioName, progress ,distanceTotal ) => 
+    set({ inscriptionId, desafioName, progress ,distanceTotal }),
   setTaskData: (taskData) =>
     set({ taskData }),
   clearDesafioData: () => 
-    set({ participationId: null, desafioName: null }),
+    set({ inscriptionId: null, desafioName: null }),
   clearTaskData: () =>
     set({ taskData: null })
 }));

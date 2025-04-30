@@ -19,12 +19,12 @@ export interface Data {
   calories: number;
   local: null | string;
   distanceKm: string;
-  participationId: number;
+  inscriptionId: number;
   usersId: string;
 }
 
-const fetchTasks = async (participationId: number, token: string): Promise<TasksData> => {
-  const response = await fetch(`http://10.0.2.2:3000/tasks/get-tasks/${participationId}`, {
+const fetchTasks = async (inscriptionId: number, token: string): Promise<TasksData> => {
+  const response = await fetch(`http://10.0.2.2:3000/tasks/get-tasks/${inscriptionId}`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
@@ -48,7 +48,7 @@ const deleteTaskApi = async (id: number, token: string) => {
 };
 
 export default function TaskList() {
-  const { participationId, desafioName, setTaskData } = useDesafioStore();
+  const { inscriptionId, desafioName, setTaskData } = useDesafioStore();
   const token = tokenExists((state) => state.token);
   const [task, setTask] = useState<Data>();
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -59,8 +59,8 @@ export default function TaskList() {
 
   // Query para buscar as tasks
   const { data, isLoading, error } = useQuery({
-    queryKey: ['tasks', participationId],
-    queryFn: () => fetchTasks(participationId as number, token! ),
+    queryKey: ['tasks', inscriptionId],
+    queryFn: () => fetchTasks(inscriptionId as number, token! ),
   });
 
   // Mutation para deletar task
@@ -68,7 +68,7 @@ export default function TaskList() {
     mutationFn: (id: number) => deleteTaskApi(id, token!),
     onSuccess: () => {
       // Invalida e refaz a query das tasks após deletar
-      queryClient.invalidateQueries({ queryKey: ['tasks', participationId] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', inscriptionId] });
       bottomSheetEditRef.current?.close();
     },
     onError: (error) => {
