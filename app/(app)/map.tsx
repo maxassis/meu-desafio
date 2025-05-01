@@ -15,7 +15,6 @@ import MapView, {
 } from "react-native-maps";
 import { useQuery } from "@tanstack/react-query";
 import { mapStyle } from "../../styles/mapStyles";
-import tokenExists from "../../store/auth-store";
 import { router } from "expo-router";
 import Left from "../../assets/arrow-left.svg";
 import { cva } from "class-variance-authority";
@@ -29,30 +28,6 @@ interface Coordinate {
   latitude: number;
   longitude: number;
 }
-
-// export interface RouteResponse {
-//   id: string;
-//   name: string;
-//   description: string;
-//   location: string;
-//   distance: string;
-//   inscription: Inscription[];
-// }
-
-// interface Inscription {
-//   user: User;
-//   progress: number;
-// }
-
-// export interface User {
-//   id: string;
-//   name: string;
-//   UserData: UserData | null;
-// }
-
-// interface UserData {
-//   avatar_url: string;
-// }
 
 interface UserParticipation {
   avatar: string;
@@ -160,13 +135,11 @@ export default function Map2() {
   const [routeCoordinates, setRouteCoordinates] = useState<Coordinate[]>([]);
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<MapView>(null);
-  const token = tokenExists((state) => state.token);
   const [userProgress, setUserProgress] = useState<number>(0);
   const [userDistance, setUserDistance] = useState<number>(0);
   const [usersParticipants, setUsersParticipants] = useState<
     UserParticipation[]
   >([]);
-  const [showMarker, setShowMarker] = useState<boolean>(true);
   const { desafioId } = useLocalSearchParams();
 
   // Novo estado para controlar o tipo de mapa
@@ -269,7 +242,6 @@ export default function Map2() {
   } = useQuery({
     queryKey: ["routeData", desafioId],
     queryFn: () => fetchRouteData(desafioId as string),
-    enabled: !!token,
   });
 
   useEffect(() => {
@@ -329,8 +301,7 @@ export default function Map2() {
   >({
     queryKey: ["rankData", desafioId],
     queryFn: () => fetchRankData(desafioId as string),
-    staleTime: 1000 * 60 * 10, // Dados são considerados frescos por 10 minutos
-    enabled: !!token,
+    staleTime: 1000 * 60 * 15, // Dados são considerados frescos por 10 minutos
   });
 
   const {

@@ -15,17 +15,15 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import Logo from "../../assets/logo-white.svg";
 import Settings from "../../assets/settings.svg";
-import useAuthStore from "../../store/auth-store";
 import { useRouter } from "expo-router";
 import CardDesafio from "@/components/cardDesafio";
 import { fetchUserData, fetchAllDesafios } from "@/utils/api-service";
 
 export default function Profile() {
   const router = useRouter();
-  const { token } = useAuthStore();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ["30%"], []);
-  
+
   const isBottomSheetOpen = useRef(false);
 
   const {
@@ -35,7 +33,7 @@ export default function Profile() {
     isSuccess: isUserSuccess,
   } = useQuery({
     queryKey: ["userData"],
-    queryFn:  fetchUserData,
+    queryFn: fetchUserData,
     staleTime: 45 * 60 * 1000,
   });
 
@@ -58,13 +56,28 @@ export default function Profile() {
   const desafiosConcluidos =
     allDesafios?.filter((desafio) => desafio.completed) || [];
 
+  const totalDistance = useMemo(() => {
+    if (!allDesafios) return 0;
+    
+    return allDesafios.reduce((total, desafio) => {
+      if (desafio.isRegistered) {
+        // Soma a distância completa do desafio, sem considerar o progresso
+        return total + +desafio.distance;
+      }
+      return total;
+    }, 0);
+  }, [allDesafios]);
+
+  // Formata a distância para exibição (arredonda para o km mais próximo)
+  const formattedDistance = `${totalDistance.toFixed(2)} km`;
+
   const handleOpenBottomSheet = () => {
     if (bottomSheetRef.current) {
       bottomSheetRef.current.expand();
       isBottomSheetOpen.current = true;
     }
   };
-  
+
   const handleCloseBottomSheet = () => {
     if (bottomSheetRef.current) {
       bottomSheetRef.current.close();
@@ -83,13 +96,13 @@ export default function Profile() {
     };
 
     const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
+      "hardwareBackPress",
       backAction
     );
 
     return () => backHandler.remove();
   }, []);
-  
+
   // Add this callback to track bottom sheet state
   const handleSheetChanges = (index: number) => {
     isBottomSheetOpen.current = index === 0;
@@ -141,15 +154,17 @@ export default function Profile() {
           <View className="flex-row justify-between h-[51px] mt-[10px] mx-4">
             <View>
               <Text className="text-white text-lg text-center font-inter-bold">
-                1
+                {desafiosEmCurso.length}
               </Text>
               <Text className="text-[#828282] font-inter-regular">
-                Desafio ativo
+                {desafiosEmCurso.length === 1
+                  ? "Desafio ativo"
+                  : "Desafios ativos"}
               </Text>
             </View>
             <View>
               <Text className="text-white text-lg text-center font-inter-bold">
-                0
+                {desafiosConcluidos.length}
               </Text>
               <Text className="text-[#828282] font-inter-regular">
                 Desafios finalizados
@@ -157,7 +172,7 @@ export default function Profile() {
             </View>
             <View>
               <Text className="text-white text-lg text-center font-inter-bold">
-                5 km
+                {formattedDistance}
               </Text>
               <Text className="text-[#828282] font-inter-regular">
                 Percorridos

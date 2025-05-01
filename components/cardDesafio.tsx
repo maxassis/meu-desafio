@@ -26,7 +26,7 @@ export default function CardDesafio({
     if (completed) return; 
 
     if (isRegistered) {
-      router.push({pathname: "/map2", params: { desafioId }});
+      router.push({pathname: "/map", params: { desafioId }});
     } else {
       router.push("/buy");
     }
