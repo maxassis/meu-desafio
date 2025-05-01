@@ -40,8 +40,6 @@ const RankingBottomSheet = ({
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["20%", "85%", "100%"], []);
 
-  console.log(rankData)
-
   return (
     <BottomSheet
       ref={bottomSheetRef}

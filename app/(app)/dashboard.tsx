@@ -33,7 +33,7 @@ export interface UserData {
   username: string;
 }
 
-interface AllDesafios {
+export interface AllDesafios {
   id: number;
   name: string;
   description: string;
@@ -92,7 +92,7 @@ export default function Profile() {
   } = useQuery<UserData, Error>({
     queryKey: ["userData"],
     queryFn: fetchUserData,
-    staleTime: 10 * 60 * 1000,
+    staleTime: 45 * 60 * 1000,
   });
 
   const {
