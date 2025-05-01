@@ -15,7 +15,6 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import Logo from "../../assets/logo-white.svg";
 import Settings from "../../assets/settings.svg";
-// import userDataStore from "../../store/user-data";
 import useAuthStore from "../../store/auth-store";
 import { useRouter } from "expo-router";
 import CardDesafio from "@/components/cardDesafio";
@@ -26,7 +25,6 @@ export default function Profile() {
   const { token } = useAuthStore();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ["30%"], []);
-  // const saveUserData = userDataStore((state) => state.setUserData);
   
   const isBottomSheetOpen = useRef(false);
 
