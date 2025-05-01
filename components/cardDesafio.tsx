@@ -1,6 +1,5 @@
 import { useRouter } from "expo-router";
 import { View, Text, Image, TouchableOpacity } from "react-native";
-import Plus from "../assets/plus.svg";
 
 interface desafioProps {
   name: string;
@@ -8,7 +7,6 @@ interface desafioProps {
   progress: string;
   isRegistered?: boolean;
   completed?: boolean;
-  bottomPress?: () => void
   desafioId: number
   photo: string
 }
@@ -19,17 +17,10 @@ export default function CardDesafio({
   progress,
   isRegistered,
   completed,
-  bottomPress,
   desafioId,
   photo
 }: desafioProps) {
   const router = useRouter();
-
-  const handlePlusPress = () => {
-    if (bottomPress) {
-      bottomPress();
-    } 
-  };
 
   const handleCardPress = () => {
     if (completed) return; 
@@ -72,18 +63,6 @@ export default function CardDesafio({
           </View>
         </View>
       </View>
-
-      {isRegistered && !completed && (
-        <TouchableOpacity
-          onPress={(e) => {
-            e.stopPropagation(); // evita disparar o click no card
-            handlePlusPress();
-          }}
-          className="rounded-full bg-bondis-green absolute w-16 h-16 justify-center items-center right-0 bottom-2"
-        >
-          <Plus />
-        </TouchableOpacity>
-      )}
     </TouchableOpacity>
   );
 }
