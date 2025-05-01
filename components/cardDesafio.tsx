@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
+import { Image } from "expo-image";
 
 interface desafioProps {
   name: string;
@@ -7,8 +8,8 @@ interface desafioProps {
   progress: string;
   isRegistered?: boolean;
   completed?: boolean;
-  desafioId: number
-  photo: string
+  desafioId: number;
+  photo: string;
 }
 
 export default function CardDesafio({
@@ -18,15 +19,15 @@ export default function CardDesafio({
   isRegistered,
   completed,
   desafioId,
-  photo
+  photo,
 }: desafioProps) {
   const router = useRouter();
 
   const handleCardPress = () => {
-    if (completed) return; 
+    if (completed) return;
 
     if (isRegistered) {
-      router.push({pathname: "/map", params: { desafioId }});
+      router.push({ pathname: "/map", params: { desafioId } });
     } else {
       router.push("/buy");
     }
@@ -49,14 +50,16 @@ export default function CardDesafio({
     >
       <Image
         className="w-full h-full rounded-2xl"
-         source={{uri: photo}}
-         resizeMode="cover"
+        source={{ uri: photo }}
+        contentFit="cover"
       />
       <View className="w-11/12 flex-row p-4 rounded-xl bg-white absolute bottom-[23px]">
         <View>
           <Text className="font-inter-bold text-[16.86px]">{name}</Text>
           <View className="flex-row items-center">
-            <Text className="font-inter-bold text-base">{parseFloat(distance).toFixed(2)}km</Text>
+            <Text className="font-inter-bold text-base">
+              {parseFloat(distance).toFixed(2)}km
+            </Text>
             <Text className="ml-8 text-[#757575] text-base font-inter-regular">
               {formattedProgress()}
             </Text>
@@ -66,4 +69,3 @@ export default function CardDesafio({
     </TouchableOpacity>
   );
 }
-

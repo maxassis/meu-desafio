@@ -3,9 +3,9 @@ import {
   Text,
   SafeAreaView,
   TouchableOpacity,
-  Image,
   StatusBar,
 } from "react-native";
+import { Image } from "expo-image";
 import { useQuery } from "@tanstack/react-query";
 import Left from "../../assets/arrow-left.svg";
 import { router } from "expo-router";
@@ -108,9 +108,15 @@ export default function DesafioSelect() {
                   }}
                   className="h-[94px] flex-row items-center px-3 py-[15px] border-b-[1px] border-b-[#D9D9D9]"
                 >
-                  <Image source={require("../../assets/Bg.png")} />
+                  <Image
+                    source={require("../../assets/Bg.png")} 
+                    contentFit="cover"
+                    style={{ width: 80, height: 80 }} 
+                  />
                   <View className="ml-5">
-                    <Text className="font-inter-bold text-base flex-wrap break-words">{item.desafio.name}</Text>
+                    <Text className="font-inter-bold text-base flex-wrap break-words">
+                      {item.desafio.name}
+                    </Text>
                     <Text className="font-inter-bold mt-[6.44px]">
                       {parseFloat(item.progress).toFixed(2)}km
                     </Text>

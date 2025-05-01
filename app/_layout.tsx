@@ -40,9 +40,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (appIsReady) {
-      if (!isAuthenticated && segments[1] !== 'intro') {
+      if (!isAuthenticated && segments[0] !== 'intro') {
         router.replace('/intro');
-      } else if (isAuthenticated && segments[1] !== 'dashboard') {
+      } else if (isAuthenticated && segments[0] !== 'dashboard') {
         router.replace('/dashboard');
       }
     }
@@ -61,3 +61,4 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
+

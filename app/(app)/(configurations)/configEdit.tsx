@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   View,
   TouchableOpacity,
-  Image,
   TextInput,
   Alert,
   StatusBar,
@@ -13,6 +12,7 @@ import {
   ActivityIndicator,
   BackHandler,
 } from "react-native";
+import { Image } from "expo-image";
 import Left from "../../../assets/arrow-left.svg";
 import User from "../../../assets/user.svg";
 import { MaskedTextInput } from "react-native-mask-text";
@@ -69,9 +69,7 @@ export default function ProfileEdit() {
 
   const [loadingUpload, setLoadingUpload] = useState(false);
 
-  const {
-    data: userConfig,
-  } = useQuery({
+  const { data: userConfig } = useQuery({
     queryKey: ["userData"],
     queryFn: fetchUserData,
     staleTime: 45 * 60 * 1000,
@@ -91,17 +89,14 @@ export default function ProfileEdit() {
     mutationFn: async (formData: FormData): Promise<uploadAvatarResponse> => {
       setLoadingUpload(true);
 
-      const response = await fetch(
-        "http://10.0.2.2:3000/users/uploadavatar",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "multipart/form-data",
-            authorization: "Bearer " + token,
-          },
-          body: formData,
-        }
-      );
+      const response = await fetch("http://10.0.2.2:3000/users/uploadavatar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "multipart/form-data",
+          authorization: "Bearer " + token,
+        },
+        body: formData,
+      });
 
       setModalVisible(false);
       setLoadingUpload(false);
@@ -114,32 +109,29 @@ export default function ProfileEdit() {
       return response.json();
     },
     onSuccess: (data) => {
-      // console.log("Upload successful", data);     
+      // console.log("Upload successful", data);
       queryClient.invalidateQueries({ queryKey: ["userData"] });
     },
     onError: (error) => {
       console.error("Upload error", error);
       Alert.alert("Erro", "Falha ao enviar imagem, tente novamente");
-    }
+    },
   });
 
   const deleteAvatarMutation = useMutation({
     mutationFn: async () => {
       setLoadingUpload(true);
 
-      const result = await fetch(
-        `http://10.0.2.2:3000/users/deleteavatar`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-type": "application/json",
-            authorization: "Bearer " + token,
-          },
-          body: JSON.stringify({
-            filename: userConfig?.avatar_filename,
-          }),
-        }
-      );
+      const result = await fetch(`http://10.0.2.2:3000/users/deleteavatar`, {
+        method: "DELETE",
+        headers: {
+          "Content-type": "application/json",
+          authorization: "Bearer " + token,
+        },
+        body: JSON.stringify({
+          filename: userConfig?.avatar_filename,
+        }),
+      });
 
       setModalVisible(false);
       setLoadingUpload(false);
@@ -159,7 +151,7 @@ export default function ProfileEdit() {
     onError: (error) => {
       // console.error("Delete avatar error", error);
       Alert.alert("Erro", "Falha ao remover imagem, tente novamente");
-    }
+    },
   });
 
   const pickImage = async () => {
@@ -204,23 +196,20 @@ export default function ProfileEdit() {
 
   const profileUpdateMutation = useMutation({
     mutationFn: async () => {
-      const result = await fetch(
-        "http://10.0.2.2:3000/users/edituserdata",
-        {
-          method: "PATCH",
-          headers: {
-            "Content-type": "application/json",
-            authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            full_name: nameValue || null,
-            bio: bioValue || null,
-            gender: genderValue || null,
-            sport: sportsValue || null,
-            birthDate: unMaskedValue || null,
-          }),
-        }
-      );
+      const result = await fetch("http://10.0.2.2:3000/users/edituserdata", {
+        method: "PATCH",
+        headers: {
+          "Content-type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          full_name: nameValue || null,
+          bio: bioValue || null,
+          gender: genderValue || null,
+          sport: sportsValue || null,
+          birthDate: unMaskedValue || null,
+        }),
+      });
 
       if (!result.ok) {
         const data = await result.json();
@@ -233,7 +222,7 @@ export default function ProfileEdit() {
     onSuccess: (data) => {
       // console.log("Alterações salvas com sucesso", data);
       Alert.alert("Sucesso", "Alterações salvas com sucesso!");
-      
+
       queryClient.invalidateQueries({ queryKey: ["userData"] });
     },
     onError: (error) => {
@@ -285,14 +274,16 @@ export default function ProfileEdit() {
                 <Image
                   source={{ uri: userConfig.avatar_url }}
                   className="w-[94px] h-[94px] rounded-full"
+                  contentFit="cover" 
                 />
               ) : (
                 <User />
               )}
 
               <Image
-                source={require("../../../assets/cam.png")}
+                source={require("../../../assets/cam.png")} 
                 className="absolute bottom-[-15px] right-[-10px]"
+                contentFit="contain" 
               />
             </TouchableOpacity>
 
@@ -372,7 +363,9 @@ export default function ProfileEdit() {
               className="h-[52px] mt-8 rounded-full justify-center items-center bg-bondis-green"
             >
               <Text className="font-inter-bold text-base">
-                {profileUpdateMutation.isPending ? "Salvando..." : "Salvar alterações"}
+                {profileUpdateMutation.isPending
+                  ? "Salvando..."
+                  : "Salvar alterações"}
               </Text>
             </TouchableOpacity>
 

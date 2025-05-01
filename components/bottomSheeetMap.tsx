@@ -4,15 +4,14 @@ import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import * as Progress from "react-native-progress";
 import { LinearGradient } from "expo-linear-gradient";
 import UserTime from "./userTime";
-import { dataType } from "@/store/user-data";
-import type { RouteResponse, RankData } from "../app/(app)/map2";
+import type { RouteResponse, RankData, UserData } from "@/utils/api-service";
 import Winner from "../assets/winner.svg";
 
 interface BottomSheetProps {
   routeData: RouteResponse | undefined;
   userProgress: number;
   userDistance: number;
-  userData: dataType | undefined;
+  userData: UserData | undefined;
   rankData: RankData[] | undefined;
   isLoading?: boolean; 
 }

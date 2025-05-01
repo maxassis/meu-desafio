@@ -3,13 +3,13 @@ import {
   SafeAreaView,
   Text,
   View,
-  Image,
   TouchableOpacity,
   ScrollView,
   StatusBar,
   ActivityIndicator,
   BackHandler,
 } from "react-native";
+import { Image } from "expo-image";
 import Plus from "../../assets/plus.svg";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
@@ -58,7 +58,7 @@ export default function Profile() {
 
   const totalDistance = useMemo(() => {
     if (!allDesafios) return 0;
-    
+
     return allDesafios.reduce((total, desafio) => {
       if (desafio.isRegistered) {
         // Soma a distância completa do desafio, sem considerar o progresso
@@ -118,13 +118,25 @@ export default function Profile() {
               <ActivityIndicator size="small" color="#00ff00" />
             ) : isUserSuccess && userData?.avatar_url ? (
               <Image
-                source={{ uri: `${userData.avatar_url}` }}
-                className="w-[72px] h-[72px] mt-auto rounded-full"
+                source={{ uri: userData.avatar_url }}
+                style={{
+                  width: 72,
+                  height: 72,
+                  marginTop: "auto",
+                  borderRadius: 999,
+                }}
+                contentFit="cover"
               />
             ) : (
               <Image
                 source={require("../../assets/user2.png")}
-                className="w-[72px] h-[72px] mt-auto rounded-full"
+                style={{
+                  width: 72,
+                  height: 72,
+                  marginTop: "auto",
+                  borderRadius: 999,
+                }}
+                contentFit="cover"
               />
             )}
             <TouchableOpacity onPress={() => router.push("/configInit")}>
