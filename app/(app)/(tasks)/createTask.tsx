@@ -67,7 +67,7 @@ export default function TaskCreate() {
   const [isModalTempoVisible, setModalTempoVisible] = useState(false);
   const [tempoSelecionado, setTempoSelecionado] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const token = tokenExists((state) => state.token);
-  const { inscriptionId, progress, distanceTotal } = useDesafioStore();
+  const { inscriptionId, progress, distanceTotal, desafioId } = useDesafioStore();
   const childRef = useRef<KilometerMeterPickerModalRef>(null);
   const timePickerRef = useRef<TimePickerModalRef>(null);
   const queryClient = useQueryClient();
@@ -90,8 +90,11 @@ export default function TaskCreate() {
     },
     onSuccess: (data) => {
       limparInputs();
-      queryClient.invalidateQueries({ queryKey: ["desafios"] });
-
+      queryClient.invalidateQueries({ queryKey: ["desafios"]});
+      queryClient.invalidateQueries({ queryKey: ["routeData", desafioId]});
+      queryClient.invalidateQueries({ queryKey: ["getAllDesafios"]});
+      queryClient.invalidateQueries({ queryKey: ["rankData", desafioId]});
+      
       const distanciaSelecionada = +`${distancia.kilometers}.${distancia.meters}`;
       const distanciaAtual = progress || 0;
       const distanciaTotalAposAdicao = distanciaAtual + distanciaSelecionada;

@@ -66,7 +66,7 @@ export default function TaskEdit() {
   const [calories, setCalories] = useState("");
   const [local, setLocal] = useState("");
   const token = tokenExists((state) => state.token);
-  const { taskData, progress, distanceTotal } = useDesafioStore(); // Adicionado progress e distanceTotal
+  const { taskData, progress, distanceTotal, desafioId } = useDesafioStore(); // Adicionado progress e distanceTotal
   const [day, setDay] = useState<DateData>({} as DateData);
   const [calendar, setCalendarVisible] = useState(false);
   const [initialDate, setInitialDate] = useState<any>();
@@ -199,7 +199,10 @@ export default function TaskEdit() {
                     }
                     
                     // Limpa o cache de desafios
-                    queryClient.invalidateQueries({ queryKey: ["desafios"] });
+                    queryClient.invalidateQueries({ queryKey: ["desafios"]});
+                    queryClient.invalidateQueries({ queryKey: ["routeData", desafioId]});
+                    queryClient.invalidateQueries({ queryKey: ["getAllDesafios"]});
+                    queryClient.invalidateQueries({ queryKey: ["rankData", desafioId]});
                     
                     // Resolve a Promise com os dados e um flag indicando que a meta foi atingida
                     const responseData = await response.json();

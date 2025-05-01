@@ -101,7 +101,8 @@ export default function DesafioSelect() {
                       item.id,
                       item.desafio.name,
                       +item.progress,
-                      item.desafio.distance
+                      item.desafio.distance,
+                      item.desafioId
                     );
                     router.push("/createTask");
                   }}
