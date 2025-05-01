@@ -1,3 +1,500 @@
+// import React, { useState, useEffect, useRef, useMemo } from "react";
+// import {
+//   View,
+//   ActivityIndicator,
+//   TouchableOpacity,
+//   Image,
+//   StatusBar,
+//   Text
+// } from "react-native";
+// import MapView, { Polyline, PROVIDER_GOOGLE, Marker } from "react-native-maps";
+// import { useQuery } from "@tanstack/react-query";
+// import { mapStyle } from "../../styles/mapStyles";
+// import tokenExists from "../../store/auth-store";
+// import { router } from "expo-router";
+// import Left from "../../assets/arrow-left.svg";
+// import userDataStore from "../../store/user-data";
+// import { cva } from "class-variance-authority";
+// import RankingBottomSheet from "../../components/bottomSheeetMap";
+// import { useLocalSearchParams } from "expo-router";
+
+// interface Coordinate {
+//   latitude: number;
+//   longitude: number;
+// }
+
+// export interface RouteResponse {
+//   id: string;
+//   name: string;
+//   description: string;
+//   location: string;
+//   distance: string;
+//   inscription: Inscription[];
+// }
+
+// interface Inscription {
+//   user: User;
+//   progress: number;
+// }
+
+// export interface User {
+//   id: string;
+//   name: string;
+//   UserData: UserData | null;
+// }
+
+// interface UserData {
+//   avatar_url: string;
+// }
+
+// interface UserParticipation {
+//   avatar: string;
+//   location: LatLng;
+//   name: string;
+//   userId: string;
+//   distance: number;
+//   percentage: string;
+// }
+
+// interface LatLng {
+//   latitude: number;
+//   longitude: number;
+// }
+
+// export interface RankData {
+//   position: number;
+//   userId: string;
+//   userName: string;
+//   userAvatar: string;
+//   totalDistance: number;
+//   totalDuration: number;
+//   avgSpeed: number;
+// }
+
+// const haversine = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+//   const toRad = (x: number) => (x * Math.PI) / 180;
+//   const R = 6371; // km
+//   const dLat = toRad(lat2 - lat1);
+//   const dLon = toRad(lon2 - lon1);
+//   const a =
+//     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+//     Math.cos(toRad(lat1)) *
+//       Math.cos(toRad(lat2)) *
+//       Math.sin(dLon / 2) *
+//       Math.sin(dLon / 2);
+//   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+//   return R * c;
+// };
+
+// const findPointAtDistance = (
+//   coordinates: { latitude: number; longitude: number }[],
+//   distance: number
+// ) => {
+//   let traveled = 0;
+
+//   for (let i = 0; i < coordinates.length - 1; i++) {
+//     const { latitude: startLat, longitude: startLon } = coordinates[i];
+//     const { latitude: endLat, longitude: endLon } = coordinates[i + 1];
+
+//     const segmentDistance = haversine(startLat, startLon, endLat, endLon);
+//     if (traveled + segmentDistance >= distance) {
+//       const remainingDistance = distance - traveled;
+//       const ratio = remainingDistance / segmentDistance;
+
+//       const newLat = startLat + (endLat - startLat) * ratio;
+//       const newLon = startLon + (endLon - startLon) * ratio;
+
+//       return { latitude: newLat, longitude: newLon };
+//     }
+//     traveled += segmentDistance;
+//   }
+
+//   // Caso a distância seja maior que a distância total, retorna o último ponto
+//   return coordinates[coordinates.length - 1];
+// };
+
+// const calculateUserDistance = (
+//   coordinates: { latitude: number; longitude: number }[],
+//   progress: number
+// ): number => {
+//   const progressNumber = Number(progress); // Garante que progress é um número
+//   let traveled = 0;
+
+//   for (let i = 0; i < coordinates.length - 1; i++) {
+//     const { latitude: startLat, longitude: startLon } = coordinates[i];
+//     const { latitude: endLat, longitude: endLon } = coordinates[i + 1];
+
+//     // Calcula a distância entre dois pontos consecutivos
+//     const segmentDistance = haversine(startLat, startLon, endLat, endLon);
+
+//     // Verifica se o progresso está dentro deste segmento
+//     if (traveled + segmentDistance >= progressNumber) {
+//       const remainingProgress = progressNumber - traveled;
+//       const segmentFraction = remainingProgress / segmentDistance;
+
+//       // Retorna a distância acumulada, interpolando dentro do segmento atual
+//       return traveled + remainingProgress;
+//     }
+
+//     traveled += segmentDistance; // Acumula distância percorrida
+//   }
+
+//   return traveled; // Retorna a distância total percorrida
+// };
+
+// const formatPercentage = (progress: number): string => {
+//   return progress.toLocaleString("en-US", {
+//     minimumIntegerDigits: 2,
+//     maximumFractionDigits: 1,
+//   });
+// };
+
+// export default function Map2() {
+//   const [routeCoordinates, setRouteCoordinates] = useState<Coordinate[]>([]);
+//   const [mapReady, setMapReady] = useState(false);
+//   const mapRef = useRef<MapView>(null);
+//   const token = tokenExists((state) => state.token);
+//   const getUserData = userDataStore((state) => state.data);
+//   const [userProgress, setUserProgress] = useState<number>(0);
+//   const [userDistance, setUserDistance] = useState<number>(0);
+//   const [mapType, setMapType] = useState<"standard" | "satellite" | "hybrid">(
+//     "standard"
+//   );
+//   const [usersParticipants, setUsersParticipants] = useState<
+//     UserParticipation[]
+//   >([]);
+//   const [showMarker, setShowMarker] = useState<boolean>(true);
+//   const { desafioId } = useLocalSearchParams();
+
+//   const toggleMapType = () => {
+//     if (mapType === "standard") {
+//       setMapType("satellite");
+//     } else if (mapType === "satellite") {
+//       setMapType("hybrid");
+//     } else {
+//       setMapType("standard");
+//     }
+//   };
+
+//   const getUserPath = useMemo(() => {
+//     if (!routeCoordinates || userDistance === 0) return [];
+
+//     const path: Coordinate[] = [];
+//     let traveled = 0;
+
+//     for (let i = 0; i < routeCoordinates.length - 1; i++) {
+//       const startPoint = routeCoordinates[i];
+//       const endPoint = routeCoordinates[i + 1];
+
+//       const segmentDistance = haversine(
+//         startPoint.latitude,
+//         startPoint.longitude,
+//         endPoint.latitude,
+//         endPoint.longitude
+//       );
+
+//       if (traveled + segmentDistance >= userDistance) {
+//         const remainingDistance = userDistance - traveled;
+//         const ratio = remainingDistance / segmentDistance;
+
+//         const newLat =
+//           startPoint.latitude +
+//           (endPoint.latitude - startPoint.latitude) * ratio;
+//         const newLon =
+//           startPoint.longitude +
+//           (endPoint.longitude - startPoint.longitude) * ratio;
+
+//         path.push(startPoint); // Adiciona o ponto inicial do segmento atual
+//         path.push({ latitude: newLat, longitude: newLon }); // Adiciona o ponto interpolado onde o usuário está
+//         break;
+//       } else {
+//         path.push(startPoint); // Adiciona o ponto inicial completo do segmento percorrido
+//         traveled += segmentDistance;
+//       }
+//     }
+
+//     return path;
+//   }, [routeCoordinates, userDistance]);
+
+//   const fetchRouteData = async () => {
+//     const response = await fetch(
+//       `http://10.0.2.2:3000/desafio/getdesafio/${desafioId}`,
+//       {
+//         headers: {
+//           "Content-type": "application/json",
+//           authorization: "Bearer " + token,
+//         },
+//       }
+//     );
+
+//     if (!response.ok) {
+//       throw new Error("Failed to fetch route data");
+//     }
+
+//     const data: RouteResponse = await response.json();
+
+//     // Verifica se a propriedade 'location' existe e é válida
+//     if (!data.location || typeof data.location !== "string") {
+//       throw new Error("Invalid or missing location data");
+//     }
+
+//     const coordinates = JSON.parse(data.location);
+
+//     if (!Array.isArray(coordinates) || coordinates.length === 0) {
+//       throw new Error("Invalid or empty coordinates");
+//     }
+
+//     return data; // Retorna todos os dados da resposta
+//   };
+
+//   const {
+//     data: routeData,
+//     isLoading,
+//     isSuccess,
+//   } = useQuery({
+//     queryKey: ["routeData", desafioId],
+//     queryFn: fetchRouteData,
+//     enabled: !!token,
+//   });
+
+//   useEffect(() => {
+//     if (isSuccess && routeData && mapReady) {
+//       // Extrai as coordenadas do campo 'location'
+//       const coordinates = JSON.parse(routeData.location);
+//       setRouteCoordinates(coordinates);
+
+//       const totalDistance = +routeData.distance;
+
+//       const updatedParticipants: UserParticipation[] =
+//         routeData.inscription.map((dta) => {
+//           let userLocation: LatLng = { latitude: 0, longitude: 0 };
+//           let userDistance = 0;
+//           let progressPercentage = "0";
+
+//           try {
+//             userLocation =
+//               findPointAtDistance(coordinates, dta.progress) || coordinates[0];
+//             userDistance = calculateUserDistance(coordinates, dta.progress);
+//             progressPercentage = formatPercentage(
+//               (userDistance / totalDistance) * 100
+//             );
+//           } catch (error) {
+//             console.error("Error calculating user progress:", error);
+//           }
+
+//           if (dta.user.id === getUserData?.usersId) {
+//             setUserProgress(Number(progressPercentage) / 100);
+//             setUserDistance(dta.progress);
+//             // setUserLocation(userLocation);
+//           }
+
+//           return {
+//             userId: dta.user.id,
+//             name: dta.user.name,
+//             avatar: dta.user.UserData?.avatar_url || "", // Sempre string
+//             location: userLocation || coordinates[0],
+//             distance: userDistance,
+//             percentage: progressPercentage,
+//           };
+//         });
+
+//       setUsersParticipants(updatedParticipants);
+
+//       if (mapRef.current && coordinates.length > 0) {
+//         mapRef.current.fitToCoordinates(coordinates, {
+//           edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+//           animated: true,
+//         });
+//       }
+//     }
+//   }, [isSuccess, routeData, mapReady]); // Agora escuta o mapReady também
+
+//   function fetchRankData(): Promise<RankData[]> {
+//     return fetch(`http://10.0.2.2:3000/users/getRanking/${desafioId}`, {
+//       headers: {
+//         "Content-type": "application/json",
+//         authorization: "Bearer " + token,
+//       },
+//     }).then((response) => {
+//       if (!response.ok) {
+//         throw new Error("Network response was not ok");
+//       }
+
+//       return response.json();
+//     });
+//   }
+
+//   const { data: rankData, isLoading: rankLoading } = useQuery<
+//     RankData[],
+//     Error
+//   >({
+//     queryKey: ["rankData", desafioId],
+//     queryFn: fetchRankData,
+//     staleTime: 1000 * 60 * 10, // Dados são considerados frescos por 10 minutos
+//     enabled: !!token,
+//   });
+
+//   return (
+//     <View className="flex-1 bg-white justify-center items-center relative">
+//       {isLoading ? (
+//         <ActivityIndicator size="large" color="#12FF55" />
+//       ) : (
+//         <MapView
+//           ref={mapRef}
+//           onMapReady={() => setMapReady(true)} // Evento do mapa pronto
+//           className="flex-1 w-full"
+//           provider={PROVIDER_GOOGLE}
+//           // customMapStyle={mapStyle}
+//           customMapStyle={mapType === "standard" ? mapStyle : []}
+//           showsCompass={false}
+//           toolbarEnabled={false} // Desativa a barra de ferramentas/botões
+//           zoomControlEnabled={false} // Desativa controles de zoom
+//           mapType={mapType}
+//         >
+//           {routeCoordinates.length > 0 && (
+//             <>
+//               <Polyline
+//                 coordinates={routeCoordinates}
+//                 strokeWidth={4}
+//                 strokeColor="#000"
+//                 zIndex={1}
+//               />
+//               <Polyline
+//                 coordinates={getUserPath}
+//                 strokeWidth={2}
+//                 strokeColor="#12FF55"
+//                 zIndex={2}
+//               />
+//             </>
+//           )}
+
+//           {usersParticipants.map((user: UserParticipation, index: number) => (
+//             <Marker
+//               key={index}
+//               onPress={() => {}}
+//               coordinate={
+//                 user.distance > +routeData!.distance
+//                   ? {
+//                       latitude:
+//                         routeCoordinates[routeCoordinates.length - 1].latitude,
+//                       longitude:
+//                         routeCoordinates[routeCoordinates.length - 1].longitude,
+//                     }
+//                   : user.location
+//               }
+//               style={
+//                 user.userId === getUserData?.usersId
+//                   ? { zIndex: 100000, elevation: 100000 }
+//                   : { zIndex: index, elevation: index }
+//               }
+//               tracksViewChanges={showMarker}
+//               title={`${user.name} - ${user.distance} Km`}
+//             >
+//               <View
+//                 className={userPin({
+//                   intent: user.userId === getUserData?.usersId ? "user" : null,
+//                 })}
+//               >
+//                 {user.avatar ? (
+//                   <Image
+//                     resizeMode="cover"
+//                     source={{ uri: user.avatar }}
+//                     className={photoUser({
+//                       intent:
+//                         user.userId === getUserData?.usersId ? "user" : null,
+//                     })}
+//                   />
+//                 ) : (
+//                   <Image
+//                     source={require("../../assets/user2.png")}
+//                     className="h-[32px] w-[32px] rounded-full "
+//                   />
+//                 )}
+//               </View>
+//             </Marker>
+//           ))}
+
+//           {routeCoordinates.length > 0 && (
+//             <Marker
+//               key="final"
+//               onPress={() => {}}
+//               coordinate={{
+//                 latitude:
+//                   routeCoordinates[routeCoordinates.length - 1].latitude,
+//                 longitude:
+//                   routeCoordinates[routeCoordinates.length - 1].longitude,
+//               }}
+//               style={{ zIndex: 9999, elevation: 9999 }}
+//               title="Final"
+//               tracksViewChanges={showMarker}
+//             >
+//               <Image
+//                 source={require("../../assets/final-pin.png")}
+//                 className="h-[40px] w-[40px] rounded-full"
+//               />
+//             </Marker>
+//           )}
+//         </MapView>
+//       )}
+
+//       <TouchableOpacity
+//         onPress={() => router.push("/dashboard")}
+//         className="absolute top-[38px] left-[13px] h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center"
+//       >
+//         <Left />
+//       </TouchableOpacity>
+
+//       <TouchableOpacity
+//         onPress={toggleMapType}
+//         className="absolute top-[38px] right-[13px] h-[43px] rounded-full bg-bondis-text-gray justify-center items-center px-3"
+//       >
+//         <Text className="text-white font-medium text-xs">
+//           {mapType === "standard"
+//             ? "Padrão"
+//             : mapType === "satellite"
+//             ? "Satélite"
+//             : "Híbrido"}
+//         </Text>
+//       </TouchableOpacity>
+
+//       {/* Using the RankingBottomSheet component */}
+//       <RankingBottomSheet
+//         routeData={routeData}
+//         userProgress={userProgress}
+//         userDistance={userDistance}
+//         userData={getUserData}
+//         rankData={rankData}
+//         isLoading={rankLoading}
+//       />
+
+//       <StatusBar
+//         backgroundColor="#000"
+//         barStyle="light-content"
+//         translucent={false}
+//       />
+//     </View>
+//   );
+// }
+
+// const userPin = cva(
+//   "h-[35px] w-[35px] rounded-full bg-black justify-center items-center",
+//   {
+//     variants: {
+//       intent: {
+//         user: "bg-bondis-green h-[39px] w-[39px] ",
+//       },
+//     },
+//   }
+// );
+
+// const photoUser = cva("h-[30px] w-[30px] rounded-full", {
+//   variants: {
+//     intent: {
+//       user: "h-[34px] w-[34px]",
+//     },
+//   },
+// });
+
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
@@ -5,9 +502,14 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
-  Text
+  Text,
 } from "react-native";
-import MapView, { Polyline, PROVIDER_GOOGLE, Marker } from "react-native-maps";
+import MapView, {
+  Polyline,
+  PROVIDER_GOOGLE,
+  Marker,
+  Camera,
+} from "react-native-maps";
 import { useQuery } from "@tanstack/react-query";
 import { mapStyle } from "../../styles/mapStyles";
 import tokenExists from "../../store/auth-store";
@@ -17,6 +519,8 @@ import userDataStore from "../../store/user-data";
 import { cva } from "class-variance-authority";
 import RankingBottomSheet from "../../components/bottomSheeetMap";
 import { useLocalSearchParams } from "expo-router";
+import AntDesign from '@expo/vector-icons/AntDesign';
+import Octicons from '@expo/vector-icons/Octicons';
 
 interface Coordinate {
   latitude: number;
@@ -157,24 +661,20 @@ export default function Map2() {
   const getUserData = userDataStore((state) => state.data);
   const [userProgress, setUserProgress] = useState<number>(0);
   const [userDistance, setUserDistance] = useState<number>(0);
-  const [mapType, setMapType] = useState<"standard" | "satellite" | "hybrid">(
-    "standard"
-  );
   const [usersParticipants, setUsersParticipants] = useState<
     UserParticipation[]
   >([]);
   const [showMarker, setShowMarker] = useState<boolean>(true);
   const { desafioId } = useLocalSearchParams();
 
-  const toggleMapType = () => {
-    if (mapType === "standard") {
-      setMapType("satellite");
-    } else if (mapType === "satellite") {
-      setMapType("hybrid");
-    } else {
-      setMapType("standard");
-    }
-  };
+  // Novo estado para controlar o tipo de mapa
+  const [mapType, setMapType] = useState<"standard" | "satellite" | "hybrid">(
+    "standard"
+  );
+
+  // Novos estados para controlar a perspectiva do mapa
+  const [tilt, setTilt] = useState<number>(0); // 0 a 60 graus
+  const [bearing, setBearing] = useState<number>(0); // 0 a 359 graus
 
   const getUserPath = useMemo(() => {
     if (!routeCoordinates || userDistance === 0) return [];
@@ -204,17 +704,61 @@ export default function Map2() {
           startPoint.longitude +
           (endPoint.longitude - startPoint.longitude) * ratio;
 
-        path.push(startPoint); // Adiciona o ponto inicial do segmento atual
-        path.push({ latitude: newLat, longitude: newLon }); // Adiciona o ponto interpolado onde o usuário está
+        path.push(startPoint);
+        path.push({ latitude: newLat, longitude: newLon });
         break;
       } else {
-        path.push(startPoint); // Adiciona o ponto inicial completo do segmento percorrido
+        path.push(startPoint);
         traveled += segmentDistance;
       }
     }
 
     return path;
   }, [routeCoordinates, userDistance]);
+
+  // Função para alternar entre os tipos de mapa
+  const toggleMapType = () => {
+    if (mapType === "standard") {
+      setMapType("satellite");
+    } else if (mapType === "satellite") {
+      setMapType("hybrid");
+    } else {
+      setMapType("standard");
+    }
+  };
+
+  // Funções para controlar a perspectiva
+  const increaseTilt = () => {
+    const newTilt = Math.min(tilt + 15, 60);
+    setTilt(newTilt);
+    animateCamera({ pitch: newTilt });
+  };
+
+  const decreaseTilt = () => {
+    const newTilt = Math.max(tilt - 15, 0);
+    setTilt(newTilt);
+    animateCamera({ pitch: newTilt });
+  };
+
+  const resetCamera = () => {
+    setTilt(0);
+    setBearing(0);
+    animateCamera({ pitch: 0, heading: 0 });
+
+    // Também reajusta o zoom para mostrar toda a rota
+    if (mapRef.current && routeCoordinates.length > 0) {
+      mapRef.current.fitToCoordinates(routeCoordinates, {
+        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+        animated: true,
+      });
+    }
+  };
+
+  const animateCamera = (cameraParams: Partial<Camera>) => {
+    if (mapRef.current) {
+      mapRef.current.animateCamera(cameraParams, { duration: 1000 });
+    }
+  };
 
   const fetchRouteData = async () => {
     const response = await fetch(
@@ -285,7 +829,6 @@ export default function Map2() {
           if (dta.user.id === getUserData?.usersId) {
             setUserProgress(Number(progressPercentage) / 100);
             setUserDistance(dta.progress);
-            // setUserLocation(userLocation);
           }
 
           return {
@@ -307,7 +850,7 @@ export default function Map2() {
         });
       }
     }
-  }, [isSuccess, routeData, mapReady]); // Agora escuta o mapReady também
+  }, [isSuccess, routeData, mapReady]);
 
   function fetchRankData(): Promise<RankData[]> {
     return fetch(`http://10.0.2.2:3000/users/getRanking/${desafioId}`, {
@@ -341,14 +884,13 @@ export default function Map2() {
       ) : (
         <MapView
           ref={mapRef}
-          onMapReady={() => setMapReady(true)} // Evento do mapa pronto
+          onMapReady={() => setMapReady(true)}
           className="flex-1 w-full"
           provider={PROVIDER_GOOGLE}
-          // customMapStyle={mapStyle}
           customMapStyle={mapType === "standard" ? mapStyle : []}
-          showsCompass={false}
-          toolbarEnabled={false} // Desativa a barra de ferramentas/botões
-          zoomControlEnabled={false} // Desativa controles de zoom
+          showsCompass={true}
+          toolbarEnabled={false}
+          zoomControlEnabled={false}
           mapType={mapType}
         >
           {routeCoordinates.length > 0 && (
@@ -437,6 +979,7 @@ export default function Map2() {
         </MapView>
       )}
 
+      {/* Botão para voltar */}
       <TouchableOpacity
         onPress={() => router.push("/dashboard")}
         className="absolute top-[38px] left-[13px] h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center"
@@ -444,18 +987,41 @@ export default function Map2() {
         <Left />
       </TouchableOpacity>
 
+      {/* Botão para alternar o tipo de mapa */}
       <TouchableOpacity
         onPress={toggleMapType}
-        className="absolute top-[38px] right-[13px] h-[43px] rounded-full bg-bondis-text-gray justify-center items-center px-3"
+        className="absolute top-[38px] right-[13px] h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center px-3"
       >
-        <Text className="text-white font-medium text-xs">
-          {mapType === "standard"
-            ? "Padrão"
-            : mapType === "satellite"
-            ? "Satélite"
-            : "Híbrido"}
-        </Text>
+        <Octicons name="stack" size={16} color="black" />
       </TouchableOpacity>
+
+      {/* Controles de perspectiva do mapa */}
+      <View className="absolute right-[13px] top-[100px] bg-bondis-text-gray rounded-full overflow-hidden">
+        {/* Aumentar inclinação */}
+        <TouchableOpacity
+          onPress={increaseTilt}
+          className="h-[40px] w-[40px] justify-center items-center border-b border-gray-400"
+        >
+          <AntDesign name="arrowup" size={16} color="black" />
+        </TouchableOpacity>
+
+        {/* Diminuir inclinação */}
+        <TouchableOpacity
+          onPress={decreaseTilt}
+          className="h-[40px] w-[40px] justify-center items-center border-b border-gray-400"
+        >
+          <AntDesign name="arrowdown" size={16} color="black" />
+        </TouchableOpacity>
+
+        {/* Resetar câmera */}
+        <TouchableOpacity
+          onPress={resetCamera}
+          className="h-[40px] w-[40px] justify-center items-center"
+        >
+          <AntDesign name="reload1" size={16} color="black" />
+          {/* <Text className="text-black font-bold">⟳</Text> */}
+        </TouchableOpacity>
+      </View>
 
       {/* Using the RankingBottomSheet component */}
       <RankingBottomSheet
