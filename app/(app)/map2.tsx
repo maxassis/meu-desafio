@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
+  Text
 } from "react-native";
 import MapView, { Polyline, PROVIDER_GOOGLE, Marker } from "react-native-maps";
 import { useQuery } from "@tanstack/react-query";
@@ -156,12 +157,24 @@ export default function Map2() {
   const getUserData = userDataStore((state) => state.data);
   const [userProgress, setUserProgress] = useState<number>(0);
   const [userDistance, setUserDistance] = useState<number>(0);
-  // const [userLocation, setUserLocation] = useState<Coordinate | null>(null);
+  const [mapType, setMapType] = useState<"standard" | "satellite" | "hybrid">(
+    "standard"
+  );
   const [usersParticipants, setUsersParticipants] = useState<
     UserParticipation[]
   >([]);
   const [showMarker, setShowMarker] = useState<boolean>(true);
   const { desafioId } = useLocalSearchParams();
+
+  const toggleMapType = () => {
+    if (mapType === "standard") {
+      setMapType("satellite");
+    } else if (mapType === "satellite") {
+      setMapType("hybrid");
+    } else {
+      setMapType("standard");
+    }
+  };
 
   const getUserPath = useMemo(() => {
     if (!routeCoordinates || userDistance === 0) return [];
@@ -204,12 +217,15 @@ export default function Map2() {
   }, [routeCoordinates, userDistance]);
 
   const fetchRouteData = async () => {
-    const response = await fetch(`http://10.0.2.2:3000/desafio/getdesafio/${desafioId}`, {
-      headers: {
-        "Content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-    });
+    const response = await fetch(
+      `http://10.0.2.2:3000/desafio/getdesafio/${desafioId}`,
+      {
+        headers: {
+          "Content-type": "application/json",
+          authorization: "Bearer " + token,
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Failed to fetch route data");
@@ -308,7 +324,10 @@ export default function Map2() {
     });
   }
 
-  const { data: rankData, isLoading: rankLoading } = useQuery<RankData[], Error>({
+  const { data: rankData, isLoading: rankLoading } = useQuery<
+    RankData[],
+    Error
+  >({
     queryKey: ["rankData", desafioId],
     queryFn: fetchRankData,
     staleTime: 1000 * 60 * 10, // Dados são considerados frescos por 10 minutos
@@ -325,10 +344,12 @@ export default function Map2() {
           onMapReady={() => setMapReady(true)} // Evento do mapa pronto
           className="flex-1 w-full"
           provider={PROVIDER_GOOGLE}
-          customMapStyle={mapStyle}
+          // customMapStyle={mapStyle}
+          customMapStyle={mapType === "standard" ? mapStyle : []}
           showsCompass={false}
           toolbarEnabled={false} // Desativa a barra de ferramentas/botões
           zoomControlEnabled={false} // Desativa controles de zoom
+          mapType={mapType}
         >
           {routeCoordinates.length > 0 && (
             <>
@@ -423,8 +444,21 @@ export default function Map2() {
         <Left />
       </TouchableOpacity>
 
+      <TouchableOpacity
+        onPress={toggleMapType}
+        className="absolute top-[38px] right-[13px] h-[43px] rounded-full bg-bondis-text-gray justify-center items-center px-3"
+      >
+        <Text className="text-white font-medium text-xs">
+          {mapType === "standard"
+            ? "Padrão"
+            : mapType === "satellite"
+            ? "Satélite"
+            : "Híbrido"}
+        </Text>
+      </TouchableOpacity>
+
       {/* Using the RankingBottomSheet component */}
-      <RankingBottomSheet 
+      <RankingBottomSheet
         routeData={routeData}
         userProgress={userProgress}
         userDistance={userDistance}
