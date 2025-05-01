@@ -323,7 +323,7 @@ export default function Map2() {
           className="flex-1 w-full"
           provider={PROVIDER_GOOGLE}
           customMapStyle={mapType === "standard" ? mapStyle : []}
-          showsCompass={true}
+          showsCompass={false}
           toolbarEnabled={false}
           zoomControlEnabled={false}
           mapType={mapType}
