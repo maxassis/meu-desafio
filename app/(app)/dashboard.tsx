@@ -19,31 +19,7 @@ import userDataStore from "../../store/user-data";
 import useAuthStore from "../../store/auth-store";
 import { useRouter } from "expo-router";
 import CardDesafio from "@/components/cardDesafio";
-
-export interface UserData {
-  id: string;
-  avatar_url: string | null;
-  avatar_filename: string | null;
-  full_name: string | null;
-  bio: string | null;
-  gender: string | null;
-  sport: string | null;
-  createdAt: Date;
-  usersId: string;
-  username: string;
-}
-
-export interface AllDesafios {
-  id: number;
-  name: string;
-  description: string;
-  distance: string;
-  isRegistered: boolean;
-  completed: boolean;
-  completedAt: null | Date;
-  progress: number;
-  photo: string;
-}
+import { fetchUserData, fetchAllDesafios } from "@/utils/api-service";
 
 export default function Profile() {
   const router = useRouter();
@@ -52,46 +28,20 @@ export default function Profile() {
   const snapPoints = useMemo(() => ["30%"], []);
   const saveUserData = userDataStore((state) => state.setUserData);
   
-  // Track if bottom sheet is open
   const isBottomSheetOpen = useRef(false);
-
-  const fetchUserData = async (): Promise<UserData> => {
-    const response = await fetch("http://10.0.2.2:3000/users/getUserData", {
-      headers: {
-        "Content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    const data = await response.json();
-    saveUserData(data);
-    return data;
-  };
-
-  const fetchAllDesafios = async (): Promise<AllDesafios[]> => {
-    const response = await fetch("http://10.0.2.2:3000/desafio/getAllDesafio", {
-      headers: {
-        "Content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    const data = await response.json();
-    return data;
-  };
 
   const {
     data: userData,
     isLoading: isUserLoading,
     isError: isUserError,
     isSuccess: isUserSuccess,
-  } = useQuery<UserData, Error>({
+  } = useQuery({
     queryKey: ["userData"],
-    queryFn: fetchUserData,
+    queryFn:  async () => {
+      const data = await fetchUserData();
+      saveUserData(data);
+      return data;
+    },
     staleTime: 45 * 60 * 1000,
   });
 
@@ -99,7 +49,7 @@ export default function Profile() {
     data: allDesafios,
     isLoading: isDesafiosLoading,
     isError: isDesafiosError,
-  } = useQuery<AllDesafios[], Error>({
+  } = useQuery({
     queryKey: ["getAllDesafios"],
     queryFn: fetchAllDesafios,
     staleTime: 5 * 60 * 1000,

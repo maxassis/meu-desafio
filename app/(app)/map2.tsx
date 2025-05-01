@@ -18,42 +18,41 @@ import { mapStyle } from "../../styles/mapStyles";
 import tokenExists from "../../store/auth-store";
 import { router } from "expo-router";
 import Left from "../../assets/arrow-left.svg";
-// import userDataStore from "../../store/user-data";
 import { cva } from "class-variance-authority";
 import RankingBottomSheet from "../../components/bottomSheeetMap";
 import { useLocalSearchParams } from "expo-router";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Octicons from '@expo/vector-icons/Octicons';
-import type { UserData as UserConfig } from "./dashboard";
+import { fetchUserData, fetchRouteData, fetchRankData  } from "@/utils/api-service";
 
 interface Coordinate {
   latitude: number;
   longitude: number;
 }
 
-export interface RouteResponse {
-  id: string;
-  name: string;
-  description: string;
-  location: string;
-  distance: string;
-  inscription: Inscription[];
-}
+// export interface RouteResponse {
+//   id: string;
+//   name: string;
+//   description: string;
+//   location: string;
+//   distance: string;
+//   inscription: Inscription[];
+// }
 
-interface Inscription {
-  user: User;
-  progress: number;
-}
+// interface Inscription {
+//   user: User;
+//   progress: number;
+// }
 
-export interface User {
-  id: string;
-  name: string;
-  UserData: UserData | null;
-}
+// export interface User {
+//   id: string;
+//   name: string;
+//   UserData: UserData | null;
+// }
 
-interface UserData {
-  avatar_url: string;
-}
+// interface UserData {
+//   avatar_url: string;
+// }
 
 interface UserParticipation {
   avatar: string;
@@ -162,7 +161,6 @@ export default function Map2() {
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<MapView>(null);
   const token = tokenExists((state) => state.token);
-  // const getUserData = userDataStore((state) => state.data);
   const [userProgress, setUserProgress] = useState<number>(0);
   const [userDistance, setUserDistance] = useState<number>(0);
   const [usersParticipants, setUsersParticipants] = useState<
@@ -264,44 +262,13 @@ export default function Map2() {
     }
   };
 
-  const fetchRouteData = async () => {
-    const response = await fetch(
-      `http://10.0.2.2:3000/desafio/getdesafio/${desafioId}`,
-      {
-        headers: {
-          "Content-type": "application/json",
-          authorization: "Bearer " + token,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch route data");
-    }
-
-    const data: RouteResponse = await response.json();
-
-    // Verifica se a propriedade 'location' existe e é válida
-    if (!data.location || typeof data.location !== "string") {
-      throw new Error("Invalid or missing location data");
-    }
-
-    const coordinates = JSON.parse(data.location);
-
-    if (!Array.isArray(coordinates) || coordinates.length === 0) {
-      throw new Error("Invalid or empty coordinates");
-    }
-
-    return data; // Retorna todos os dados da resposta
-  };
-
   const {
     data: routeData,
     isLoading,
     isSuccess,
   } = useQuery({
     queryKey: ["routeData", desafioId],
-    queryFn: fetchRouteData,
+    queryFn: () => fetchRouteData(desafioId as string),
     enabled: !!token,
   });
 
@@ -356,48 +323,19 @@ export default function Map2() {
     }
   }, [isSuccess, routeData, mapReady]);
 
-  function fetchRankData(): Promise<RankData[]> {
-    return fetch(`http://10.0.2.2:3000/users/getRanking/${desafioId}`, {
-      headers: {
-        "Content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-    }).then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      return response.json();
-    });
-  }
-
   const { data: rankData, isLoading: rankLoading } = useQuery<
     RankData[],
     Error
   >({
     queryKey: ["rankData", desafioId],
-    queryFn: fetchRankData,
+    queryFn: () => fetchRankData(desafioId as string),
     staleTime: 1000 * 60 * 10, // Dados são considerados frescos por 10 minutos
     enabled: !!token,
   });
 
-  const fetchUserData = async (): Promise<UserConfig> => {
-    const response = await fetch("http://10.0.2.2:3000/users/getUserData", {
-      headers: {
-        "Content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    const data = await response.json();
-    return data;
-  };
-
   const {
     data: userConfig,
-  } = useQuery<UserConfig, Error>({
+  } = useQuery({
     queryKey: ["userData"],
     queryFn: fetchUserData,
     staleTime: 45 * 60 * 1000,
