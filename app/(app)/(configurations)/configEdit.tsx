@@ -19,7 +19,6 @@ import { MaskedTextInput } from "react-native-mask-text";
 import * as ImagePicker from "expo-image-picker";
 import tokenExists from "../../../store/auth-store";
 import Modal from "react-native-modal";
-import userDataStore from "../../../store/user-data";
 import { router } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -50,8 +49,6 @@ export default function ProfileEdit() {
   const [nameValue, setNameValue] = useState("");
   const [unMaskedValue, setUnmaskedValue] = useState("");
   const [isModalVisible, setModalVisible] = useState(false);
-  const getUserData = userDataStore((state) => state.data);
-  const saveUserData = userDataStore((state) => state.setUserData);
   const queryClient = useQueryClient();
 
   const [genderOpen, setGenderOpen] = useState(false);
@@ -117,14 +114,7 @@ export default function ProfileEdit() {
       return response.json();
     },
     onSuccess: (data) => {
-      // console.log("Upload successful", data);
-      // Update local store
-      saveUserData({
-        ...getUserData,
-        avatar_url: data.avatar_url,
-        avatar_filename: data.avatar_filename,
-      });
-      // Invalidate the userConfig query to fetch fresh data
+      // console.log("Upload successful", data);     
       queryClient.invalidateQueries({ queryKey: ["userData"] });
     },
     onError: (error) => {
@@ -163,12 +153,6 @@ export default function ProfileEdit() {
       return result.json();
     },
     onSuccess: () => {
-      // Update local store
-      saveUserData({
-        ...getUserData,
-        avatar_url: null,
-        avatar_filename: null,
-      });
       // Invalidate the userConfig query to fetch fresh data
       queryClient.invalidateQueries({ queryKey: ["userData"] });
     },
