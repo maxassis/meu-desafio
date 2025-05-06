@@ -251,6 +251,7 @@ export default function Profile() {
                     photo={desafio.photo}
                     totalDuration={desafio.totalDuration}
                     taskCount={desafio.tasksCount}
+                    progressPercentage={desafio.progressPercentage}
                   />
                 ))}
               </>
@@ -294,6 +295,7 @@ export default function Profile() {
                     photo={desafio.photo}
                     totalDuration={desafio.totalDuration}
                     taskCount={desafio.tasksCount}
+                    progressPercentage={desafio.progressPercentage}
                   />
                 ))
               )}

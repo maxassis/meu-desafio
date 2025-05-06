@@ -4,7 +4,11 @@ import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import * as Progress from "react-native-progress";
 import { LinearGradient } from "expo-linear-gradient";
 import UserTime from "./userTime";
-import type { RouteResponse, RankData, UserData } from "@/utils/api-service";
+import {
+  type RouteResponse,
+  type RankData,
+  type UserData,
+} from "@/utils/api-service";
 import Winner from "../assets/winner.svg";
 import { convertSecondsToTimeString } from "../utils/timeUtils";
 
@@ -29,13 +33,10 @@ const RankingBottomSheet = ({
   isLoading = false, // Default to false if not provided
   totalDuration,
   taskCount,
-  progressPercentage
+  progressPercentage,
 }: BottomSheetProps) => {
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["20%", "85%", "100%"], []);
-
-  console.log(taskCount)
-  console.log(totalDuration)
 
   return (
     <BottomSheet
@@ -86,11 +87,15 @@ const RankingBottomSheet = ({
               <Text className="text-[10px] font-inter-regular">ATIVIDADE</Text>
             </View>
             <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
-              <Text className="font-inter-bold text-2xl">{convertSecondsToTimeString(+totalDuration)}</Text>
+              <Text className="font-inter-bold text-2xl">
+                {convertSecondsToTimeString(+totalDuration)}
+              </Text>
               <Text className="text-[10px] font-inter-regular">TREINO</Text>
             </View>
             <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
-              <Text className="font-inter-bold text-2xl">{progressPercentage.toFixed(0)}%</Text>
+              <Text className="font-inter-bold text-2xl">
+                {progressPercentage.toFixed(0)}%
+              </Text>
               <Text className="text-[10px] font-inter-regular">COMPLETADO</Text>
             </View>
           </View>
@@ -177,7 +182,7 @@ const RankingBottomSheet = ({
                     {rankData[0].userName}
                   </Text>
                   <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                    { convertSecondsToTimeString(rankData[0].totalDuration)}
+                    {convertSecondsToTimeString(rankData[0].totalDuration)}
                   </Text>
                 </LinearGradient>
               </View>
@@ -213,7 +218,7 @@ const RankingBottomSheet = ({
                     {rankData[1].userName}
                   </Text>
                   <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                    { convertSecondsToTimeString(rankData[1].totalDuration)}
+                    {convertSecondsToTimeString(rankData[1].totalDuration)}
                   </Text>
                 </LinearGradient>
               </View>
@@ -222,13 +227,33 @@ const RankingBottomSheet = ({
             )}
           </View>
 
-          <View className="w-full mt-8">
-            <UserTime />
-            <UserTime />
-            <UserTime />
-            <UserTime />
-            <UserTime />
-          </View>
+          <View className="mt-12">
+          {userData &&
+            rankData &&
+            (() => {
+              const userInRank = rankData.find(
+                (r) => r.userId === userData.usersId
+              );
+              
+              // Verifica se o usuário está no rank E se está fora do top 3 (posição >= 4)
+              if (userInRank && userInRank.position >= 4) {
+                return (
+                  <UserTime
+                    key={userInRank.userId}
+                    position={userInRank.position}
+                    userId={userInRank.userId}
+                    userName={userInRank.userName}
+                    userAvatar={userInRank.userAvatar}
+                    totalDistance={userInRank.totalDistance}
+                    totalDuration={userInRank.totalDuration}
+                    avgSpeed={userInRank.avgSpeed}
+                  />
+                );
+              }
+
+              return null;
+            })()}
+            </View>  
         </SafeAreaView>
       </BottomSheetScrollView>
     </BottomSheet>

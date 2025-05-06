@@ -7,6 +7,7 @@ import Link from "../assets/link.svg";
 import { useNavigation } from "@react-navigation/native";
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration';
+import { convertSecondsToTimeString } from "../utils/timeUtils";
 
 dayjs.extend(duration);
 
@@ -26,18 +27,6 @@ export interface TaskItemProps {
 export interface TaskListProps {
   task: TaskItemProps
   openModalEdit: (taskData: TaskItemProps) => void
-}
-
-export function convertSecondsToTimeString(totalSeconds: number): string {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  const paddedHours = String(hours).padStart(2, '0');
-  const paddedMinutes = String(minutes).padStart(2, '0');
-  const paddedSeconds = String(seconds).padStart(2, '0');
-
-  return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
 }
 
 const timeSinceDate = (dateStr: string | Date): string => {
