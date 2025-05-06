@@ -246,46 +246,42 @@ export default function Map2() {
 
   useEffect(() => {
     if (isSuccess && routeData && mapReady) {
-      // Extrai as coordenadas do campo 'location'
-      const coordinates = JSON.parse(routeData.location);
+      const coordinates = routeData.location;
+      console.log(coordinates)
       setRouteCoordinates(coordinates);
-
+  
       const totalDistance = +routeData.distance;
-
-      const updatedParticipants: UserParticipation[] =
-        routeData.inscription.map((dta) => {
-          let userLocation: LatLng = { latitude: 0, longitude: 0 };
-          let userDistance = 0;
-          let progressPercentage = "0";
-
-          try {
-            userLocation =
-              findPointAtDistance(coordinates, dta.progress) || coordinates[0];
-            userDistance = calculateUserDistance(coordinates, dta.progress);
-            progressPercentage = formatPercentage(
-              (userDistance / totalDistance) * 100
-            );
-          } catch (error) {
-            console.error("Error calculating user progress:", error);
-          }
-
-          if (dta.user.id === userConfig?.usersId) {
-            setUserProgress(Number(progressPercentage) / 100);
-            setUserDistance(dta.progress);
-          }
-
-          return {
-            userId: dta.user.id,
-            name: dta.user.name,
-            avatar: dta.user.UserData?.avatar_url || "", // Sempre string
-            location: userLocation || coordinates[0],
-            distance: userDistance,
-            percentage: progressPercentage,
-          };
-        });
-
+  
+      const updatedParticipants: UserParticipation[] = routeData.inscription.map((dta) => {
+        let userLocation: LatLng = { latitude: 0, longitude: 0 };
+        let userDistance = 0;
+        let progressPercentage = "0";
+  
+        try {
+          userLocation = findPointAtDistance(coordinates, dta.progress) || coordinates[0];
+          userDistance = calculateUserDistance(coordinates, dta.progress);
+          progressPercentage = formatPercentage((userDistance / totalDistance) * 100);
+        } catch (error) {
+          console.error("Error calculating user progress:", error);
+        }
+  
+        if (dta.user.id === userConfig?.usersId) {
+          setUserProgress(Number(progressPercentage) / 100);
+          setUserDistance(dta.progress);
+        }
+  
+        return {
+          userId: dta.user.id,
+          name: dta.user.name,
+          avatar: dta.user.UserData?.avatar_url || "",
+          location: userLocation || coordinates[0],
+          distance: userDistance,
+          percentage: progressPercentage,
+        };
+      });
+  
       setUsersParticipants(updatedParticipants);
-
+  
       if (mapRef.current && coordinates.length > 0) {
         mapRef.current.fitToCoordinates(coordinates, {
           edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
@@ -294,6 +290,60 @@ export default function Map2() {
       }
     }
   }, [isSuccess, routeData, mapReady]);
+  
+
+
+
+  // useEffect(() => {
+  //   if (isSuccess && routeData && mapReady) {
+  //     // Extrai as coordenadas do campo 'location'
+  //     const coordinates = routeData.location;
+  //     setRouteCoordinates(coordinates);
+
+  //     const totalDistance = +routeData.distance;
+
+  //     const updatedParticipants: UserParticipation[] =
+  //       routeData.inscription.map((dta) => {
+  //         let userLocation: LatLng = { latitude: 0, longitude: 0 };
+  //         let userDistance = 0;
+  //         let progressPercentage = "0";
+
+  //         try {
+  //           userLocation =
+  //             findPointAtDistance(coordinates, dta.progress) || coordinates[0];
+  //           userDistance = calculateUserDistance(coordinates, dta.progress);
+  //           progressPercentage = formatPercentage(
+  //             (userDistance / totalDistance) * 100
+  //           );
+  //         } catch (error) {
+  //           console.error("Error calculating user progress:", error);
+  //         }
+
+  //         if (dta.user.id === userConfig?.usersId) {
+  //           setUserProgress(Number(progressPercentage) / 100);
+  //           setUserDistance(dta.progress);
+  //         }
+
+  //         return {
+  //           userId: dta.user.id,
+  //           name: dta.user.name,
+  //           avatar: dta.user.UserData?.avatar_url || "", // Sempre string
+  //           location: userLocation || coordinates[0],
+  //           distance: userDistance,
+  //           percentage: progressPercentage,
+  //         };
+  //       });
+
+  //     setUsersParticipants(updatedParticipants);
+
+  //     if (mapRef.current && coordinates.length > 0) {
+  //       mapRef.current.fitToCoordinates(coordinates, {
+  //         edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+  //         animated: true,
+  //       });
+  //     }
+  //   }
+  // }, [isSuccess, routeData, mapReady]);
 
   const { data: rankData, isLoading: rankLoading } = useQuery<
     RankData[],

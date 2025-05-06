@@ -1,5 +1,10 @@
+import { Route } from "expo-router/build/Route";
 import useAuthStore from "../store/auth-store";
 
+type Coordinate = {
+  latitude: number;
+  longitude: number;
+};
 export interface UserData {
   id: string;
   avatar_url: string | null;
@@ -30,10 +35,21 @@ export interface RouteResponse {
   id: string;
   name: string;
   description: string;
-  location: string;
+  location: Coordinate[];
   distance: string;
   inscription: Inscription[];
 }
+
+interface RawRouteResponse {
+  id: string;
+  name: string;
+  description: string;
+  location: string; // <- Aqui ainda é string
+  distance: string;
+  inscription: Inscription[];
+}
+
+
 
 export interface Inscription {
   user: User;
@@ -99,7 +115,9 @@ export const fetchAllDesafios = async (): Promise<AllDesafios[]> => {
 };
 
 // pega os dados da rota
-export const fetchRouteData = async (desafioId: string | number): Promise<RouteResponse> => {
+export const fetchRouteData = async (
+  desafioId: string | number
+): Promise<RouteResponse> => {
   const token = getToken();
   const response = await fetch(
     `${API_BASE_URL}/desafio/getdesafio/${desafioId}`,
@@ -117,19 +135,15 @@ export const fetchRouteData = async (desafioId: string | number): Promise<RouteR
 
   const data: RouteResponse = await response.json();
 
-  // Verifica se a propriedade 'location' existe e é válida
-  if (!data.location || typeof data.location !== "string") {
-    throw new Error("Invalid or missing location data");
-  }
-
-  const coordinates = JSON.parse(data.location);
-
-  if (!Array.isArray(coordinates) || coordinates.length === 0) {
-    throw new Error("Invalid or empty coordinates");
+  if (!Array.isArray(data.location)) {
+    throw new Error("Location is not a valid coordinates array");
   }
 
   return data;
 };
+
+
+
 
 // Pega os dados do rank
 export const fetchRankData = async (desafioId: string | number): Promise<RankData[]> => {
