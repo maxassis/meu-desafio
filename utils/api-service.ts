@@ -29,6 +29,7 @@ export interface AllDesafios {
   completedAt: null | Date;
   progress: number;
   photo: string;
+  totalDistanceKm: number
 }
 
 export interface RouteResponse {
@@ -39,16 +40,6 @@ export interface RouteResponse {
   distance: string;
   inscription: Inscription[];
 }
-
-interface RawRouteResponse {
-  id: string;
-  name: string;
-  description: string;
-  location: string; // <- Aqui ainda é string
-  distance: string;
-  inscription: Inscription[];
-}
-
 
 
 export interface Inscription {

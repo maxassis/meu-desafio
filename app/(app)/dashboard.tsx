@@ -58,15 +58,15 @@ export default function Profile() {
 
   const totalDistance = useMemo(() => {
     if (!allDesafios) return 0;
-
+  
     return allDesafios.reduce((total, desafio) => {
-      if (desafio.isRegistered) {
-        // Soma a distância completa do desafio, sem considerar o progresso
-        return total + +desafio.distance;
+      if (desafio.isRegistered && (desafio.completed || !desafio.completed)) {
+        return total + (Number(desafio.totalDistanceKm) || 0);
       }
       return total;
     }, 0);
   }, [allDesafios]);
+
 
   // Formata a distância para exibição (arredonda para o km mais próximo)
   const formattedDistance = `${totalDistance.toFixed(2)} km`;
