@@ -157,7 +157,7 @@ export default function TaskCreate() {
                 calories: +calorias,
                 inscriptionId: inscriptionId!,
                 date: !dia ? formatarDataParaISO(dayjs().format('YYYY-MM-DD')) : formatarDataParaISO(dia.dateString),
-                duration: converterTempoParaHoras(tempoSelecionado),
+                duration: converterTempoParaSegundos(tempoSelecionado),
               };
 
               criarTarefaMutation.mutate(dadosTarefa);              
@@ -176,7 +176,7 @@ export default function TaskCreate() {
       calories: +calorias,
       inscriptionId: inscriptionId!,
       date: !dia ? formatarDataParaISO(dayjs().format('YYYY-MM-DD')) : formatarDataParaISO(dia.dateString),
-      duration: converterTempoParaHoras(tempoSelecionado),
+      duration: converterTempoParaSegundos(tempoSelecionado),
     };
     
     criarTarefaMutation.mutate(dadosTarefa);
@@ -197,9 +197,14 @@ export default function TaskCreate() {
     return dayjs(data).toISOString();
   };
 
-  function converterTempoParaHoras(tempo: { hours: number, minutes: number, seconds: number }): number {
+  // function converterTempoParaHoras(tempo: { hours: number, minutes: number, seconds: number }): number {
+  //   const { hours, minutes, seconds } = tempo;
+  //   return hours + minutes / 60 + seconds / 3600;
+  // }
+
+  function converterTempoParaSegundos(tempo: { hours: number, minutes: number, seconds: number }): number {
     const { hours, minutes, seconds } = tempo;
-    return hours + minutes / 60 + seconds / 3600;
+    return (hours * 3600) + (minutes * 60) + seconds;
   }
 
   const formularioValido = nomeAtividade !== "" && 

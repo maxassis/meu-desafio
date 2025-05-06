@@ -61,7 +61,7 @@ export default function Profile() {
   
     return allDesafios.reduce((total, desafio) => {
       if (desafio.isRegistered && (desafio.completed || !desafio.completed)) {
-        return total + (Number(desafio.totalDistanceKm) || 0);
+        return total + (Number(desafio.totalDistanceCompleted) || 0);
       }
       return total;
     }, 0);
@@ -217,10 +217,13 @@ export default function Profile() {
                     key={desafio.id}
                     name={desafio.name}
                     distance={desafio.distance}
-                    progress={desafio.progress + ""}
+                    progress={desafio.progressPercentage + ""}
                     isRegistered={desafio.isRegistered}
                     completed={desafio.completed}
                     photo={desafio.photo}
+                    totalDuration={desafio.totalDuration}
+                    taskCount={desafio.tasksCount}
+                    progressPercentage={desafio.progressPercentage}
                   />
                 ))
               )}
@@ -244,8 +247,10 @@ export default function Profile() {
                     key={desafio.id}
                     name={desafio.name}
                     distance={desafio.distance}
-                    progress={desafio.progress + ""}
+                    progress={desafio.progressPercentage + ""}
                     photo={desafio.photo}
+                    totalDuration={desafio.totalDuration}
+                    taskCount={desafio.tasksCount}
                   />
                 ))}
               </>
@@ -284,9 +289,11 @@ export default function Profile() {
                     key={desafio.id}
                     name={desafio.name}
                     distance={desafio.distance}
-                    progress={desafio.progress + ""}
+                    progress={desafio.progressPercentage + ""}
                     completed={desafio.completed}
                     photo={desafio.photo}
+                    totalDuration={desafio.totalDuration}
+                    taskCount={desafio.tasksCount}
                   />
                 ))
               )}

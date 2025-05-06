@@ -6,6 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import UserTime from "./userTime";
 import type { RouteResponse, RankData, UserData } from "@/utils/api-service";
 import Winner from "../assets/winner.svg";
+import { convertSecondsToTimeString } from "../utils/timeUtils";
 
 interface BottomSheetProps {
   routeData: RouteResponse | undefined;
@@ -13,19 +14,10 @@ interface BottomSheetProps {
   userDistance: number;
   userData: UserData | undefined;
   rankData: RankData[] | undefined;
-  isLoading?: boolean; 
-}
-
-function convertHoursToTimeString(totalHours: number): string {
-  const hours = Math.floor(totalHours);
-  const minutes = Math.floor((totalHours - hours) * 60);
-  const seconds = Math.round(((totalHours - hours) * 60 - minutes) * 60);
-
-  const paddedHours = String(hours).padStart(2, "0");
-  const paddedMinutes = String(minutes).padStart(2, "0");
-  const paddedSeconds = String(seconds).padStart(2, "0");
-
-  return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
+  isLoading?: boolean;
+  totalDuration: number;
+  taskCount: number;
+  progressPercentage: number;
 }
 
 const RankingBottomSheet = ({
@@ -35,9 +27,15 @@ const RankingBottomSheet = ({
   userData,
   rankData,
   isLoading = false, // Default to false if not provided
+  totalDuration,
+  taskCount,
+  progressPercentage
 }: BottomSheetProps) => {
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["20%", "85%", "100%"], []);
+
+  console.log(taskCount)
+  console.log(totalDuration)
 
   return (
     <BottomSheet
@@ -66,7 +64,10 @@ const RankingBottomSheet = ({
             borderWidth={0}
           />
 
-          <Text className="font-inter-bold text-base mt-2" style={{ opacity: isLoading ? 0 : 1 }}>
+          <Text
+            className="font-inter-bold text-base mt-2"
+            style={{ opacity: isLoading ? 0 : 1 }}
+          >
             {!isLoading ? (
               <>
                 {userDistance > Number(routeData?.distance)
@@ -81,15 +82,15 @@ const RankingBottomSheet = ({
 
           <View className="flex-row justify-between mt-6">
             <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
-              <Text className="font-inter-bold text-2xl">1</Text>
+              <Text className="font-inter-bold text-2xl">{taskCount}</Text>
               <Text className="text-[10px] font-inter-regular">ATIVIDADE</Text>
             </View>
             <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
-              <Text className="font-inter-bold text-2xl">00:46</Text>
+              <Text className="font-inter-bold text-2xl">{convertSecondsToTimeString(+totalDuration)}</Text>
               <Text className="text-[10px] font-inter-regular">TREINO</Text>
             </View>
             <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
-              <Text className="font-inter-bold text-2xl">3,3%</Text>
+              <Text className="font-inter-bold text-2xl">{progressPercentage.toFixed(0)}%</Text>
               <Text className="text-[10px] font-inter-regular">COMPLETADO</Text>
             </View>
           </View>
@@ -129,7 +130,11 @@ const RankingBottomSheet = ({
                   <View className="absolute top-[-50px] bg-white rounded-full flex items-center justify-center w-[92px] h-[91px]">
                     <Image
                       className="w-[85px] h-[85px] rounded-full"
-                      source={rankData[2].userAvatar ? { uri: rankData[2].userAvatar } : require("../assets/user2.png")}
+                      source={
+                        rankData[2].userAvatar
+                          ? { uri: rankData[2].userAvatar }
+                          : require("../assets/user2.png")
+                      }
                     />
                   </View>
                   <Text
@@ -139,7 +144,7 @@ const RankingBottomSheet = ({
                     {rankData[2].userName}
                   </Text>
                   <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                    {convertHoursToTimeString(rankData[2].totalDuration)}
+                    {convertSecondsToTimeString(rankData[2].totalDuration)}
                   </Text>
                 </LinearGradient>
               </View>
@@ -158,7 +163,11 @@ const RankingBottomSheet = ({
                   <View className="absolute top-[-50px] bg-white rounded-full flex items-center justify-center w-[92px] h-[91px]">
                     <Image
                       className="w-[85px] h-[85px] rounded-full"
-                      source={rankData[0].userAvatar ? { uri: rankData[0].userAvatar } : require("../assets/user2.png")}
+                      source={
+                        rankData[0].userAvatar
+                          ? { uri: rankData[0].userAvatar }
+                          : require("../assets/user2.png")
+                      }
                     />
                   </View>
                   <Text
@@ -168,7 +177,7 @@ const RankingBottomSheet = ({
                     {rankData[0].userName}
                   </Text>
                   <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                    {convertHoursToTimeString(rankData[0].totalDuration)}
+                    { convertSecondsToTimeString(rankData[0].totalDuration)}
                   </Text>
                 </LinearGradient>
               </View>
@@ -190,7 +199,11 @@ const RankingBottomSheet = ({
                   <View className="absolute top-[-50px] bg-white rounded-full flex items-center justify-center w-[92px] h-[91px]">
                     <Image
                       className="w-[85px] h-[85px] rounded-full"
-                      source={rankData[1].userAvatar ? { uri: rankData[1].userAvatar } : require("../assets/user2.png")}
+                      source={
+                        rankData[1].userAvatar
+                          ? { uri: rankData[1].userAvatar }
+                          : require("../assets/user2.png")
+                      }
                     />
                   </View>
                   <Text
@@ -200,7 +213,7 @@ const RankingBottomSheet = ({
                     {rankData[1].userName}
                   </Text>
                   <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                    {convertHoursToTimeString(rankData[1].totalDuration)}
+                    { convertSecondsToTimeString(rankData[1].totalDuration)}
                   </Text>
                 </LinearGradient>
               </View>

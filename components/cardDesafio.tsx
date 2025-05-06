@@ -10,6 +10,9 @@ interface desafioProps {
   completed?: boolean;
   desafioId: number;
   photo: string;
+  totalDuration: number;
+  taskCount: number;
+  progressPercentage: number;
 }
 
 export default function CardDesafio({
@@ -20,6 +23,9 @@ export default function CardDesafio({
   completed,
   desafioId,
   photo,
+  totalDuration,
+  taskCount,
+  progressPercentage,
 }: desafioProps) {
   const router = useRouter();
 
@@ -27,7 +33,7 @@ export default function CardDesafio({
     if (completed) return;
 
     if (isRegistered) {
-      router.push({ pathname: "/map", params: { desafioId } });
+      router.push({ pathname: "/map", params: { desafioId, totalDuration, taskCount, progressPercentage } });
     } else {
       router.push("/buy");
     }

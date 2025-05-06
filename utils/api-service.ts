@@ -27,9 +27,11 @@ export interface AllDesafios {
   isRegistered: boolean;
   completed: boolean;
   completedAt: null | Date;
-  progress: number;
+  progressPercentage: number;
+  totalDistanceCompleted: number; 
   photo: string;
-  totalDistanceKm: number
+  tasksCount: number,
+  totalDuration: number
 }
 
 export interface RouteResponse {
