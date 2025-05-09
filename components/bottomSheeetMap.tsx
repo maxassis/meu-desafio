@@ -1,5 +1,5 @@
 import React, { useRef, useMemo } from "react";
-import { View, Text, Image, SafeAreaView } from "react-native";
+import { View, Text, Image, SafeAreaView, TouchableOpacity } from "react-native";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import * as Progress from "react-native-progress";
 import { LinearGradient } from "expo-linear-gradient";
@@ -11,6 +11,8 @@ import {
 } from "@/utils/api-service";
 import Winner from "../assets/winner.svg";
 import { convertSecondsToTimeString } from "../utils/timeUtils";
+import useDesafioStore from "@/store/desafio-store";
+import { router } from "expo-router";
 
 interface BottomSheetProps {
   routeData: RouteResponse | undefined;
@@ -19,9 +21,6 @@ interface BottomSheetProps {
   userData: UserData | undefined;
   rankData: RankData[] | undefined;
   isLoading?: boolean;
-  totalDuration: number;
-  taskCount: number;
-  progressPercentage: number;
 }
 
 const RankingBottomSheet = ({
@@ -30,13 +29,12 @@ const RankingBottomSheet = ({
   userDistance,
   userData,
   rankData,
-  isLoading = false, // Default to false if not provided
-  totalDuration,
-  taskCount,
-  progressPercentage,
+  isLoading = false, 
+ 
 }: BottomSheetProps) => {
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["20%", "85%", "100%"], []);
+  const { totalDuration, taskCount, progressPercentage } = useDesafioStore();
 
   return (
     <BottomSheet
@@ -82,10 +80,10 @@ const RankingBottomSheet = ({
           </Text>
 
           <View className="flex-row justify-between mt-6">
-            <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
+            <TouchableOpacity onPress={() => router.push({ pathname: "/taskList", params: { origin: "map" }} )} className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
               <Text className="font-inter-bold text-2xl">{taskCount}</Text>
               <Text className="text-[10px] font-inter-regular">ATIVIDADE</Text>
-            </View>
+            </TouchableOpacity>
             <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
               <Text className="font-inter-bold text-2xl">
                 {convertSecondsToTimeString(+totalDuration)}
@@ -94,7 +92,7 @@ const RankingBottomSheet = ({
             </View>
             <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
               <Text className="font-inter-bold text-2xl">
-                {progressPercentage.toFixed(0)}%
+                {Math.trunc(progressPercentage)}%
               </Text>
               <Text className="text-[10px] font-inter-regular">COMPLETADO</Text>
             </View>

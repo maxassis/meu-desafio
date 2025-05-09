@@ -224,6 +224,7 @@ export default function Profile() {
                     totalDuration={desafio.totalDuration}
                     taskCount={desafio.tasksCount}
                     progressPercentage={desafio.progressPercentage}
+                    inscriptionId={desafio.inscriptionId}
                   />
                 ))
               )}
@@ -252,6 +253,7 @@ export default function Profile() {
                     totalDuration={desafio.totalDuration}
                     taskCount={desafio.tasksCount}
                     progressPercentage={desafio.progressPercentage}
+                    inscriptionId={desafio.inscriptionId} 
                   />
                 ))}
               </>
@@ -296,6 +298,7 @@ export default function Profile() {
                     totalDuration={desafio.totalDuration}
                     taskCount={desafio.tasksCount}
                     progressPercentage={desafio.progressPercentage}
+                    inscriptionId={desafio.inscriptionId}                    
                   />
                 ))
               )}

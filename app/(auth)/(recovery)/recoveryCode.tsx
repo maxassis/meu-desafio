@@ -21,7 +21,7 @@ export default function RecoveryGetCode({ route }: any) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isActive, setIsActive] = useState<boolean>(false);
   const [hasStarted, setHasStarted] = useState<boolean>(false);
-  const router = useRouter();  
+  const router = useRouter();
   const { email } = useLocalSearchParams();
 
 
@@ -76,16 +76,16 @@ export default function RecoveryGetCode({ route }: any) {
 
   const onSubmit = async ({ code }: { code: string }) => {
     // console.log("teste");
-    
+
     try {
-      const response = await fetch("http://10.0.2.2:3000/confirmcode/", {
+      const response = await fetch("http://10.0.2.2:3000/confirm-code/", {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ code, email }),
       });
       const data: { message: string } = await response.json();
       console.log(data);
-      
+
 
       if (!response.ok) {
         Alert.alert("Código invalido", "", [

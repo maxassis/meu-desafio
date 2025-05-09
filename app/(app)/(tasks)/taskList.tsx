@@ -5,7 +5,7 @@ import Left from "../../../assets/Icon-left.svg";
 import TaskItem from "../../../components/taskItem";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import Plus from "../../../assets/plus.svg";
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useDesafioStore from "../../../store/desafio-store";
 
@@ -56,6 +56,7 @@ export default function TaskList() {
   const snapPoints = useMemo(() => ["30%"], []);
   const snapPointsEdit = useMemo(() => ["20%"], []);
   const queryClient = useQueryClient();
+  const { origin } = useLocalSearchParams();
 
   // Query para buscar as tasks
   const { data, isLoading, error } = useQuery({
@@ -105,6 +106,15 @@ export default function TaskList() {
     bottomSheetEditRef.current?.expand()
   }
 
+  function toNextPage() {
+    if(origin === "map") {
+      router.replace("/map");
+    }
+    else {
+      router.replace("/desafios");
+    }
+  }
+
   return (
     <SafeAreaView className="flex-1">
       <ScrollView overScrollMode="never" className="bg-[#F1F1F1] flex-1 ">
@@ -112,7 +122,7 @@ export default function TaskList() {
           <View className="flex-row mt-[49.5] px-5 bg-white">
             <TouchableOpacity 
               className="w-[30px] h-[30px]" 
-              onPress={() => router.push('/desafios')}
+              onPress={() => toNextPage()}
             >
               <Left />
             </TouchableOpacity>

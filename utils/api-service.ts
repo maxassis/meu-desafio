@@ -28,10 +28,11 @@ export interface AllDesafios {
   completed: boolean;
   completedAt: null | Date;
   progressPercentage: number;
-  totalDistanceCompleted: number; 
+  totalDistanceCompleted: number;
   photo: string;
   tasksCount: number,
   totalDuration: number
+  inscriptionId: number
 }
 
 export interface RouteResponse {
@@ -76,7 +77,7 @@ const getToken = () => {
 // pegas os dados do usuário
 export const fetchUserData = async (): Promise<UserData> => {
   const token = getToken();
-  const response = await fetch(`${API_BASE_URL}/users/getUserData`, {
+  const response = await fetch(`${API_BASE_URL}/users/get-user-data`, {
     headers: {
       "Content-type": "application/json",
       authorization: "Bearer " + token,
@@ -93,7 +94,7 @@ export const fetchUserData = async (): Promise<UserData> => {
 // pega todos os desafios
 export const fetchAllDesafios = async (): Promise<AllDesafios[]> => {
   const token = getToken();
-  const response = await fetch(`${API_BASE_URL}/desafio/getAllDesafio`, {
+  const response = await fetch(`${API_BASE_URL}/desafio/get-all-desafio`, {
     headers: {
       "Content-type": "application/json",
       authorization: "Bearer " + token,
@@ -113,7 +114,7 @@ export const fetchRouteData = async (
 ): Promise<RouteResponse> => {
   const token = getToken();
   const response = await fetch(
-    `${API_BASE_URL}/desafio/getdesafio/${desafioId}`,
+    `${API_BASE_URL}/desafio/get-desafio/${desafioId}`,
     {
       headers: {
         "Content-type": "application/json",
@@ -142,7 +143,7 @@ export const fetchRouteData = async (
 export const fetchRankData = async (desafioId: string | number): Promise<RankData[]> => {
   const token = getToken();
   const response = await fetch(
-    `${API_BASE_URL}/users/getRanking/${desafioId}`, 
+    `${API_BASE_URL}/users/get-ranking/${desafioId}`,
     {
       headers: {
         "Content-type": "application/json",
@@ -150,10 +151,10 @@ export const fetchRankData = async (desafioId: string | number): Promise<RankDat
       },
     }
   );
-  
+
   if (!response.ok) {
     throw new Error("Network response was not ok");
   }
-  
+
   return await response.json();
 };

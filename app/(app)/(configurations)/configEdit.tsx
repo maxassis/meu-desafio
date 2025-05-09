@@ -89,7 +89,7 @@ export default function ProfileEdit() {
     mutationFn: async (formData: FormData): Promise<uploadAvatarResponse> => {
       setLoadingUpload(true);
 
-      const response = await fetch("http://10.0.2.2:3000/users/uploadavatar", {
+      const response = await fetch("http://10.0.2.2:3000/users/upload-avatar", {
         method: "POST",
         headers: {
           "Content-Type": "multipart/form-data",
@@ -122,7 +122,7 @@ export default function ProfileEdit() {
     mutationFn: async () => {
       setLoadingUpload(true);
 
-      const result = await fetch(`http://10.0.2.2:3000/users/deleteavatar`, {
+      const result = await fetch(`http://10.0.2.2:3000/users/delete-avatar`, {
         method: "DELETE",
         headers: {
           "Content-type": "application/json",
@@ -196,7 +196,7 @@ export default function ProfileEdit() {
 
   const profileUpdateMutation = useMutation({
     mutationFn: async () => {
-      const result = await fetch("http://10.0.2.2:3000/users/edituserdata", {
+      const result = await fetch("http://10.0.2.2:3000/users/edit-userdata", {
         method: "PATCH",
         headers: {
           "Content-type": "application/json",
@@ -274,16 +274,16 @@ export default function ProfileEdit() {
                 <Image
                   source={{ uri: userConfig.avatar_url }}
                   className="w-[94px] h-[94px] rounded-full"
-                  contentFit="cover" 
+                  contentFit="cover"
                 />
               ) : (
                 <User />
               )}
 
               <Image
-                source={require("../../../assets/cam.png")} 
+                source={require("../../../assets/cam.png")}
                 className="absolute bottom-[-15px] right-[-10px]"
-                contentFit="contain" 
+                contentFit="contain"
               />
             </TouchableOpacity>
 

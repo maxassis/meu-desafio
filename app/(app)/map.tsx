@@ -19,10 +19,11 @@ import { router } from "expo-router";
 import Left from "../../assets/arrow-left.svg";
 import { cva } from "class-variance-authority";
 import RankingBottomSheet from "../../components/bottomSheeetMap";
-import { useLocalSearchParams } from "expo-router";
+// import { useLocalSearchParams } from "expo-router";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Octicons from '@expo/vector-icons/Octicons';
 import { fetchUserData, fetchRouteData, fetchRankData  } from "@/utils/api-service";
+import useDesafioStore from "@/store/desafio-store";
 
 interface Coordinate {
   latitude: number;
@@ -140,7 +141,7 @@ export default function Map2() {
   const [usersParticipants, setUsersParticipants] = useState<
     UserParticipation[]
   >([]);
-  const { desafioId, totalDuration, taskCount, progressPercentage } = useLocalSearchParams();
+  const { desafioId } = useDesafioStore();
 
   // Novo estado para controlar o tipo de mapa
   const [mapType, setMapType] = useState<"standard" | "satellite" | "hybrid">(
@@ -241,21 +242,21 @@ export default function Map2() {
     isSuccess,
   } = useQuery({
     queryKey: ["routeData", desafioId],
-    queryFn: () => fetchRouteData(desafioId as string),
+    queryFn: () => fetchRouteData(desafioId + ""),
   });
 
   useEffect(() => {
     if (isSuccess && routeData && mapReady) {
       const coordinates = routeData.location;
       setRouteCoordinates(coordinates);
-  
+
       const totalDistance = +routeData.distance;
-  
+
       const updatedParticipants: UserParticipation[] = routeData.inscription.map((dta) => {
         let userLocation: LatLng = { latitude: 0, longitude: 0 };
         let userDistance = 0;
         let progressPercentage = "0";
-  
+
         try {
           userLocation = findPointAtDistance(coordinates, dta.progress) || coordinates[0];
           userDistance = calculateUserDistance(coordinates, dta.progress);
@@ -263,12 +264,12 @@ export default function Map2() {
         } catch (error) {
           console.error("Error calculating user progress:", error);
         }
-  
+
         if (dta.user.id === userConfig?.usersId) {
           setUserProgress(Number(progressPercentage) / 100);
           setUserDistance(dta.progress);
         }
-  
+
         return {
           userId: dta.user.id,
           name: dta.user.name,
@@ -278,9 +279,9 @@ export default function Map2() {
           percentage: progressPercentage,
         };
       });
-  
+
       setUsersParticipants(updatedParticipants);
-  
+
       if (mapRef.current && coordinates.length > 0) {
         mapRef.current.fitToCoordinates(coordinates, {
           edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
@@ -289,13 +290,13 @@ export default function Map2() {
       }
     }
   }, [isSuccess, routeData, mapReady]);
-  
+
   const { data: rankData, isLoading: rankLoading } = useQuery<
     RankData[],
     Error
   >({
     queryKey: ["rankData", desafioId],
-    queryFn: () => fetchRankData(desafioId as string),
+    queryFn: () => fetchRankData(desafioId + ""),
     staleTime: 1000 * 60 * 15, // Dados são considerados frescos por 10 minutos
   });
 
@@ -449,11 +450,10 @@ export default function Map2() {
           className="h-[40px] w-[40px] justify-center items-center"
         >
           <AntDesign name="reload1" size={16} color="black" />
-          {/* <Text className="text-black font-bold">⟳</Text> */}
         </TouchableOpacity>
       </View>
 
-      {/* Using the RankingBottomSheet component */}
+      
       <RankingBottomSheet
         routeData={routeData}
         userProgress={userProgress}
@@ -461,9 +461,6 @@ export default function Map2() {
         userData={userConfig}
         rankData={rankData}
         isLoading={rankLoading}
-        totalDuration={+totalDuration}
-        taskCount={+taskCount}
-        progressPercentage={+progressPercentage}
       />
 
       <StatusBar

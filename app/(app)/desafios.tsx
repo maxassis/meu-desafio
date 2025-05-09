@@ -31,7 +31,7 @@ export interface Desafio {
 }
 
 async function fetchDesafios(token: string): Promise<DesafioData> {
-  const response = await fetch("http://10.0.2.2:3000/desafio/getuserdesafio/", {
+  const response = await fetch("http://10.0.2.2:3000/desafio/get-user-desafio/", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

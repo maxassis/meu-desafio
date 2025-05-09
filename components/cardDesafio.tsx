@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
+import useDesafioStore from "@/store/desafio-store";
 
 interface desafioProps {
   name: string;
@@ -8,15 +9,16 @@ interface desafioProps {
   progress: string;
   isRegistered?: boolean;
   completed?: boolean;
-  desafioId: number;
+  desafioId: number; 
   photo: string;
   totalDuration: number;
-  taskCount: number;
+  taskCount: number; 
   progressPercentage: number;
+  inscriptionId: number;
 }
 
 export default function CardDesafio({
-  name,
+  name: desafioName,
   distance,
   progress,
   isRegistered,
@@ -26,14 +28,17 @@ export default function CardDesafio({
   totalDuration,
   taskCount,
   progressPercentage,
+  inscriptionId
 }: desafioProps) {
   const router = useRouter();
+  const { setMapData } = useDesafioStore();
 
   const handleCardPress = () => {
     if (completed) return;
 
     if (isRegistered) {
-      router.push({ pathname: "/map", params: { desafioId, totalDuration, taskCount, progressPercentage } });
+      setMapData( desafioId, totalDuration, taskCount, progressPercentage, inscriptionId, progressPercentage, desafioName);
+      router.push({ pathname: "/map"});
     } else {
       router.push("/buy");
     }
@@ -44,14 +49,14 @@ export default function CardDesafio({
     if (progressNumber === 100) {
       return "100%";
     } else {
-      return `${progressNumber.toFixed(2)}%`;
+      return `${Math.trunc(progressNumber)}%`;
     }
   };
 
   return (
     <TouchableOpacity
       onPress={handleCardPress}
-      activeOpacity={completed ? 1 : 0.9} // Sem efeito visual se concluído
+      activeOpacity={completed ? 1 : 0.9}
       className="items-center mb-4 overflow-hidden h-[375px] mx-[15px] bg-gray-200 rounded-2xl"
     >
       <Image
@@ -61,10 +66,10 @@ export default function CardDesafio({
       />
       <View className="w-11/12 flex-row p-4 rounded-xl bg-white absolute bottom-[23px]">
         <View>
-          <Text className="font-inter-bold text-[16.86px]">{name}</Text>
+          <Text className="font-inter-bold text-[16.86px]">{desafioName}</Text>
           <View className="flex-row items-center">
             <Text className="font-inter-bold text-base">
-              {parseFloat(distance).toFixed(2)}km
+              {Math.trunc(parseFloat(distance))}km
             </Text>
             <Text className="ml-8 text-[#757575] text-base font-inter-regular">
               {formattedProgress()}

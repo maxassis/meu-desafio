@@ -197,11 +197,6 @@ export default function TaskCreate() {
     return dayjs(data).toISOString();
   };
 
-  // function converterTempoParaHoras(tempo: { hours: number, minutes: number, seconds: number }): number {
-  //   const { hours, minutes, seconds } = tempo;
-  //   return hours + minutes / 60 + seconds / 3600;
-  // }
-
   function converterTempoParaSegundos(tempo: { hours: number, minutes: number, seconds: number }): number {
     const { hours, minutes, seconds } = tempo;
     return (hours * 3600) + (minutes * 60) + seconds;
