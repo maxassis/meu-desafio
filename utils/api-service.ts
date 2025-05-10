@@ -62,7 +62,7 @@ export interface RankData {
   userName: string;
   userAvatar: string;
   totalDistance: number;
-  totalDuration: number;
+  totalDurationSeconds: number;
   avgSpeed: number;
 }
 

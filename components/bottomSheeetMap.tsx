@@ -82,7 +82,7 @@ const RankingBottomSheet = ({
           <View className="flex-row justify-between mt-6">
             <TouchableOpacity onPress={() => router.push({ pathname: "/taskList", params: { origin: "map" }} )} className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
               <Text className="font-inter-bold text-2xl">{taskCount}</Text>
-              <Text className="text-[10px] font-inter-regular">ATIVIDADE</Text>
+              <Text className="text-[10px] font-inter-bold">ATIVIDADE&gt; </Text>
             </TouchableOpacity>
             <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
               <Text className="font-inter-bold text-2xl">
@@ -147,7 +147,8 @@ const RankingBottomSheet = ({
                     {rankData[2].userName}
                   </Text>
                   <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                    {convertSecondsToTimeString(rankData[2].totalDuration)}
+                    { convertSecondsToTimeString(rankData[2].totalDurationSeconds) }
+                    
                   </Text>
                 </LinearGradient>
               </View>
@@ -180,7 +181,7 @@ const RankingBottomSheet = ({
                     {rankData[0].userName}
                   </Text>
                   <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                    {convertSecondsToTimeString(rankData[0].totalDuration)}
+                    {convertSecondsToTimeString(rankData[0].totalDurationSeconds)}
                   </Text>
                 </LinearGradient>
               </View>
@@ -216,7 +217,7 @@ const RankingBottomSheet = ({
                     {rankData[1].userName}
                   </Text>
                   <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                    {convertSecondsToTimeString(rankData[1].totalDuration)}
+                    {convertSecondsToTimeString(rankData[1].totalDurationSeconds)}
                   </Text>
                 </LinearGradient>
               </View>
@@ -243,7 +244,7 @@ const RankingBottomSheet = ({
                     userName={userInRank.userName}
                     userAvatar={userInRank.userAvatar}
                     totalDistance={userInRank.totalDistance}
-                    totalDuration={userInRank.totalDuration}
+                    totalDuration={userInRank.totalDurationSeconds}
                     avgSpeed={userInRank.avgSpeed}
                   />
                 );
