@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   View,
   TouchableOpacity,
-  Image,
   TextInput,
   Alert,
   StatusBar,
@@ -13,41 +12,22 @@ import {
   ActivityIndicator,
   BackHandler,
 } from "react-native";
+import { Image } from "expo-image";
 import Left from "../../../assets/arrow-left.svg";
 import User from "../../../assets/user.svg";
 import { MaskedTextInput } from "react-native-mask-text";
 import * as ImagePicker from "expo-image-picker";
 import tokenExists from "../../../store/auth-store";
 import Modal from "react-native-modal";
-import userDataStore from "../../../store/user-data";
 import { router } from "expo-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DropDownPicker from "react-native-dropdown-picker";
 import { cva } from "class-variance-authority";
-
-type File = {
-  type: string;
-  uri: string;
-  name: string;
-};
+import { fetchUserData } from "@/utils/api-service";
 
 interface uploadAvatarResponse {
   avatar_url: string;
   avatar_filename: string;
-}
-
-interface UserData {
-  id: string;
-  avatar_url: string | null;
-  avatar_filename: string | null;
-  full_name: string | null;
-  bio: string | null;
-  gender: string | null;
-  sport: string | null;
-  createdAt: Date;
-  usersId: string;
-  name: string;
-  birthDate: string | null;
 }
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024;
@@ -69,8 +49,7 @@ export default function ProfileEdit() {
   const [nameValue, setNameValue] = useState("");
   const [unMaskedValue, setUnmaskedValue] = useState("");
   const [isModalVisible, setModalVisible] = useState(false);
-  const getUserData = userDataStore((state) => state.data);
-  const saveUserData = userDataStore((state) => state.setUserData);
+  const queryClient = useQueryClient();
 
   const [genderOpen, setGenderOpen] = useState(false);
   const [genderValue, setGenderValue] = useState("");
@@ -90,106 +69,90 @@ export default function ProfileEdit() {
 
   const [loadingUpload, setLoadingUpload] = useState(false);
 
-  async function fetchUserData(): Promise<UserData> {
-    const response = await fetch(
-      "https://bondis-app-backend.onrender.com/users/getUserData",
-      {
-        headers: {
-          "Content-type": "application/json",
-          authorization: "Bearer " + token,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Erro ao buscar os dados do usuário");
-    }
-
-    return response.json();
-  }
-
-  const {
-    data: userData,
-    isLoading: errorFetchData,
-    error: errorData,
-  } = useQuery({
+  const { data: userConfig } = useQuery({
     queryKey: ["userData"],
-    queryFn: () => fetchUserData(),
-    enabled: !!token,
+    queryFn: fetchUserData,
+    staleTime: 45 * 60 * 1000,
   });
 
   useEffect(() => {
-    if (userData) {
-      setGenderValue(userData.gender ?? "");
-      setSportsValue(userData.sport ?? "");
-      setNameValue(userData.full_name ?? "");
-      setBioValue(userData.bio ?? "");
-      setUnmaskedValue(userData.birthDate ?? "");
+    if (userConfig) {
+      setGenderValue(userConfig.gender ?? "");
+      setSportsValue(userConfig.sport ?? "");
+      setNameValue(userConfig.full_name ?? "");
+      setBioValue(userConfig.bio ?? "");
+      setUnmaskedValue(userConfig.birthDate ?? "");
     }
-  }, [userData]);
+  }, [userConfig]);
 
-  async function uploadAvatar(
-    formData: FormData
-  ): Promise<uploadAvatarResponse> {
-    setLoadingUpload(true);
+  const uploadAvatarMutation = useMutation({
+    mutationFn: async (formData: FormData): Promise<uploadAvatarResponse> => {
+      setLoadingUpload(true);
 
-    const response = await fetch(
-      "https://bondis-app-backend.onrender.com/users/uploadavatar",
-      {
+      const response = await fetch("http://10.0.2.2:3000/users/upload-avatar", {
         method: "POST",
         headers: {
           "Content-Type": "multipart/form-data",
           authorization: "Bearer " + token,
         },
         body: formData,
+      });
+
+      setModalVisible(false);
+      setLoadingUpload(false);
+
+      if (!response.ok) {
+        Alert.alert("Erro ao fazer upload do avatar");
+        throw new Error("Erro ao fazer upload do avatar");
       }
-    );
 
-    setModalVisible(false);
-    setLoadingUpload(false);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // console.log("Upload successful", data);
+      queryClient.invalidateQueries({ queryKey: ["userData"] });
+    },
+    onError: (error) => {
+      console.error("Upload error", error);
+      Alert.alert("Erro", "Falha ao enviar imagem, tente novamente");
+    },
+  });
 
-    if (!response.ok) {
-      Alert.alert("Erro ao fazer upload do avatar");
-      throw new Error("Erro ao fazer upload do avatar");
-    }
+  const deleteAvatarMutation = useMutation({
+    mutationFn: async () => {
+      setLoadingUpload(true);
 
-    return response.json();
-  }
-
-  async function deleteAvatarRequest() {
-    setLoadingUpload(true);
-
-    const result = await fetch(
-      `https://bondis-app-backend.onrender.com/users/deleteavatar`,
-      {
+      const result = await fetch(`http://10.0.2.2:3000/users/delete-avatar`, {
         method: "DELETE",
         headers: {
           "Content-type": "application/json",
           authorization: "Bearer " + token,
         },
         body: JSON.stringify({
-          filename: getUserData.avatar_filename,
+          filename: userConfig?.avatar_filename,
         }),
+      });
+
+      setModalVisible(false);
+      setLoadingUpload(false);
+
+      if (!result.ok) {
+        // console.log("Erro ao deletar avatar", result);
+        Alert.alert("Erro ao deletar avatar");
+        throw new Error("Erro ao deletar avatar");
       }
-    );
 
-    setModalVisible(false);
-    setLoadingUpload(false);
-
-    if (!result.ok) {
-      console.log("Erro ao deletar avatar", result);
-
-      Alert.alert("Erro ao deletar avatar");
-      throw new Error("Erro ao deletar avatar");
-    }
-    saveUserData({
-      usersId: getUserData.usersId,
-      avatar_url: null,
-      avatar_filename: null,
-    });
-
-    return result.json();
-  }
+      return result.json();
+    },
+    onSuccess: () => {
+      // Invalidate the userConfig query to fetch fresh data
+      queryClient.invalidateQueries({ queryKey: ["userData"] });
+    },
+    onError: (error) => {
+      // console.error("Delete avatar error", error);
+      Alert.alert("Erro", "Falha ao remover imagem, tente novamente");
+    },
+  });
 
   const pickImage = async () => {
     let { assets, canceled } = await ImagePicker.launchImageLibraryAsync({
@@ -223,9 +186,7 @@ export default function ProfileEdit() {
       } as any);
 
       try {
-        const responseData = await uploadAvatar(formData);
-        console.log("Upload successful", responseData);
-        saveUserData({ ...getUserData, avatar_url: responseData.avatar_url });
+        uploadAvatarMutation.mutate(formData);
       } catch (error) {
         console.error("Upload error", error);
         Alert.alert("Erro", "Falha ao enviar imagem, tente novamente");
@@ -233,29 +194,22 @@ export default function ProfileEdit() {
     }
   };
 
-  const {
-    mutate: submitForm,
-    isPending: isSubmitting,
-    error: submitError,
-  } = useMutation({
+  const profileUpdateMutation = useMutation({
     mutationFn: async () => {
-      const result = await fetch(
-        "https://bondis-app-backend.onrender.com/users/edituserdata",
-        {
-          method: "PATCH",
-          headers: {
-            "Content-type": "application/json",
-            authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            full_name: nameValue || null,
-            bio: bioValue || null,
-            gender: genderValue || null,
-            sport: sportsValue || null,
-            birthDate: unMaskedValue || null,
-          }),
-        }
-      );
+      const result = await fetch("http://10.0.2.2:3000/users/edit-userdata", {
+        method: "PATCH",
+        headers: {
+          "Content-type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          full_name: nameValue || null,
+          bio: bioValue || null,
+          gender: genderValue || null,
+          sport: sportsValue || null,
+          birthDate: unMaskedValue || null,
+        }),
+      });
 
       if (!result.ok) {
         const data = await result.json();
@@ -263,12 +217,13 @@ export default function ProfileEdit() {
         throw new Error(data.message || "Erro ao salvar alterações");
       }
 
-      Alert.alert("Sucesso", "Alterações salvas com sucesso!");
       return result.json();
     },
     onSuccess: (data) => {
-      console.log("Alterações salvas com sucesso", data);
+      // console.log("Alterações salvas com sucesso", data);
       Alert.alert("Sucesso", "Alterações salvas com sucesso!");
+
+      queryClient.invalidateQueries({ queryKey: ["userData"] });
     },
     onError: (error) => {
       console.error("Erro ao salvar alterações:", error);
@@ -315,10 +270,11 @@ export default function ProfileEdit() {
               className="h-[94px] w-[94px] mt-8 relative"
               disabled={loadingUpload}
             >
-              {getUserData.avatar_url ? (
+              {userConfig?.avatar_url ? (
                 <Image
-                  source={{ uri: getUserData.avatar_url }}
+                  source={{ uri: userConfig.avatar_url }}
                   className="w-[94px] h-[94px] rounded-full"
+                  contentFit="cover"
                 />
               ) : (
                 <User />
@@ -327,6 +283,7 @@ export default function ProfileEdit() {
               <Image
                 source={require("../../../assets/cam.png")}
                 className="absolute bottom-[-15px] right-[-10px]"
+                contentFit="contain"
               />
             </TouchableOpacity>
 
@@ -401,12 +358,14 @@ export default function ProfileEdit() {
             </View>
 
             <TouchableOpacity
-              onPress={() => submitForm()}
-              disabled={isSubmitting}
+              onPress={() => profileUpdateMutation.mutate()}
+              disabled={profileUpdateMutation.isPending}
               className="h-[52px] mt-8 rounded-full justify-center items-center bg-bondis-green"
             >
               <Text className="font-inter-bold text-base">
-                {isSubmitting ? "Salvando..." : "Salvar alterações"}
+                {profileUpdateMutation.isPending
+                  ? "Salvando..."
+                  : "Salvar alterações"}
               </Text>
             </TouchableOpacity>
 
@@ -432,12 +391,12 @@ export default function ProfileEdit() {
 
                     <TouchableOpacity
                       className="w-full"
-                      onPress={deleteAvatarRequest}
-                      disabled={getUserData.avatar_url ? false : true}
+                      onPress={() => deleteAvatarMutation.mutate()}
+                      disabled={userConfig?.avatar_url ? false : true}
                     >
                       <Text
                         className={disabledDeleteBtn({
-                          intent: !getUserData.avatar_url ? "disabled" : null,
+                          intent: !userConfig?.avatar_url ? "disabled" : null,
                         })}
                       >
                         Remover foto

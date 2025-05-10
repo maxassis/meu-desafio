@@ -50,12 +50,10 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (appIsReady) {
-      const currentSegment = segments[0]; // Acesse o primeiro segmento com segurança
-  
-      if (!isAuthenticated && currentSegment !== 'intro') {
+      if (!isAuthenticated && segments[0] !== 'intro') {
         router.replace('/intro');
-      } else if (isAuthenticated && currentSegment !== 'dashboard') {
-        router.replace('/buy');
+      } else if (isAuthenticated && segments[0] !== 'dashboard') {
+        router.replace('/dashboard');
       }
     }
   }, [isAuthenticated, appIsReady]);
@@ -73,3 +71,4 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
+

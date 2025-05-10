@@ -11,48 +11,48 @@ import {
   import Logo from "../../../assets/logo2.svg";
   import { useForm, Controller } from "react-hook-form";
   import { useRouter } from "expo-router";
-  
+
   export default function Recovery() {
-    const router = useRouter();    
+    const router = useRouter();
 
     const {
       handleSubmit,
       control,
       formState: { errors },
     } = useForm<{ email: string }>();
-  
+
     const onSubmit = async ({ email }: { email: string }) => {
-  
+
       try {
-        const response = await fetch("https://bondis-app-backend.onrender.com/checkemail", {
+        const response = await fetch("http://10.0.2.2:3000/check-email", {
           method: "POST",
           headers: { "Content-type": "application/json" },
           body: JSON.stringify({ email }),
         });
         const data = await response.json();
         // console.log(data);
-        
-        if (!response.ok) {   
+
+        if (!response.ok) {
                Alert.alert("Email não cadastrado", "", [
                  {
                    text: "Ok",
                    style: "cancel",
                  },
                ]);
-             
+
             throw new Error(response.statusText);
-        }    
-  
+        }
+
         router.push({
           pathname: '/recoveryCode',
-          params: { email }, 
+          params: { email },
         });
-  
+
       } catch (error) {
         console.error(error);
-      }    
+      }
     };
-  
+
     return (
       <SafeAreaView className="flex-1 bg-white">
         <View className=" px-5 pt-[38px]">
@@ -64,17 +64,17 @@ import {
             <Close />
           </TouchableOpacity>
         </View>
-  
+
         <View className="h-[368px] pt-8">
           <Logo />
-  
+
           <Text className="font-inter-bold text-2xl mt-4">
             Recupere seu acesso
           </Text>
           <Text className="text-bondis-gray-dark mt-4">
             Informe um e-mail válido para redefinir sua senha:
           </Text>
-  
+
           <Text className="font-inter-bold text-base mt-8">E-mail</Text>
           <Controller
             control={control}
@@ -87,7 +87,7 @@ import {
               }
             }}
             render={({ field: { value, onChange } }) => (
-              <TextInput value={value} autoCapitalize="none" onChangeText={onChange} className="bg-bondis-text-gray rounded-[4px] h-[52px] mt-2 pl-4" />  
+              <TextInput value={value} autoCapitalize="none" onChangeText={onChange} className="bg-bondis-text-gray rounded-[4px] h-[52px] mt-2 pl-4" />
             )}
           />
           {errors.email && (
@@ -95,7 +95,7 @@ import {
             {String(errors?.email?.message)}
           </Text>
         )}
-  
+
           <TouchableOpacity
             onPress={handleSubmit(onSubmit)}
             className="h-[52px] bg-bondis-green mt-8 rounded-full justify-center items-center"
@@ -108,4 +108,3 @@ import {
       </SafeAreaView>
     );
   }
-  

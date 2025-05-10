@@ -7,10 +7,13 @@ import Lock from "../../../assets/lock.svg"
 import { TouchableOpacity } from "react-native-gesture-handler";
 import useAuthStore from "../../../store/auth-store";
 import { useRouter } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function MenuConfigurations() {
+    const queryClient = useQueryClient()
     const router = useRouter(); 
     const { logout } = useAuthStore();
+   
     function showAlert() {
       Alert.alert("Deseja sair do App ?", "", [
         {
@@ -20,7 +23,8 @@ export default function MenuConfigurations() {
         {
           text: "SIM",
           onPress: () => {
-            logout()
+            queryClient.clear();
+            logout();
           },
         },
       ]);

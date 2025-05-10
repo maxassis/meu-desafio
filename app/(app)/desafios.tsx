@@ -1,4 +1,11 @@
-import { View, Text, SafeAreaView, TouchableOpacity, Image, StatusBar } from "react-native";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  TouchableOpacity,
+  StatusBar,
+} from "react-native";
+import { Image } from "expo-image";
 import { useQuery } from "@tanstack/react-query";
 import Left from "../../assets/arrow-left.svg";
 import { router } from "expo-router";
@@ -12,6 +19,7 @@ export interface Data {
   userId: string;
   desafioId: number;
   progress: string;
+  completed: boolean;
   desafio: Desafio;
 }
 
@@ -19,19 +27,17 @@ export interface Desafio {
   id: number;
   name: string;
   description: string;
+  distance: number;
 }
 
 async function fetchDesafios(token: string): Promise<DesafioData> {
-  const response = await fetch(
-    "https://bondis-app-backend.onrender.com/desafio/getuserdesafio/",
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const response = await fetch("http://10.0.2.2:3000/desafio/get-user-desafio/", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   if (!response.ok) {
     throw new Error("Failed to fetch desafios");
@@ -44,12 +50,16 @@ export default function DesafioSelect() {
   const token = tokenExists((state) => state.token);
   const setDesafioData = useDesafioStore((state) => state.setDesafioData);
 
-  const { data: desafios, isLoading, error } = useQuery({
+  const {
+    data: desafios,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["desafios"],
     queryFn: () => fetchDesafios(token!),
-    enabled: !!token, // Só faz a requisição se o token existir
-    retry: 1, // Número de tentativas em caso de erro
-    staleTime: 1000 * 60 * 5, // Dados são considerados frescos por 5 minutos
+    enabled: !!token,
+    retry: 1,
+    staleTime: 1000 * 60 * 10,
   });
 
   return (
@@ -69,7 +79,9 @@ export default function DesafioSelect() {
         </Text>
 
         {isLoading && (
-          <Text className="text-center text-gray-500">Carregando desafios...</Text>
+          <Text className="text-center text-gray-500">
+            Carregando desafios...
+          </Text>
         )}
 
         {error && (
@@ -78,32 +90,44 @@ export default function DesafioSelect() {
           </Text>
         )}
 
-        {desafios && desafios.length > 0  ? (
-          desafios.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              onPress={() => {
-                setDesafioData(item.id, item.desafio.name);
-                router.push("/createTask");
-              }}
-              className="h-[94px] flex-row items-center px-3 py-[15px] border-b-[1px] border-b-[#D9D9D9]"
-            >
-              <Image source={require("../../assets/Bg.png")} />
-              <View className="ml-5">
-                <Text className="font-inter-bold">{item.desafio.name}</Text>
-                <Text className="font-inter-bold mt-[6.44px]">
-                  {item.progress}km
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))
-        ) : null}
-
-        {!isLoading && desafios && desafios.length === 0 && (
-          <Text className="text-center text-gray-500">
-          Nenhum desafio disponível no momento.
-        </Text>
-        )}
+        {desafios && desafios.filter((item) => !item.completed).length > 0
+          ? desafios
+              .filter((item) => !item.completed)
+              .map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => {
+                    setDesafioData(
+                      item.id,
+                      item.desafio.name,
+                      +item.progress,
+                      item.desafio.distance,
+                      item.desafioId
+                    );
+                    router.push("/createTask");
+                  }}
+                  className="h-[94px] flex-row items-center px-3 py-[15px] border-b-[1px] border-b-[#D9D9D9]"
+                >
+                  <Image
+                    source={require("../../assets/Bg.png")} 
+                    contentFit="cover"
+                    style={{ width: 80, height: 80 }} 
+                  />
+                  <View className="ml-5">
+                    <Text className="font-inter-bold text-base flex-wrap break-words">
+                      {item.desafio.name}
+                    </Text>
+                    <Text className="font-inter-bold mt-[6.44px]">
+                      {parseFloat(item.progress).toFixed(2)}km
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+          : !isLoading && (
+              <Text className="text-center text-gray-500">
+                Nenhum desafio disponível no momento.
+              </Text>
+            )}
       </View>
       <StatusBar
         backgroundColor="#000"

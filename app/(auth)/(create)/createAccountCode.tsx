@@ -25,12 +25,12 @@ const buttonDisabled = cva("h-[52px] flex-row bg-bondis-green mt-auto rounded-fu
 });
 
 export default function CreateAccountGetCode() {
-  const [timeLeft, setTimeLeft] = useState<number>(0); 
+  const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isActive, setIsActive] = useState<boolean>(false);
   const [hasStarted, setHasStarted] = useState<boolean>(false);
   const { name, email } = useLocalSearchParams();
   const router = useRouter();
-  const {  handleSubmit, control, formState: { errors }} = useForm<{code: string}>();  
+  const {  handleSubmit, control, formState: { errors }} = useForm<{code: string}>();
 
   useEffect(() => {
     let timerId: NodeJS.Timeout;
@@ -49,13 +49,13 @@ export default function CreateAccountGetCode() {
 
   useEffect(() => {
     sendMail()
-    setTimeLeft(15); 
+    setTimeLeft(15);
     setIsActive(true);
     setHasStarted(false);
   }, []);
 
   const startTimer = () => {
-    setTimeLeft(20); 
+    setTimeLeft(20);
     setIsActive(true);
     setHasStarted(true);
   };
@@ -67,7 +67,7 @@ export default function CreateAccountGetCode() {
   };
 
   function sendMail() {
-     fetch("https://bondis-app-backend.onrender.com/sendmail", {
+     fetch("http://10.0.2.2:3000/sendmail", {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({ name, email }),
@@ -76,7 +76,7 @@ export default function CreateAccountGetCode() {
 
   const onSubmit = async ({ code }: { code: string}) => {
     try {
-      const response = await fetch("https://bondis-app-backend.onrender.com/confirmcode/", {
+      const response = await fetch("http://10.0.2.2:3000/confirm-code/", {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ code, email }),
@@ -93,17 +93,17 @@ export default function CreateAccountGetCode() {
 
         throw new Error(`Código inválido, status ${response.status}`);
       }
-      
+
     router.push({
         pathname: '/createAccountPassword',
-        params: { name, email }, 
+        params: { name, email },
       });
 
     } catch (error) {
       console.error(error);
     }
-  };  
-  
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white ">
       <View className="px-5 pt-[38px] pb-8 flex-1">
@@ -143,16 +143,16 @@ export default function CreateAccountGetCode() {
             className="bg-bondis-text-gray rounded-[4px] h-[52px] mt-2 pl-4"
           />
         )}
-      />  
+      />
         {errors.code && (<Text className="mt-1 text-bondis-gray-dark">{String(errors?.code?.message)}</Text>)}
 
-      { isActive && 
+      { isActive &&
       <Text className="font-inter-bold text-base mt-8">
         Não recebeu o código?
       </Text>
       }
 
-     { isActive ?     
+     { isActive ?
       <Text className="mt-2 text-base">
         Aguarde <Text className="text-[#1977F3] text-base">{formatTime(timeLeft)}</Text> para
         reenviar
@@ -166,7 +166,7 @@ export default function CreateAccountGetCode() {
 
       <TouchableOpacity
         onPress={handleSubmit(onSubmit)}
-        // className="h-[52px] flex-row bg-bondis-green mt-auto rounded-full justify-center items-center" 
+        // className="h-[52px] flex-row bg-bondis-green mt-auto rounded-full justify-center items-center"
         disabled={isActive}
         className={buttonDisabled({
           intent: isActive  ? "disabled" : null,
@@ -180,4 +180,3 @@ export default function CreateAccountGetCode() {
     </SafeAreaView>
   );
 }
-

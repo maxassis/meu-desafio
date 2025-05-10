@@ -2,67 +2,32 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   ActivityIndicator,
-  Image,
-  Text,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar
+  Image,
+  StatusBar,
+  Text,
 } from "react-native";
 import MapView, {
   Polyline,
   PROVIDER_GOOGLE,
   Marker,
-  Callout,
+  Camera,
 } from "react-native-maps";
+import { useQuery } from "@tanstack/react-query";
 import { mapStyle } from "../../styles/mapStyles";
-import tokenExists from "../../store/auth-store";
-import userDataStore from "../../store/user-data";
-import { cva } from "class-variance-authority";
-import Left from "../../assets/arrow-left.svg";
-import Terceiro from "../../assets/terceira.svg";
-import Segundo from "../../assets/segundo.svg";
-import Primeiro from "../../assets/primeiro.svg";
-import Winner from "../../assets/winner.svg";
-import { LinearGradient } from "expo-linear-gradient";
-import UserTime from "../../components/userTime";
-import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import * as Progress from "react-native-progress";
 import { router } from "expo-router";
+import Left from "../../assets/arrow-left.svg";
+import { cva } from "class-variance-authority";
+import RankingBottomSheet from "../../components/bottomSheeetMap";
+// import { useLocalSearchParams } from "expo-router";
+import AntDesign from '@expo/vector-icons/AntDesign';
+import Octicons from '@expo/vector-icons/Octicons';
+import { fetchUserData, fetchRouteData, fetchRankData  } from "@/utils/api-service";
+import useDesafioStore from "@/store/desafio-store";
 
 interface Coordinate {
   latitude: number;
   longitude: number;
-}
-
-interface Region {
-  latitude: number;
-  longitude: number;
-  latitudeDelta: number;
-  longitudeDelta: number;
-}
-
-interface DesafioResponse {
-  id: string;
-  name: string;
-  description: string;
-  location: string;
-  participation: Participation[];
-  distance: string;
-}
-
-interface Participation {
-  user: User;
-  progress: number;
-}
-
-interface User {
-  id: string;
-  name: string;
-  UserData: UserData | null;
-}
-
-interface UserData {
-  avatar_url: string;
 }
 
 interface UserParticipation {
@@ -77,6 +42,16 @@ interface UserParticipation {
 interface LatLng {
   latitude: number;
   longitude: number;
+}
+
+export interface RankData {
+  position: number;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  totalDistance: number;
+  totalDuration: number;
+  avgSpeed: number;
 }
 
 const haversine = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -96,7 +71,7 @@ const haversine = (lat1: number, lon1: number, lat2: number, lon2: number) => {
 
 const findPointAtDistance = (
   coordinates: { latitude: number; longitude: number }[],
-  distance: number,
+  distance: number
 ) => {
   let traveled = 0;
 
@@ -123,7 +98,7 @@ const findPointAtDistance = (
 
 const calculateUserDistance = (
   coordinates: { latitude: number; longitude: number }[],
-  progress: number,
+  progress: number
 ): number => {
   const progressNumber = Number(progress); // Garante que progress é um número
   let traveled = 0;
@@ -157,29 +132,25 @@ const formatPercentage = (progress: number): string => {
   });
 };
 
-
-const Map: React.FC = () => {
-  const [totalDistance, setTotalDistance] = useState<number>(0);
+export default function Map2() {
+  const [routeCoordinates, setRouteCoordinates] = useState<Coordinate[]>([]);
+  const [mapReady, setMapReady] = useState(false);
+  const mapRef = useRef<MapView>(null);
   const [userProgress, setUserProgress] = useState<number>(0);
   const [userDistance, setUserDistance] = useState<number>(0);
-  const [userLocation, setUserLocation] = useState<Coordinate | null>(null);
-  // const [location, setLocation] = useState<LocationObject | null>(null);
   const [usersParticipants, setUsersParticipants] = useState<
     UserParticipation[]
   >([]);
-  const [desafio, setDesafio] = useState<DesafioResponse>(
-    {} as DesafioResponse,
+  const { desafioId } = useDesafioStore();
+
+  // Novo estado para controlar o tipo de mapa
+  const [mapType, setMapType] = useState<"standard" | "satellite" | "hybrid">(
+    "standard"
   );
-  const getUserData = userDataStore((state) => state.data);
-  const [routeCoordinates, setRouteCoordinates] = useState<Coordinate[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const token = tokenExists((state) => state.token);
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ["20%", "85%", "100%"], []);
-  const mapRef = useRef<MapView>(null);
-  const [showBottom, setShowBottom] = useState<boolean>(false);
-  const [showBottom2, setShowBottom2] = useState<boolean>(false);
-  const [showMarker, setShowMarker] = useState<boolean>(true);
+
+  // Novos estados para controlar a perspectiva do mapa
+  const [tilt, setTilt] = useState<number>(0); // 0 a 60 graus
+  // const [bearing, setBearing] = useState<number>(0); // 0 a 359 graus
 
   const getUserPath = useMemo(() => {
     if (!routeCoordinates || userDistance === 0) return [];
@@ -195,7 +166,7 @@ const Map: React.FC = () => {
         startPoint.latitude,
         startPoint.longitude,
         endPoint.latitude,
-        endPoint.longitude,
+        endPoint.longitude
       );
 
       if (traveled + segmentDistance >= userDistance) {
@@ -209,11 +180,11 @@ const Map: React.FC = () => {
           startPoint.longitude +
           (endPoint.longitude - startPoint.longitude) * ratio;
 
-        path.push(startPoint); // Adiciona o ponto inicial do segmento atual
-        path.push({ latitude: newLat, longitude: newLon }); // Adiciona o ponto interpolado onde o usuário está
+        path.push(startPoint);
+        path.push({ latitude: newLat, longitude: newLon });
         break;
       } else {
-        path.push(startPoint); // Adiciona o ponto inicial completo do segmento percorrido
+        path.push(startPoint);
         traveled += segmentDistance;
       }
     }
@@ -221,127 +192,137 @@ const Map: React.FC = () => {
     return path;
   }, [routeCoordinates, userDistance]);
 
-  const initialRegion = useMemo<Region>(
-    () => ({
-      latitude:
-        routeCoordinates.length > 0 ? routeCoordinates[0].latitude : -23.5505,
-      longitude:
-        routeCoordinates.length > 0 ? routeCoordinates[0].longitude : -46.6333,
-      latitudeDelta: 0.2,
-      longitudeDelta: 0.2,
-    }),
-    [routeCoordinates],
-  );
+  // Função para alternar entre os tipos de mapa
+  const toggleMapType = () => {
+    if (mapType === "standard") {
+      setMapType("satellite");
+    } else if (mapType === "satellite") {
+      setMapType("hybrid");
+    } else {
+      setMapType("standard");
+    }
+  };
 
-  // async function requestLocationPermissions() {
-  //   const { granted } = await requestForegroundPermissionsAsync();
+  // Funções para controlar a perspectiva
+  const increaseTilt = () => {
+    const newTilt = Math.min(tilt + 15, 60);
+    setTilt(newTilt);
+    animateCamera({ pitch: newTilt });
+  };
 
-  //   if (granted) {
-  //     const currentPosition = await getCurrentPositionAsync();
-      
+  const decreaseTilt = () => {
+    const newTilt = Math.max(tilt - 15, 0);
+    setTilt(newTilt);
+    animateCamera({ pitch: newTilt });
+  };
 
-  //     // setLocation(currentPosition);
-  //   }
-  // }
+  const resetCamera = () => {
+    setTilt(0);
+    // setBearing(0);
+    animateCamera({ pitch: 0, heading: 0 });
 
-  // useEffect(() => {
-  //   requestLocationPermissions();
-  // }, []);
+    // Também reajusta o zoom para mostrar toda a rota
+    if (mapRef.current && routeCoordinates.length > 0) {
+      mapRef.current.fitToCoordinates(routeCoordinates, {
+        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+        animated: true,
+      });
+    }
+  };
+
+  const animateCamera = (cameraParams: Partial<Camera>) => {
+    if (mapRef.current) {
+      mapRef.current.animateCamera(cameraParams, { duration: 1000 });
+    }
+  };
+
+  const {
+    data: routeData,
+    isLoading,
+    isSuccess,
+  } = useQuery({
+    queryKey: ["routeData", desafioId],
+    queryFn: () => fetchRouteData(desafioId + ""),
+  });
 
   useEffect(() => {
-    const fetchDesafio = async () => {
-      try {
-        const desafioResponse = await fetch(
-          "https://bondis-app-backend.onrender.com/desafio/getdesafio/10",
-          {
-            headers: {
-              "Content-type": "application/json",
-              authorization: "Bearer " + token,
-            },
-          },
-        );
+    if (isSuccess && routeData && mapReady) {
+      const coordinates = routeData.location;
+      setRouteCoordinates(coordinates);
 
-        if (!desafioResponse.ok) {
-          throw new Error("Failed to fetch desafio details");
+      const totalDistance = +routeData.distance;
+
+      const updatedParticipants: UserParticipation[] = routeData.inscription.map((dta) => {
+        let userLocation: LatLng = { latitude: 0, longitude: 0 };
+        let userDistance = 0;
+        let progressPercentage = "0";
+
+        try {
+          userLocation = findPointAtDistance(coordinates, dta.progress) || coordinates[0];
+          userDistance = calculateUserDistance(coordinates, dta.progress);
+          progressPercentage = formatPercentage((userDistance / totalDistance) * 100);
+        } catch (error) {
+          console.error("Error calculating user progress:", error);
         }
 
-        const desafioData: DesafioResponse = await desafioResponse.json();
-        setDesafio(desafioData);
-        setTotalDistance(Number(desafioData.distance));
-        
-        const coordinates = JSON.parse(desafioData.location)
-
-        if (!Array.isArray(coordinates) || coordinates.length === 0) {
-          console.error("Coordenadas inválidas ou vazias:", coordinates);
-          setLoading(false);
-          return;
+        if (dta.user.id === userConfig?.usersId) {
+          setUserProgress(Number(progressPercentage) / 100);
+          setUserDistance(dta.progress);
         }
 
-        setRouteCoordinates(coordinates);
+        return {
+          userId: dta.user.id,
+          name: dta.user.name,
+          avatar: dta.user.UserData?.avatar_url || "",
+          location: userLocation || coordinates[0],
+          distance: userDistance,
+          percentage: progressPercentage,
+        };
+      });
 
-        const updatedParticipants: UserParticipation[] = desafioData.participation.map((dta) => {
-          let userLocation: LatLng = { latitude: 0, longitude: 0 };
-          let userDistance = 0;
-          let progressPercentage = "0";
-        
-          try {            
-            userLocation = findPointAtDistance(coordinates, dta.progress) || coordinates[0];
-            userDistance = calculateUserDistance(coordinates, dta.progress);
-            progressPercentage = formatPercentage(
-              (userDistance / Number(desafioData.distance)) * 100,
-            );  
-          } catch (error) {
-            console.error("Error calculating user progress:", error);
-          }
-        
-          if (dta.user.id === getUserData?.usersId) {
-            setUserProgress(Number(progressPercentage) / 100);
-            setUserDistance(dta.progress);
-            setUserLocation(userLocation);
-          }
-        
-          return {
-            userId: dta.user.id,
-            name: dta.user.name,
-            avatar: dta.user.UserData?.avatar_url || "", // Sempre string
-            location: userLocation || coordinates[0],
-            distance: userDistance,
-            percentage: progressPercentage,
-          };
+      setUsersParticipants(updatedParticipants);
+
+      if (mapRef.current && coordinates.length > 0) {
+        mapRef.current.fitToCoordinates(coordinates, {
+          edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+          animated: true,
         });
-
-        setUsersParticipants(updatedParticipants);
-      } catch (error) {
-        console.error("Erro ao buscar dados:", error);
-      } finally {        
-        setLoading(false);
-       
-        setTimeout(() => {
-          setShowBottom(true);
-          setShowMarker(false);
-        }, 1000);
-
-        setTimeout(() => {
-          setShowBottom2(true);
-        }, 1500);
       }
-    };
+    }
+  }, [isSuccess, routeData, mapReady]);
 
-    fetchDesafio();
-  }, []);
+  const { data: rankData, isLoading: rankLoading } = useQuery<
+    RankData[],
+    Error
+  >({
+    queryKey: ["rankData", desafioId],
+    queryFn: () => fetchRankData(desafioId + ""),
+    staleTime: 1000 * 60 * 15, // Dados são considerados frescos por 10 minutos
+  });
+
+  const {
+    data: userConfig,
+  } = useQuery({
+    queryKey: ["userData"],
+    queryFn: fetchUserData,
+    staleTime: 45 * 60 * 1000,
+  });
 
   return (
     <View className="flex-1 bg-white justify-center items-center relative">
-      {loading ? (
-        <ActivityIndicator size="large" color="##12FF55" />
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#12FF55" />
       ) : (
         <MapView
           ref={mapRef}
+          onMapReady={() => setMapReady(true)}
           className="flex-1 w-full"
           provider={PROVIDER_GOOGLE}
-          customMapStyle={mapStyle}
-          initialRegion={initialRegion}
+          customMapStyle={mapType === "standard" ? mapStyle : []}
           showsCompass={false}
+          toolbarEnabled={false}
+          zoomControlEnabled={false}
+          mapType={mapType}
         >
           {routeCoordinates.length > 0 && (
             <>
@@ -363,8 +344,9 @@ const Map: React.FC = () => {
           {usersParticipants.map((user: UserParticipation, index: number) => (
             <Marker
               key={index}
+              onPress={() => {}}
               coordinate={
-                user.distance > Number(desafio.distance)
+                user.distance > +routeData!.distance
                   ? {
                       latitude:
                         routeCoordinates[routeCoordinates.length - 1].latitude,
@@ -374,16 +356,16 @@ const Map: React.FC = () => {
                   : user.location
               }
               style={
-                user.userId === getUserData?.usersId
+                user.userId === userConfig?.usersId
                   ? { zIndex: 100000, elevation: 100000 }
                   : { zIndex: index, elevation: index }
               }
-              tracksViewChanges={showMarker}
+              tracksViewChanges={true}
               title={`${user.name} - ${user.distance} Km`}
             >
               <View
                 className={userPin({
-                  intent: user.userId === getUserData?.usersId ? "user" : null,
+                  intent: user.userId === userConfig?.usersId ? "user" : null,
                 })}
               >
                 {user.avatar ? (
@@ -392,7 +374,7 @@ const Map: React.FC = () => {
                     source={{ uri: user.avatar }}
                     className={photoUser({
                       intent:
-                        user.userId === getUserData?.usersId ? "user" : null,
+                        user.userId === userConfig?.usersId ? "user" : null,
                     })}
                   />
                 ) : (
@@ -402,29 +384,22 @@ const Map: React.FC = () => {
                   />
                 )}
               </View>
-              {/* <Callout tooltip>
-                <View className="p-1 w-[150px] bg-bondis-black mb-2 justify-center items-center rounded-md">
-                  <Text className="text-bondis-green font-inter-bold">
-                    {user.name}
-                  </Text>
-                  <Text className="text-white">{user.distance} Km</Text>
-                </View>
-              </Callout> */}
             </Marker>
           ))}
 
           {routeCoordinates.length > 0 && (
             <Marker
               key="final"
+              onPress={() => {}}
               coordinate={{
                 latitude:
                   routeCoordinates[routeCoordinates.length - 1].latitude,
                 longitude:
                   routeCoordinates[routeCoordinates.length - 1].longitude,
               }}
-              style={{ zIndex: 999999, elevation: 999999 }}
+              style={{ zIndex: 9999, elevation: 9999 }}
               title="Final"
-              tracksViewChanges={showMarker}
+              tracksViewChanges={true}
             >
               <Image
                 source={require("../../assets/final-pin.png")}
@@ -435,194 +410,83 @@ const Map: React.FC = () => {
         </MapView>
       )}
 
+      {/* Botão para voltar */}
       <TouchableOpacity
         onPress={() => router.push("/dashboard")}
-        className="absolute top-[38px] left-[13px] h-[43px]
-      w-[43px] rounded-full bg-bondis-text-gray justify-center items-center"
+        className="absolute top-[38px] left-[13px] h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center"
       >
         <Left />
       </TouchableOpacity>
 
-
-      {showBottom ? (
-      <BottomSheet
-        ref={bottomSheetRef}
-        snapPoints={snapPoints}
-        backgroundStyle={{
-          borderRadius: 20,
-        }}
+      {/* Botão para alternar o tipo de mapa */}
+      <TouchableOpacity
+        onPress={toggleMapType}
+        className="absolute top-[38px] right-[13px] h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center px-3"
       >
-        {showBottom2 ? (
-          <BottomSheetScrollView>
-            <SafeAreaView className="mx-5">
-              <Text className="text-sm font-inter-regular text-bondis-gray-secondary">
-                Desafio
-              </Text>
-              <Text className="text-2xl font-bold font-inter-bold mt-4 mb-4">
-                {desafio.name}
-              </Text>
+        <Octicons name="stack" size={16} color="black" />
+      </TouchableOpacity>
 
-              <Progress.Bar
-                progress={userProgress ? userProgress : 0}
-                width={null}
-                height={8}
-                color="#12FF55"
-                unfilledColor="#565656"
-                borderColor="transparent"
-                borderWidth={0}
-              />
-             
-              <Text className="font-inter-bold text-base mt-2">
-                {userDistance > Number(desafio.distance)
-                  ? Number(desafio.distance).toFixed(3)
-                  : userDistance}{" "}
-                de {Number(desafio.distance).toFixed(3) + " km"}       
-              </Text>
+      {/* Controles de perspectiva do mapa */}
+      <View className="absolute right-[13px] top-[100px] bg-bondis-text-gray rounded-full overflow-hidden">
+        {/* Aumentar inclinação */}
+        <TouchableOpacity
+          onPress={increaseTilt}
+          className="h-[40px] w-[40px] justify-center items-center border-b border-gray-400"
+        >
+          <AntDesign name="arrowup" size={16} color="black" />
+        </TouchableOpacity>
 
-              <View className="flex-row justify-between mt-6">
-                <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
-                  <Text className="font-inter-bold text-2xl">1</Text>
-                  <Text className="text-[10px] font-inter-regular">
-                    ATIVIDADE
-                  </Text>
-                </View>
-                <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
-                  <Text className="font-inter-bold text-2xl">00:46</Text>
-                  <Text className="text-[10px] font-inter-regular">TREINO</Text>
-                </View>
-                <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
-                  <Text className="font-inter-bold text-2xl">3,3%</Text>
-                  <Text className="text-[10px] font-inter-regular">
-                    COMPLETADO
-                  </Text>
-                </View>
-              </View>
+        {/* Diminuir inclinação */}
+        <TouchableOpacity
+          onPress={decreaseTilt}
+          className="h-[40px] w-[40px] justify-center items-center border-b border-gray-400"
+        >
+          <AntDesign name="arrowdown" size={16} color="black" />
+        </TouchableOpacity>
 
-              <View className="w-full h-[92px] bg-bondis-black mt-6 rounded p-4 flex-row items-center ">
-                <Image source={require("../../assets/top.png")} />
-                <Text className="flex-1 flex-wrap ml-[10px] text-center">
-                  <Text className="text-bondis-green font-inter-bold">
-                    {getUserData.username}
-                  </Text>
-                  <Text
-                    numberOfLines={3}
-                    className="text-bondis-text-gray font-inter-regular text-justify"
-                  >
-                    , Mantenha a média de 5km corridos por semana e conclua seu
-                    desafio em apenas 10 semanas!
-                  </Text>
-                </Text>
-              </View>
+        {/* Resetar câmera */}
+        <TouchableOpacity
+          onPress={resetCamera}
+          className="h-[40px] w-[40px] justify-center items-center"
+        >
+          <AntDesign name="reload1" size={16} color="black" />
+        </TouchableOpacity>
+      </View>
 
-              <Text className="mt-6 font-inter-bold text-lg">
-                Classificação Geral
-              </Text>
+      
+      <RankingBottomSheet
+        routeData={routeData}
+        userProgress={userProgress}
+        userDistance={userDistance}
+        userData={userConfig}
+        rankData={rankData}
+        isLoading={rankLoading}
+      />
 
-              <View className="flex-row justify-between items-end mt-6">
-                <View className="w-[87px] h-[230px] items-center justify-between ">
-                  <View className="rounded-full justify-center items-center w-[35.76px] h-[35.76px] bg-bondis-text-gray">
-                    <Text className="text-sm font-inter-bold">3</Text>
-                  </View>
-
-                  <LinearGradient
-                    colors={["#12FF55", "white"]}
-                    className="w-full h-[140px] relative justify-end items-center"
-                  >
-                    <View className="absolute top-[-50px]">
-                      <Terceiro />
-                    </View>
-                    <Text
-                      numberOfLines={2}
-                      className="font-inter-bold text-sm mb-[10px]"
-                    >
-                      Nildis Silva
-                    </Text>
-                    <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                      25:15
-                    </Text>
-                  </LinearGradient>
-                </View>
-                <View className="w-[87px] h-[287px] items-center justify-between">
-                  <Winner />
-                  <LinearGradient
-                    colors={["#12FF55", "white"]}
-                    className="w-full h-[200px] relative items-center justify-end"
-                  >
-                    <View className="absolute top-[-50px]">
-                      <Primeiro />
-                    </View>
-                    <Text
-                      numberOfLines={2}
-                      className="font-inter-bold text-sm mb-[10px]"
-                    >
-                      Nildis Silva
-                    </Text>
-                    <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                      25:15
-                    </Text>
-                  </LinearGradient>
-                </View>
-                <View className="w-[87px] h-[260px] items-center justify-between ">
-                  <View className="rounded-full mb-2 justify-center items-center w-[35.76px] h-[35.76px] bg-bondis-text-gray">
-                    <Text className="text-sm font-inter-bold">2</Text>
-                  </View>
-
-                  <LinearGradient
-                    colors={["#12FF55", "white"]}
-                    className="relative w-full h-[170px] justify-end items-center"
-                  >
-                    <View className="absolute top-[-50px] ">
-                      <Segundo />
-                    </View>
-                    <Text
-                      numberOfLines={2}
-                      className="font-inter-bold text-sm mb-[10px]"
-                    >
-                      Nildis Silva
-                    </Text>
-                    <Text className="font-inter-regular text-xs text-[#757575] mb-[10px]">
-                      25:15
-                    </Text>
-                  </LinearGradient>
-                </View>
-              </View>
-
-              <View className="w-full mt-8">
-                <UserTime />
-                <UserTime />
-                <UserTime />
-                <UserTime />
-                <UserTime />
-              </View>
-            </SafeAreaView>
-          </BottomSheetScrollView>
-         ) : (
-          <ActivityIndicator size="large" color="#12FF55" className="mt-14" />
-        )} 
-      </BottomSheet>
-      ): null }
-      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
+      <StatusBar
+        backgroundColor="#000"
+        barStyle="light-content"
+        translucent={false}
+      />
     </View>
   );
-};
-
-export default Map;
+}
 
 const userPin = cva(
   "h-[35px] w-[35px] rounded-full bg-black justify-center items-center",
   {
     variants: {
       intent: {
-        user: "bg-bondis-green h-[40px] w-[40px] ",
+        user: "bg-bondis-green h-[39px] w-[39px] ",
       },
     },
-  },
+  }
 );
 
 const photoUser = cva("h-[30px] w-[30px] rounded-full", {
   variants: {
     intent: {
-      user: "h-[35px] w-[35px]",
+      user: "h-[34px] w-[34px]",
     },
   },
 });

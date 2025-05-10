@@ -1,11 +1,11 @@
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo } from "react";
 import tokenExists from "../../../store/auth-store";
 import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, StatusBar } from "react-native";
 import Left from "../../../assets/Icon-left.svg";
 import TaskItem from "../../../components/taskItem";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import Plus from "../../../assets/plus.svg";
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useDesafioStore from "../../../store/desafio-store";
 
@@ -15,16 +15,16 @@ export interface Data {
   name: string;
   environment: string;
   date: null | Date;
-  duration: null | string;
+  duration: number;
   calories: number;
   local: null | string;
   distanceKm: string;
-  participationId: number;
+  inscriptionId: number;
   usersId: string;
 }
 
-const fetchTasks = async (participationId: number, token: string): Promise<TasksData> => {
-  const response = await fetch(`https://bondis-app-backend.onrender.com/tasks/get-tasks/${participationId}`, {
+const fetchTasks = async (inscriptionId: number, token: string): Promise<TasksData> => {
+  const response = await fetch(`http://10.0.2.2:3000/tasks/get-tasks/${inscriptionId}`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
@@ -34,7 +34,7 @@ const fetchTasks = async (participationId: number, token: string): Promise<Tasks
 };
 
 const deleteTaskApi = async (id: number, token: string) => {
-  const response = await fetch(`https://bondis-app-backend.onrender.com/tasks/delete-task/${id}`, {
+  const response = await fetch(`http://10.0.2.2:3000/tasks/delete-task/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -48,7 +48,7 @@ const deleteTaskApi = async (id: number, token: string) => {
 };
 
 export default function TaskList() {
-  const { participationId, desafioName, setTaskData } = useDesafioStore();
+  const { inscriptionId, desafioName, setTaskData } = useDesafioStore();
   const token = tokenExists((state) => state.token);
   const [task, setTask] = useState<Data>();
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -56,11 +56,12 @@ export default function TaskList() {
   const snapPoints = useMemo(() => ["30%"], []);
   const snapPointsEdit = useMemo(() => ["20%"], []);
   const queryClient = useQueryClient();
+  const { origin } = useLocalSearchParams();
 
   // Query para buscar as tasks
   const { data, isLoading, error } = useQuery({
-    queryKey: ['tasks', participationId],
-    queryFn: () => fetchTasks(participationId as number, token! ),
+    queryKey: ['tasks', inscriptionId],
+    queryFn: () => fetchTasks(inscriptionId as number, token! ),
   });
 
   // Mutation para deletar task
@@ -68,8 +69,7 @@ export default function TaskList() {
     mutationFn: (id: number) => deleteTaskApi(id, token!),
     onSuccess: () => {
       // Invalida e refaz a query das tasks após deletar
-      queryClient.invalidateQueries({ queryKey: ['tasks', participationId] });
-      queryClient.invalidateQueries({ queryKey: ['desafios'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', inscriptionId] });
       bottomSheetEditRef.current?.close();
     },
     onError: (error) => {
@@ -106,6 +106,15 @@ export default function TaskList() {
     bottomSheetEditRef.current?.expand()
   }
 
+  function toNextPage() {
+    if(origin === "map") {
+      router.replace("/map");
+    }
+    else {
+      router.replace("/desafios");
+    }
+  }
+
   return (
     <SafeAreaView className="flex-1">
       <ScrollView overScrollMode="never" className="bg-[#F1F1F1] flex-1 ">
@@ -113,7 +122,7 @@ export default function TaskList() {
           <View className="flex-row mt-[49.5] px-5 bg-white">
             <TouchableOpacity 
               className="w-[30px] h-[30px]" 
-              onPress={() => router.push('/desafios')}
+              onPress={() => toNextPage()}
             >
               <Left />
             </TouchableOpacity>

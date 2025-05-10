@@ -7,6 +7,7 @@ import Link from "../assets/link.svg";
 import { useNavigation } from "@react-navigation/native";
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration';
+import { convertSecondsToTimeString } from "../utils/timeUtils";
 
 dayjs.extend(duration);
 
@@ -15,26 +16,17 @@ export interface TaskItemProps {
   name: string
   environment: string
   date: Date | null
-  duration: string | null
+  duration: number
   calories: number
   local: string | null
   distanceKm: string
-  participationId: number
+  inscriptionId: number
   usersId: string
 }
 
 export interface TaskListProps {
   task: TaskItemProps
   openModalEdit: (taskData: TaskItemProps) => void
-}
-
-function convertISOToTime(isoString: string): string {
-  const date = new Date(isoString);  
-  const hours = date.getUTCHours().toString().padStart(2, '0');
-  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-  const seconds = date.getUTCSeconds().toString().padStart(2, '0');
-
-  return `${hours}:${minutes}:${seconds}`;
 }
 
 const timeSinceDate = (dateStr: string | Date): string => {
@@ -100,7 +92,7 @@ export default function TaskItem({ task, openModalEdit }: TaskListProps) {
                 <Text className="text-bondis-gray-dark text-[10px]">KM</Text>
             </View>
             <View className="w-[100px] h-[44px] border-l-2 border-[#D1D5DA] pl-2">
-                <Text className="text-[18px] font-inter-bold">{ convertISOToTime(task.duration!) }</Text>
+                <Text className="text-[18px] font-inter-bold">{ convertSecondsToTimeString(task.duration) }</Text>
                 <Text className="text-bondis-gray-dark text-[10px]">DURAÇÃO</Text>
             </View>
             <View className="w-[98px] h-[44px] border-l-2 border-[#D1D5DA] pl-2">

@@ -8,11 +8,12 @@ import {
   TextInput,
   Modal,
   Pressable,
-  StatusBar
+  StatusBar,
+  ActivityIndicator,
+  Alert
 } from "react-native";
 import KilometerMeterPicker, { KilometerMeterPickerModalRef } from "../../../components/distancePicker";
 import Left from "../../../assets/arrow-left.svg";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import Outdoor from "../../../assets/Outdoor.svg";
 import Indoor from "../../../assets/Indoor.svg";
 import { LinearGradient } from "expo-linear-gradient";
@@ -25,127 +26,190 @@ import dayjs from 'dayjs';
 import TimePickerModal, { TimePickerModalRef } from "../../../components/timePicker";
 import { router } from 'expo-router';
 import useDesafioStore from "../../../store/desafio-store";
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 LocaleConfig.locales["pt-br"] = ptBR;
 LocaleConfig.defaultLocale = "pt-br";
 
-interface Distance {
+interface Distancia {
   kilometers: number;
   meters: number;
 }
 
+interface DadosTarefa {
+  name: string;
+  distance: number;
+  environment: string;
+  calories: number;
+  inscriptionId: number;
+  date: string | null;
+  duration: number;
+}
+
 export default function TaskCreate() {
   const [modalVisible, setModalVisible] = useState(false);
-  const [ambience, setAmbience] = useState("livre");
-  const [distance, setDistance] = useState<{
+  const [ambiente, setAmbiente] = useState("livre");
+  const [distancia, setDistancia] = useState<{
     kilometers: number;
     meters: number;
   }>({ kilometers: 0, meters: 0 });
-  const [activityName, setActivityName] = useState("");
-  const [calories, setCalories] = useState("");
+  const [nomeAtividade, setNomeAtividade] = useState("");
+  const [calorias, setCalorias] = useState("");
   const [local, setLocal] = useState("");
-  const [day, setDay] = useState<DateData>({
+  const [dia, setDia] = useState<DateData>({
     year: 0,
     month: 0,
     day: 0,
     timestamp: 0,
     dateString: dayjs().format('YYYY-MM-DD')
   });
-  const [calendar, setCalendarVisible] = useState(false);
-  const [isModalTimeVisible, setModalTimeVisible] = useState(false);
-  const [selectedTime, setSelectedTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
-  const navigation = useNavigation<any>();
+  const [calendario, setCalendarioVisible] = useState(false);
+  const [isModalTempoVisible, setModalTempoVisible] = useState(false);
+  const [tempoSelecionado, setTempoSelecionado] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const token = tokenExists((state) => state.token);
-  const { participationId, desafioName } = useDesafioStore();
+  const { inscriptionId, progress, distanceTotal, desafioId } = useDesafioStore();
   const childRef = useRef<KilometerMeterPickerModalRef>(null);
   const timePickerRef = useRef<TimePickerModalRef>(null);
   const queryClient = useQueryClient();
 
-  function closeModalDistance({ kilometers, meters }: Distance) {
-    setDistance({ kilometers, meters });
+  const criarTarefaMutation = useMutation({
+    mutationFn: async (dadosTarefa: DadosTarefa) => {
+      const response = await fetch('http://10.0.2.2:3000/tasks/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(dadosTarefa)
+      });
+      if (!response.ok) {
+        const dadosErro = await response.json();
+        throw new Error(dadosErro.message || 'Falha ao criar tarefa');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      limparInputs();
+      queryClient.invalidateQueries({ queryKey: ["desafios"]});
+      queryClient.invalidateQueries({ queryKey: ["routeData", desafioId]});
+      queryClient.invalidateQueries({ queryKey: ["getAllDesafios"]});
+      queryClient.invalidateQueries({ queryKey: ["rankData", desafioId]});
+      
+      const distanciaSelecionada = +`${distancia.kilometers}.${distancia.meters}`;
+      const distanciaAtual = progress || 0;
+      const distanciaTotalAposAdicao = distanciaAtual + distanciaSelecionada;
+      const metaAtingida = distanciaTotalAposAdicao >= distanceTotal;
+
+      if (metaAtingida) {
+        router.push({
+          pathname: '/dashboard'
+        });
+      } else {
+        router.push({
+          pathname: '/taskList'
+        });
+      }
+    },
+    onError: (erro) => {
+      console.error('Erro ao criar tarefa:', erro);
+    }
+  });
+
+  function fecharModalDistancia({ kilometers, meters }: Distancia) {
+    setDistancia({ kilometers, meters });
     setModalVisible(false);
   }
 
-  function closeModalTime(time: { hours: number, minutes: number, seconds: number }) {
-    setSelectedTime(time);
-    setModalTimeVisible(false);
+  function fecharModalTempo(tempo: { hours: number, minutes: number, seconds: number }) {
+    setTempoSelecionado(tempo);
+    setModalTempoVisible(false);
   };
 
-  const handleClearDistance = () => {
+  const limparDistancia = () => {
     if (childRef.current) {
       childRef.current.clearDistance();
     }
   };
 
-  function createTask() { 
-    fetch('https://bondis-app-backend.onrender.com/tasks/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-         "name": activityName,
-         "distance": +`${distance.kilometers}.${distance.meters}`,
-         "environment": ambience,
-         "calories": +calories,
-         "participationId": participationId,
-         "date": !day ? formatDateToISO(dayjs().format('YYYY-MM-DD')) : formatDateToISO(day.dateString),
-         "duration": convertTimeToISO(selectedTime.hours + ':' + selectedTime.minutes + ':' + selectedTime.seconds),
-       })
-    })
-    .then(response => response.json())
-    .then(json => {      
+  function criarTarefa() {
+    const distanciaSelecionada = +`${distancia.kilometers}.${distancia.meters}`;
+    
+    const distanciaAtual = progress || 0;
+    const distanciaTotalAposAdicao = distanciaAtual + distanciaSelecionada;
+    const metaAtingida = distanciaTotalAposAdicao >= distanceTotal;
+     
+    if(metaAtingida) {
+      Alert.alert(
+        "Atenção",
+        "Ao adicionar esta tarefa, você concluirá o desafio. Uma vez concluído, não será mais possível adicionar nem alterar mais tarefas.",
+        [
+          {
+            text: "Cancelar",
+            style: "cancel"
+          },
+          {
+            text: "Concluir",
+            onPress: () => {
+              const dadosTarefa: DadosTarefa = {
+                name: nomeAtividade,
+                distance: distanciaSelecionada,
+                environment: ambiente,
+                calories: +calorias,
+                inscriptionId: inscriptionId!,
+                date: !dia ? formatarDataParaISO(dayjs().format('YYYY-MM-DD')) : formatarDataParaISO(dia.dateString),
+                duration: converterTempoParaSegundos(tempoSelecionado),
+              };
 
-      queryClient.invalidateQueries({ queryKey: ['desafios'] });
-      
-      router.push({
-        pathname: '/taskList'});
-      clearInputs()
-    })
-    .catch(error => console.error(error));
+              criarTarefaMutation.mutate(dadosTarefa);              
+            }
+          }
+        ],
+        { cancelable: true }
+      );
+      return;
+    }
+    
+    const dadosTarefa: DadosTarefa = {
+      name: nomeAtividade,
+      distance: distanciaSelecionada,
+      environment: ambiente,
+      calories: +calorias,
+      inscriptionId: inscriptionId!,
+      date: !dia ? formatarDataParaISO(dayjs().format('YYYY-MM-DD')) : formatarDataParaISO(dia.dateString),
+      duration: converterTempoParaSegundos(tempoSelecionado),
+    };
+    
+    criarTarefaMutation.mutate(dadosTarefa);
   }
+  
 
-  function clearInputs() {
-    setActivityName("")
-    setDistance({ kilometers: 0, meters: 0 });
-    setAmbience("livre");
-    setCalories("");
+  function limparInputs() {
+    setNomeAtividade("");
+    setDistancia({ kilometers: 0, meters: 0 });
+    setAmbiente("livre");
+    setCalorias("");
     setLocal("");
-    handleClearDistance();
+    limparDistancia();
   }
 
-  const formatDateToISO = (date: string) => {
-    if (!date) return null;
-
-    const [year, month, day] = date.split('-').map(Number);
-    const isoDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0)); 
-    const formattedDate = isoDate.toISOString().replace(/\.\d{3}Z$/, 'Z');
-    return formattedDate;
+  const formatarDataParaISO = (data: string) => {
+    if (!data) return null;
+    return dayjs(data).toISOString();
   };
 
-  function convertTimeToISO(time: string): string {
-    const currentDate = new Date();  
-    const [hours, minutes, seconds] = time.split(':').map(Number);
-    currentDate.setUTCHours(hours, minutes, seconds, 0);
-  
-    return currentDate.toISOString();
+  function converterTempoParaSegundos(tempo: { hours: number, minutes: number, seconds: number }): number {
+    const { hours, minutes, seconds } = tempo;
+    return (hours * 3600) + (minutes * 60) + seconds;
   }
 
-  function convertISOToTime(isoString: string): string {
-    const date = new Date(isoString);  
-    const hours = date.getUTCHours().toString().padStart(2, '0');
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-    const seconds = date.getUTCSeconds().toString().padStart(2, '0');
-  
-    return `${hours}:${minutes}:${seconds}`;
-  }
+  const formularioValido = nomeAtividade !== "" && 
+    (distancia.kilometers > 0 || distancia.meters > 0) && 
+    (tempoSelecionado.hours > 0 || tempoSelecionado.minutes > 0 || tempoSelecionado.seconds > 0);
 
   return (
     <SafeAreaView className="flex-1 bg-white px-5">
       <ScrollView
-        className=" flex-1"
+        className="flex-1"
         showsVerticalScrollIndicator={false}
         overScrollMode="never"
       >
@@ -159,7 +223,7 @@ export default function TaskCreate() {
         </View>
 
         <Text className="text-2xl font-inter-bold mt-7">
-          Como foi o sua atividade? 
+          Como foi a sua atividade? 
         </Text>
 
         <Text className="font-inter-bold text-base mt-7">
@@ -168,11 +232,11 @@ export default function TaskCreate() {
 
         <TextInput
           className="bg-bondis-text-gray rounded-[4px] h-[52px] mt-2 pl-4"
-          value={activityName}
-          onChangeText={setActivityName}
+          value={nomeAtividade}
+          onChangeText={setNomeAtividade}
         />
 
-        { activityName.length === 0 &&
+        { nomeAtividade.length === 0 &&
           <Text className="mt-1 text-bondis-alert-red">
               Campo obrigatório
           </Text>
@@ -180,14 +244,14 @@ export default function TaskCreate() {
 
         <Text className="font-inter-bold mt-7 text-base">Ambiente</Text>
         <View className="flex-row mt-4 gap-x-4 ml-[-8px]">
-          <TouchableOpacity onPress={() => setAmbience("livre")}>
+          <TouchableOpacity onPress={() => setAmbiente("livre")}>
             <LinearGradient
               colors={[
-                ambience === "livre" ? "rgba(178, 255, 115, 0.322)" : "#fff",
-                ambience === "livre" ? "#12FF55" : "#fff",
+                ambiente === "livre" ? "rgba(178, 255, 115, 0.322)" : "#fff",
+                ambiente === "livre" ? "#12FF55" : "#fff",
               ]}
-              className={ambienceType({
-                intent: ambience === "livre" ? "livre" : null,
+              className={tipoAmbiente({
+                intent: ambiente === "livre" ? "livre" : null,
               })}
             >
               <Outdoor />
@@ -195,14 +259,14 @@ export default function TaskCreate() {
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setAmbience("esteira")}>
+          <TouchableOpacity onPress={() => setAmbiente("esteira")}>
             <LinearGradient
               colors={[
-                ambience === "esteira" ? "rgba(178, 255, 115, 0.322)" : "#fff",
-                ambience === "esteira" ? "#12FF55" : "#fff",
+                ambiente === "esteira" ? "rgba(178, 255, 115, 0.322)" : "#fff",
+                ambiente === "esteira" ? "#12FF55" : "#fff",
               ]}
-              className={ambienceType({
-                intent: ambience === "esteira" ? "esteira" : null,
+              className={tipoAmbiente({
+                intent: ambiente === "esteira" ? "esteira" : null,
               })}
             >
               <Indoor />
@@ -212,16 +276,16 @@ export default function TaskCreate() {
         </View>
 
         <Text className="font-inter-bold text-base mt-7">Data</Text>
-        <TouchableOpacity onPress={() => setCalendarVisible(true)} className="bg-bondis-text-gray rounded-[4px] h-[52px] flex-row mt-2 items-center justify-between pr-[22px] pl-4">
-          <Text>{dayjs(day.dateString).format('DD/MM/YYYY')}</Text>
+        <TouchableOpacity onPress={() => setCalendarioVisible(true)} className="bg-bondis-text-gray rounded-[4px] h-[52px] flex-row mt-2 items-center justify-between pr-[22px] pl-4">
+          <Text>{dayjs(dia.dateString).format('DD/MM/YYYY')}</Text>
           <Down />
         </TouchableOpacity>
         <Modal
           transparent={true}
-          visible={calendar}
-          onRequestClose={() => setCalendarVisible(false)}
+          visible={calendario}
+          onRequestClose={() => setCalendarioVisible(false)}
         >
-          <Pressable style={{ flex: 1 }} onPress={() => setCalendarVisible(false)}>
+          <Pressable style={{ flex: 1 }} onPress={() => setCalendarioVisible(false)}>
             <View className="flex-1 justify-center items-center bg-black/50">
               <Pressable>
                 <View className="bg-white p-6 rounded-lg shadow-lg w-80">
@@ -235,11 +299,11 @@ export default function TaskCreate() {
                       arrowColor: "#12FF55",
                       textMonthFontWeight: "bold",
                     }}
-                    onDayPress={(day: DateData) => {
-                      setDay(day);
-                      setCalendarVisible(false);
+                    onDayPress={(dia: DateData) => {
+                      setDia(dia);
+                      setCalendarioVisible(false);
                     }}
-                    markedDates={{ [day.dateString]: { selected: true } }}
+                    markedDates={{ [dia.dateString]: { selected: true } }}
                   />
                 </View>
               </Pressable>
@@ -250,26 +314,31 @@ export default function TaskCreate() {
         <Text className="font-inter-bold text-base mt-7">
           Duração da atividade
         </Text>
-        <TouchableOpacity onPress={() => setModalTimeVisible(true)} className="bg-bondis-text-gray rounded-[4px] h-[52px] flex-row mt-2 items-center justify-between pr-[22px] pl-4">
-          <Text>{ selectedTime.hours.toString().padStart(2, '0') + ':' + selectedTime.minutes.toString().padStart(2, '0') + ':' + selectedTime.seconds.toString().padStart(2, '0') } </Text>
+        <TouchableOpacity onPress={() => setModalTempoVisible(true)} className="bg-bondis-text-gray rounded-[4px] h-[52px] flex-row mt-2 items-center justify-between pr-[22px] pl-4">
+          <Text>{ tempoSelecionado.hours.toString().padStart(2, '0') + ':' + tempoSelecionado.minutes.toString().padStart(2, '0') + ':' + tempoSelecionado.seconds.toString().padStart(2, '0') } </Text>
           <Down />
         </TouchableOpacity>
         <TimePickerModal
         ref={timePickerRef}
-        visible={isModalTimeVisible}
-        onClose={closeModalTime}
-        onlyClose={setModalTimeVisible}
+        visible={isModalTempoVisible}
+        onClose={fecharModalTempo}
+        onlyClose={setModalTempoVisible}
         />
+        { (tempoSelecionado.hours === 0 && tempoSelecionado.minutes === 0 && tempoSelecionado.seconds === 0) &&
+          <Text className="mt-1 text-bondis-alert-red">
+              Campo obrigatório
+          </Text>
+        } 
 
         <Text className="font-inter-bold text-base mt-7">
-          Distancia percorrida
+          Distância percorrida
         </Text>
 
         <KilometerMeterPicker
           ref={childRef}
           visible={modalVisible}
-          onClose={({ kilometers, meters }: Distance) =>
-            closeModalDistance({ kilometers, meters })
+          onClose={({ kilometers, meters }: Distancia) =>
+            fecharModalDistancia({ kilometers, meters })
           }
           onlyClose={setModalVisible}
         />
@@ -278,11 +347,11 @@ export default function TaskCreate() {
           className="bg-bondis-text-gray rounded-[4px] h-[52px] mt-2 flex-row justify-between items-center pl-4 pr-[22px]"
         >
           <Text>
-            {distance.kilometers}km {distance.meters}m
+            {distancia.kilometers}km {distancia.meters}m
           </Text>
           <Down />
         </TouchableOpacity>
-        { (distance.kilometers == 0 && distance.meters == 0) &&
+        { (distancia.kilometers == 0 && distancia.meters == 0) &&
           <Text className="mt-1 text-bondis-alert-red">
               Campo obrigatório
           </Text>
@@ -292,8 +361,8 @@ export default function TaskCreate() {
           Calorias queimadas
         </Text>
         <TextInput
-          value={calories}
-          onChangeText={setCalories}
+          value={calorias}
+          onChangeText={setCalorias}
           keyboardType="numeric"
           className="bg-bondis-text-gray rounded-[4px] h-[52px] mt-2 items-end justify-center pr-[22px] pl-4"
         />
@@ -305,21 +374,35 @@ export default function TaskCreate() {
           className="bg-bondis-text-gray rounded-[4px] h-[52px] mt-2 items-end justify-center pr-[22px] pl-4"
         />
 
-        <TouchableOpacity onPress={() => createTask()} 
-        className={buttonDisabled({
-          intent: activityName == "" || (distance.kilometers == 0 && distance.meters == 0) ? "disabled" : null ,
-        })}
-        disabled={activityName == "" || (distance.kilometers == 0 && distance.meters == 0)}        
+        <TouchableOpacity 
+          onPress={() => criarTarefa()} 
+          className={botaoDesabilitado({
+            intent: !formularioValido || criarTarefaMutation.isPending ? "disabled" : null,
+          })}
+          disabled={!formularioValido || criarTarefaMutation.isPending}        
         >
-          <Text className="font-inter-bold text-base">Cadastrar atividade</Text>
+          {criarTarefaMutation.isPending ? (
+            <View className="flex-row items-center gap-x-2">
+              <Text className="font-inter-bold text-base">Carregando...</Text>
+              <ActivityIndicator color="#000000" />
+            </View>
+          ) : (
+            <Text className="font-inter-bold text-base">Cadastrar atividade</Text>
+          )}
         </TouchableOpacity>
+
+        {criarTarefaMutation.isError && (
+          <Text className="text-bondis-alert-red font-inter-medium text-center mb-4">
+            Erro ao cadastrar atividade. Tente novamente.
+          </Text>
+        )}
       </ScrollView>
       <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
     </SafeAreaView>
   );
 }
 
-const ambienceType = cva(
+const tipoAmbiente = cva(
   "h-[37px] rounded-full justify-center items-center flex-row gap-x-[8px] border-[1px] border-[#D9D9D9] pr-4 pl-2",
   {
     variants: {
@@ -331,7 +414,7 @@ const ambienceType = cva(
   }
 );
 
-const buttonDisabled = cva("h-[52px] flex-row bg-bondis-green mt-8 mb-[32px] rounded-full justify-center items-center", {
+const botaoDesabilitado = cva("h-[52px] flex-row bg-bondis-green mt-8 mb-[32px] rounded-full justify-center items-center", {
   variants: {
     intent: {
       disabled: "opacity-50",

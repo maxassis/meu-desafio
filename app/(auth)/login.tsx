@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   Alert,
   StatusBar,
-  ScrollView
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
@@ -27,8 +28,11 @@ type TokenType = {
   access_token: string;
 };
 
-const loginRequest = async ({ email, password }: FormData): Promise<TokenType> => {
-  const response = await fetch("https://bondis-app-backend.onrender.com/signin/", {
+const loginRequest = async ({
+  email,
+  password,
+}: FormData): Promise<TokenType> => {
+  const response = await fetch("http://10.0.2.2:3000/signin", {
     method: "POST",
     headers: { "Content-type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -42,7 +46,7 @@ const loginRequest = async ({ email, password }: FormData): Promise<TokenType> =
     }
   }
 
-  return response.json(); 
+  return response.json();
 };
 
 export default function Login() {
@@ -58,7 +62,7 @@ export default function Login() {
   const mutation = useMutation({
     mutationFn: loginRequest,
     onSuccess: (data) => {
-      login(data.access_token); 
+      login(data.access_token);
       console.log("Login bem-sucedido:", data.access_token);
     },
     onError: (error: any) => {
@@ -79,96 +83,111 @@ export default function Login() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView>
-      <View className="pt-[38px] px-5 bg-white flex-1">
-        <View className="items-end mb-[10px]">
-          <View className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
-            <TouchableOpacity onPress={() => router.push("/intro")}>
-              <Close />
-            </TouchableOpacity>
+        <View className="pt-[38px] px-5 bg-white flex-1">
+          <View className="items-end mb-[10px]">
+            <View className="h-[43px] w-[43px] rounded-full bg-bondis-text-gray justify-center items-center">
+              <TouchableOpacity onPress={() => router.push("/intro")}>
+                <Close />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <Logo />
+          <Text className="font-inter-bold mt-4 text-2xl">Login</Text>
+          <Text className="text-bondis-gray-dark mt-4 text-base">
+            Informe seu e-mail e senha de acesso:
+          </Text>
+
+          <Text className="font-inter-bold text-base mt-8">E-mail</Text>
+          <Controller
+            control={control}
+            name="email"
+            rules={{
+              required: "Email obrigatório",
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: "Email inválido",
+              },
+            }}
+            render={({ field: { value, onChange } }) => (
+              <TextInput
+                placeholder="E-mail"
+                value={value}
+                autoCapitalize="none"
+                onChangeText={onChange}
+                className="bg-bondis-text-gray rounded-[4px] h-[52px] mt-2 pl-4"
+              />
+            )}
+          />
+          {errors.email && (
+            <Text className="mt-1 text-bondis-alert-red">
+              {String(errors?.email?.message)}
+            </Text>
+          )}
+
+          <Text className="mt-8 font-inter-bold text-base">Senha</Text>
+          <Controller
+            control={control}
+            name="password"
+            rules={{ required: "Digite sua senha" }}
+            render={({ field: { value, onChange } }) => (
+              <TextInput
+                placeholder="Senha"
+                secureTextEntry
+                autoCapitalize="none"
+                onChangeText={onChange}
+                value={value}
+                className="bg-bondis-text-gray rounded-[4px] h-[52px] mt-2 pl-4"
+              />
+            )}
+          />
+          <Text className="mt-1 text-bondis-alert-red">
+            {errors?.password?.message ? String(errors.password.message) : ""}
+          </Text>
+
+          <Text className="mt-8 font-inter-regular text-center">
+            Esqueceu a senha?{" "}
+            <Link href="/recovery">
+              <Text className="font-inter-bold underline">Recuperar</Text>
+            </Link>
+          </Text>
+
+          <TouchableOpacity
+            onPress={handleSubmit(onSubmit)}
+            className={`h-[52px] bg-bondis-green mt-8 rounded-full justify-center items-center ${
+              mutation.isPending ? "opacity-50" : ""
+            }`}
+            disabled={mutation.isPending}
+          >
+            <View className="flex-row items-center">
+              <Text className="font-inter-bold text-base">
+                {mutation.isPending ? "Entrando..." : "Entrar"}
+              </Text>
+              {mutation.isPending && (
+                <ActivityIndicator
+                  size="small"
+                  color="#000000"
+                  style={{ marginLeft: 8 }}
+                />
+              )}
+            </View>
+          </TouchableOpacity>
+
+          <Text className="text-center mt-8 text-base text-bondis-gray-dark">
+            Ou entre em sua conta:
+          </Text>
+
+          <View className="flex-row mt-4 justify-center gap-x-7">
+            <Google />
+            <Facebook />
+            <Apple />
           </View>
         </View>
-
-        <Logo />
-        <Text className="font-inter-bold mt-4 text-2xl">Login</Text>
-        <Text className="text-bondis-gray-dark mt-4 text-base">
-          Informe seu e-mail e senha de acesso:
-        </Text>
-
-        <Text className="font-inter-bold text-base mt-8">E-mail</Text>
-        <Controller
-          control={control}
-          name="email"
-          rules={{
-            required: "Email obrigatório",
-            pattern: {
-              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: "Email inválido",
-            },
-          }}
-          render={({ field: { value, onChange } }) => (
-            <TextInput
-              placeholder="E-mail"
-              value={value}
-              autoCapitalize="none"
-              onChangeText={onChange}
-              className="bg-bondis-text-gray rounded-[4px] h-[52px] mt-2 pl-4"
-            />
-          )}
+        <StatusBar
+          backgroundColor="#000"
+          barStyle="light-content"
+          translucent={false}
         />
-        {errors.email && (
-          <Text className="mt-1 text-bondis-alert-red">
-            {String(errors?.email?.message)}
-          </Text>
-        )}
-
-        <Text className="mt-8 font-inter-bold text-base">Senha</Text>
-        <Controller
-          control={control}
-          name="password"
-          rules={{ required: "Digite sua senha" }}
-          render={({ field: { value, onChange } }) => (
-            <TextInput
-              placeholder="Senha"
-              secureTextEntry
-              autoCapitalize="none"
-              onChangeText={onChange}
-              value={value}
-              className="bg-bondis-text-gray rounded-[4px] h-[52px] mt-2 pl-4"
-            />
-          )}
-        />
-        <Text className="mt-1 text-bondis-alert-red">
-          {errors?.password?.message ? String(errors.password.message) : ""}
-        </Text>
-
-        <Text className="mt-8 font-inter-regular text-center">
-          Esqueceu a senha?{" "}
-          <Link href="/recovery"> 
-            <Text className="font-inter-bold underline">Recuperar</Text>
-          </Link>
-        </Text>
-
-        <TouchableOpacity
-          onPress={handleSubmit(onSubmit)}
-          className="h-[52px] bg-bondis-green mt-8 rounded-full justify-center items-center"
-          disabled={mutation.isPending}
-        >
-          <Text className="font-inter-bold text-base">
-            {mutation.isPending ? "Entrando..." : "Entrar"}
-          </Text>
-        </TouchableOpacity>
-
-        <Text className="text-center mt-8 text-base text-bondis-gray-dark">
-          Ou entre em sua conta:
-        </Text>
-
-        <View className="flex-row mt-4 justify-center gap-x-7">
-          <Google />
-          <Facebook />
-          <Apple />
-        </View>
-      </View>
-      <StatusBar backgroundColor="#000" barStyle="light-content" translucent={false} />
       </ScrollView>
     </SafeAreaView>
   );

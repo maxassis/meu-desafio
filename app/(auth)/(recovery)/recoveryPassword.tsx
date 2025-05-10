@@ -28,7 +28,7 @@ interface Criteria {
 
 export default function RecoveryCreatePassword({ route }: any) {
   const router = useRouter();
-  const { email } = useLocalSearchParams();   
+  const { email } = useLocalSearchParams();
   const [password, setPassword] = useState<string>("");
   const [password2, setPassword2] = useState<string>("");
   const [criteria, setCriteria] = useState<Criteria>({
@@ -65,19 +65,19 @@ export default function RecoveryCreatePassword({ route }: any) {
 
  async function reqCreatePassword() {
     // console.log(password, password2);
-    
+
     if (password !== password2) return
-    
+
     try {
-      const response = await fetch("https://bondis-app-backend.onrender.com/users/changepassword", {
+      const response = await fetch("http://10.0.2.2:3000/users/change-password", {
         method: "PATCH",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ email, new_password: password }),
       });
       // const data = await response.json();
       // console.log(data);
-      
-      if (!response.ok) {   
+
+      if (!response.ok) {
            if(response.statusText === "User already exists") {
              Alert.alert("Usuário ja existe", "", [
                {
@@ -87,7 +87,7 @@ export default function RecoveryCreatePassword({ route }: any) {
              ]);
            }
           throw new Error(response.statusText);
-      }    
+      }
     router.push("/recoveryDone");
 
 
@@ -111,7 +111,7 @@ export default function RecoveryCreatePassword({ route }: any) {
           </View>
 
           <Logo />
-          
+
           <Text className="font-inter-bold mt-4 text-2xl">Crie uma senha</Text>
 
           <Text className="font-inter-bold text-base mt-8">Senha</Text>
@@ -256,7 +256,7 @@ const CriteriaStyles = cva("text-sm text-[#34A853]", {
       },
     },
   });
-  
+
   const PassStrong = cva("mt-1 text-[#34A853] text-sm font-inter-bold", {
     variants: {
       intent: {
@@ -264,7 +264,7 @@ const CriteriaStyles = cva("text-sm text-[#34A853]", {
       },
     },
   });
-  
+
   const buttonDisabled = cva("h-[52px] flex-row bg-bondis-green mt-8 rounded-full justify-center items-center", {
     variants: {
       intent: {
