@@ -8,19 +8,20 @@ import {
   type RouteResponse,
   type RankData,
   type UserData,
+  fetchRankData,
+  fetchAllDesafios,
 } from "@/utils/api-service";
 import Winner from "../assets/winner.svg";
 import { convertSecondsToTimeString } from "../utils/timeUtils";
 import useDesafioStore from "@/store/desafio-store";
 import { router } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 
 interface BottomSheetProps {
   routeData: RouteResponse | undefined;
   userProgress: number;
   userDistance: number;
   userData: UserData | undefined;
-  rankData: RankData[] | undefined;
-  isLoading?: boolean;
 }
 
 const RankingBottomSheet = ({
@@ -28,13 +29,33 @@ const RankingBottomSheet = ({
   userProgress,
   userDistance,
   userData,
-  rankData,
-  isLoading = false, 
- 
 }: BottomSheetProps) => {
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["20%", "85%", "100%"], []);
   const { totalDuration, taskCount, progressPercentage } = useDesafioStore();
+  const { desafioId } = useDesafioStore();
+
+  const { data: rankData, isLoading } = useQuery<
+    RankData[],
+    Error
+  >({
+    queryKey: ["rankData", desafioId],
+    queryFn: () => fetchRankData(desafioId + ""),
+    staleTime: 1000 * 60 * 5, 
+  });
+
+  const {
+    data: allDesafios,
+    isLoading: isDesafiosLoading,
+    isError: isDesafiosError,
+  } = useQuery({
+    queryKey: ["getAllDesafios"],
+    queryFn: fetchAllDesafios,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const currentDesafio = allDesafios?.find((desafio) => desafio.id === desafioId);
+  const distanceTotal = currentDesafio?.distance || 0;
 
   return (
     <BottomSheet
@@ -81,18 +102,19 @@ const RankingBottomSheet = ({
 
           <View className="flex-row justify-between mt-6">
             <TouchableOpacity onPress={() => router.push({ pathname: "/taskList", params: { origin: "map" }} )} className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
-              <Text className="font-inter-bold text-2xl">{taskCount}</Text>
+              <Text className="font-inter-bold text-2xl">{currentDesafio?.tasksCount}</Text>
               <Text className="text-[10px] font-inter-bold">ATIVIDADE&gt; </Text>
             </TouchableOpacity>
             <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
               <Text className="font-inter-bold text-2xl">
-                {convertSecondsToTimeString(+totalDuration)}
+                {/* {convertSecondsToTimeString(+totalDuration)} */}
+                {convertSecondsToTimeString(currentDesafio?.totalDuration!)}
               </Text>
               <Text className="text-[10px] font-inter-regular">TREINO</Text>
             </View>
             <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
               <Text className="font-inter-bold text-2xl">
-                {Math.trunc(progressPercentage)}%
+                {Math.trunc(currentDesafio?.progressPercentage!)}%
               </Text>
               <Text className="text-[10px] font-inter-regular">COMPLETADO</Text>
             </View>

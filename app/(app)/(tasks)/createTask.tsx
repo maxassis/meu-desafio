@@ -90,10 +90,10 @@ export default function TaskCreate() {
     },
     onSuccess: (data) => {
       limparInputs();
-      queryClient.invalidateQueries({ queryKey: ["desafios"]});
-      queryClient.invalidateQueries({ queryKey: ["routeData", desafioId]});
-      queryClient.invalidateQueries({ queryKey: ["getAllDesafios"]});
-      queryClient.invalidateQueries({ queryKey: ["rankData", desafioId]});
+     queryClient.invalidateQueries({ queryKey: ["getAllDesafios"]});
+     queryClient.invalidateQueries({ queryKey: ["desafios"]});
+     queryClient.invalidateQueries({ queryKey: ["routeData", desafioId]});
+     queryClient.invalidateQueries({ queryKey: ["rankData", desafioId]});
       
       const distanciaSelecionada = +`${distancia.kilometers}.${distancia.meters}`;
       const distanciaAtual = progress || 0;

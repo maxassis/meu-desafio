@@ -125,7 +125,6 @@ export default function ProfileEdit() {
       const result = await fetch(`http://10.0.2.2:3000/users/delete-avatar`, {
         method: "DELETE",
         headers: {
-          "Content-type": "application/json",
           authorization: "Bearer " + token,
         },
         body: JSON.stringify({

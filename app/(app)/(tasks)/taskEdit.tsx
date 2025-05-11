@@ -199,10 +199,10 @@ export default function TaskEdit() {
                     }
                     
                     // Limpa o cache de desafios
-                    queryClient.invalidateQueries({ queryKey: ["desafios"]});
-                    queryClient.invalidateQueries({ queryKey: ["routeData", desafioId]});
-                    queryClient.invalidateQueries({ queryKey: ["getAllDesafios"]});
-                    queryClient.invalidateQueries({ queryKey: ["rankData", desafioId]});
+                  queryClient.invalidateQueries({ queryKey: ["desafios"]});
+                  queryClient.invalidateQueries({ queryKey: ["routeData", desafioId]});
+                  queryClient.invalidateQueries({ queryKey: ["getAllDesafios"]});
+                  queryClient.invalidateQueries({ queryKey: ["rankData", desafioId]});
                     
                     // Resolve a Promise com os dados e um flag indicando que a meta foi atingida
                     const responseData = await response.json();

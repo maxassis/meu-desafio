@@ -291,14 +291,14 @@ export default function Map2() {
     }
   }, [isSuccess, routeData, mapReady]);
 
-  const { data: rankData, isLoading: rankLoading } = useQuery<
-    RankData[],
-    Error
-  >({
-    queryKey: ["rankData", desafioId],
-    queryFn: () => fetchRankData(desafioId + ""),
-    staleTime: 1000 * 60 * 15, // Dados são considerados frescos por 10 minutos
-  });
+  // const { data: rankData, isLoading: rankLoading } = useQuery<
+  //   RankData[],
+  //   Error
+  // >({
+  //   queryKey: ["rankData", desafioId],
+  //   queryFn: () => fetchRankData(desafioId + ""),
+  //   staleTime: 1000 * 60 * 15, // Dados são considerados frescos por 10 minutos
+  // });
 
   const {
     data: userConfig,
@@ -459,8 +459,6 @@ export default function Map2() {
         userProgress={userProgress}
         userDistance={userDistance}
         userData={userConfig}
-        rankData={rankData}
-        isLoading={rankLoading}
       />
 
       <StatusBar
