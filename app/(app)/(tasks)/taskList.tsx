@@ -91,7 +91,7 @@ export default function TaskList() {
       queryClient.invalidateQueries({ queryKey: ["tasks", inscriptionId] });
       queryClient.invalidateQueries({ queryKey: ["desafios"] });
       queryClient.invalidateQueries({ queryKey: ["routeData", desafioId] });
-      queryClient.invalidateQueries({ queryKey: ["getAllDesafios"] });
+      queryClient.refetchQueries({ queryKey: ["getAllDesafios"] });
       queryClient.invalidateQueries({ queryKey: ["rankData", desafioId] });
 
       bottomSheetEditRef.current?.close();

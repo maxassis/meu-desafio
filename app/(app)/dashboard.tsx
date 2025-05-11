@@ -221,9 +221,9 @@ export default function Profile() {
                     isRegistered={desafio.isRegistered}
                     completed={desafio.completed}
                     photo={desafio.photo}
-                    totalDuration={desafio.totalDuration}
-                    taskCount={desafio.tasksCount}
-                    progressPercentage={desafio.progressPercentage}
+                    // totalDuration={desafio.totalDuration}
+                    // taskCount={desafio.tasksCount}
+                    // progressPercentage={desafio.progressPercentage}
                     inscriptionId={desafio.inscriptionId}
                   />
                 ))
@@ -250,9 +250,9 @@ export default function Profile() {
                     distance={desafio.distance}
                     progress={desafio.progressPercentage + ""}
                     photo={desafio.photo}
-                    totalDuration={desafio.totalDuration}
-                    taskCount={desafio.tasksCount}
-                    progressPercentage={desafio.progressPercentage}
+                    // totalDuration={desafio.totalDuration}
+                    // taskCount={desafio.tasksCount}
+                    // progressPercentage={desafio.progressPercentage}
                     inscriptionId={desafio.inscriptionId} 
                   />
                 ))}
@@ -295,9 +295,9 @@ export default function Profile() {
                     progress={desafio.progressPercentage + ""}
                     completed={desafio.completed}
                     photo={desafio.photo}
-                    totalDuration={desafio.totalDuration}
-                    taskCount={desafio.tasksCount}
-                    progressPercentage={desafio.progressPercentage}
+                    // totalDuration={desafio.totalDuration}
+                    // taskCount={desafio.tasksCount}
+                    // progressPercentage={desafio.progressPercentage}
                     inscriptionId={desafio.inscriptionId}                    
                   />
                 ))

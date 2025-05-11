@@ -26,12 +26,12 @@ interface DesafioStore {
   clearTaskData: () => void;
   setMapData: (
     desafioId: number,
-    totalDuration: number,
-    taskCount: number,
-    progressPercentage: number,
-    progress: number,
+    // totalDuration: number,
+    // taskCount: number,
+    // progressPercentage: number,
+    // progress: number,
     inscriptionId: number,
-    desafioName: string
+    // desafioName: string
   ) => void;
   totalDuration: number;
   taskCount: number; 
@@ -49,8 +49,8 @@ const useDesafioStore = create<DesafioStore>((set) => ({
   totalDuration: 0,
   taskCount: 0,
   progressPercentage: 0,
-  setMapData: (desafioId, totalDuration, taskCount, progress, inscriptionId, progressPercentage, desafioName) =>
-    set({ desafioId, totalDuration, taskCount, progress, inscriptionId, progressPercentage, desafioName }),
+  setMapData: (desafioId, inscriptionId) =>
+    set({ desafioId, inscriptionId }),
   setDesafioData: (inscriptionId, desafioName, progress ,distanceTotal, desafioId ) => 
     set({ inscriptionId, desafioName, progress ,distanceTotal, desafioId }),
   setTaskData: (taskData) =>
