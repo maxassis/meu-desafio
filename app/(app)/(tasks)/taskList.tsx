@@ -131,7 +131,7 @@ export default function TaskList() {
   }
 
   function toNextPage() {
-    router.back();
+    router.replace("/map");
     // if (origin === "map") {
     //   router.replace("/map");
     // } else {

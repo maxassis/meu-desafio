@@ -132,11 +132,13 @@ export default function TaskCreate() {
   };
 
   function criarTarefa() {
+    console.log(progress)
     const distanciaSelecionada = +`${distancia.kilometers}.${distancia.meters}`;
     
     const distanciaAtual = progress || 0;
     const distanciaTotalAposAdicao = distanciaAtual + distanciaSelecionada;
     const metaAtingida = distanciaTotalAposAdicao >= distanceTotal;
+   
      
     if(metaAtingida) {
       Alert.alert(

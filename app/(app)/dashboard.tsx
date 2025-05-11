@@ -108,6 +108,9 @@ export default function Profile() {
     isBottomSheetOpen.current = index === 0;
   };
 
+  // Check if there are any active challenges to show the "+" button
+  const hasActiveDesafios = desafiosEmCurso.length > 0;
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1">
@@ -221,9 +224,6 @@ export default function Profile() {
                     isRegistered={desafio.isRegistered}
                     completed={desafio.completed}
                     photo={desafio.photo}
-                    // totalDuration={desafio.totalDuration}
-                    // taskCount={desafio.tasksCount}
-                    // progressPercentage={desafio.progressPercentage}
                     inscriptionId={desafio.inscriptionId}
                   />
                 ))
@@ -250,9 +250,6 @@ export default function Profile() {
                     distance={desafio.distance}
                     progress={desafio.progressPercentage + ""}
                     photo={desafio.photo}
-                    // totalDuration={desafio.totalDuration}
-                    // taskCount={desafio.tasksCount}
-                    // progressPercentage={desafio.progressPercentage}
                     inscriptionId={desafio.inscriptionId} 
                   />
                 ))}
@@ -295,9 +292,6 @@ export default function Profile() {
                     progress={desafio.progressPercentage + ""}
                     completed={desafio.completed}
                     photo={desafio.photo}
-                    // totalDuration={desafio.totalDuration}
-                    // taskCount={desafio.tasksCount}
-                    // progressPercentage={desafio.progressPercentage}
                     inscriptionId={desafio.inscriptionId}                    
                   />
                 ))
@@ -307,12 +301,15 @@ export default function Profile() {
         </View>
       </ScrollView>
 
-      <TouchableOpacity
-        onPress={handleOpenBottomSheet}
-        className="rounded-full bg-bondis-green absolute w-16 h-16 justify-center items-center right-5 bottom-5"
-      >
-        <Plus />
-      </TouchableOpacity>
+      {/* Only render the + button if there are active challenges */}
+      {hasActiveDesafios && (
+        <TouchableOpacity
+          onPress={handleOpenBottomSheet}
+          className="rounded-full bg-bondis-green absolute w-16 h-16 justify-center items-center right-5 bottom-5"
+        >
+          <Plus />
+        </TouchableOpacity>
+      )}
 
       <BottomSheet
         ref={bottomSheetRef}
