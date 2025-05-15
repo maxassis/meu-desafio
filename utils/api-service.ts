@@ -48,6 +48,9 @@ export interface RouteResponse {
 export interface Inscription {
   user: User;
   progress: number;
+  totalTasks: number,
+  totalCalories: number,
+  totalDistanceKm: number
 }
 
 export interface User {

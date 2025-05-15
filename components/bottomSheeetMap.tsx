@@ -88,7 +88,7 @@ const RankingBottomSheet = ({
             className="font-inter-bold text-base mt-2"
             style={{ opacity: isLoading ? 0 : 1 }}
           >
-            {!isLoading ? (
+            {!isLoading && userDistance ? (
               <>
                 {userDistance > Number(routeData?.distance)
                   ? Number(routeData?.distance).toFixed(3)
@@ -96,7 +96,7 @@ const RankingBottomSheet = ({
                 de {Number(routeData?.distance).toFixed(3) + " km"}
               </>
             ) : (
-              "0.000 de 0.000 km"
+              "0 de 0.000 km"
             )}
           </Text>
 
@@ -107,7 +107,6 @@ const RankingBottomSheet = ({
             </TouchableOpacity>
             <View className="h-[88px] w-3/12 border-[0.8px] border-[#D9D9D9] rounded justify-center items-center">
               <Text className="font-inter-bold text-2xl">
-                {/* {convertSecondsToTimeString(+totalDuration)} */}
                 {convertSecondsToTimeString(currentDesafio?.totalDuration!)}
               </Text>
               <Text className="text-[10px] font-inter-regular">TREINO</Text>

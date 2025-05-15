@@ -6,7 +6,9 @@ import {
   Image,
   StatusBar,
   Text,
+  FlatList,
 } from "react-native";
+import { Image as ExpoImage } from "expo-image";
 import MapView, {
   Polyline,
   PROVIDER_GOOGLE,
@@ -20,9 +22,9 @@ import Left from "../../assets/arrow-left.svg";
 import { cva } from "class-variance-authority";
 import RankingBottomSheet from "../../components/bottomSheeetMap";
 // import { useLocalSearchParams } from "expo-router";
-import AntDesign from '@expo/vector-icons/AntDesign';
-import Octicons from '@expo/vector-icons/Octicons';
-import { fetchUserData, fetchRouteData, fetchRankData  } from "@/utils/api-service";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Octicons from "@expo/vector-icons/Octicons";
+import { fetchUserData, fetchRouteData } from "@/utils/api-service";
 import useDesafioStore from "@/store/desafio-store";
 
 interface Coordinate {
@@ -37,6 +39,9 @@ interface UserParticipation {
   userId: string;
   distance: number;
   percentage: string;
+  totalTasks: number;
+  totalCalories: number;
+  totalDistanceKm: number;
 }
 
 interface LatLng {
@@ -236,6 +241,19 @@ export default function Map2() {
     }
   };
 
+  const focusOnUser = (user: UserParticipation) => {
+    if (mapRef.current) {
+      mapRef.current.animateCamera(
+        {
+          center: user.location,
+          pitch: 60,
+          zoom: 16,
+        },
+        { duration: 1000 }
+      );
+    }
+  };
+
   const {
     data: routeData,
     isLoading,
@@ -252,33 +270,40 @@ export default function Map2() {
 
       const totalDistance = +routeData.distance;
 
-      const updatedParticipants: UserParticipation[] = routeData.inscription.map((dta) => {
-        let userLocation: LatLng = { latitude: 0, longitude: 0 };
-        let userDistance = 0;
-        let progressPercentage = "0";
+      const updatedParticipants: UserParticipation[] =
+        routeData.inscription.map((dta) => {
+          let userLocation: LatLng = { latitude: 0, longitude: 0 };
+          let userDistance = 0;
+          let progressPercentage = "0";
 
-        try {
-          userLocation = findPointAtDistance(coordinates, dta.progress) || coordinates[0];
-          userDistance = calculateUserDistance(coordinates, dta.progress);
-          progressPercentage = formatPercentage((userDistance / totalDistance) * 100);
-        } catch (error) {
-          console.error("Error calculating user progress:", error);
-        }
+          try {
+            userLocation =
+              findPointAtDistance(coordinates, dta.progress) || coordinates[0];
+            userDistance = calculateUserDistance(coordinates, dta.progress);
+            progressPercentage = formatPercentage(
+              (userDistance / totalDistance) * 100
+            );
+          } catch (error) {
+            console.error("Error calculating user progress:", error);
+          }
 
-        if (dta.user.id === userConfig?.usersId) {
-          setUserProgress(Number(progressPercentage) / 100);
-          setUserDistance(dta.progress);
-        }
+          if (dta.user.id === userConfig?.usersId) {
+            setUserProgress(Number(progressPercentage) / 100);
+            setUserDistance(dta.progress);
+          }
 
-        return {
-          userId: dta.user.id,
-          name: dta.user.name,
-          avatar: dta.user.UserData?.avatar_url || "",
-          location: userLocation || coordinates[0],
-          distance: userDistance,
-          percentage: progressPercentage,
-        };
-      });
+          return {
+            userId: dta.user.id,
+            name: dta.user.name,
+            avatar: dta.user.UserData?.avatar_url || "",
+            location: userLocation || coordinates[0],
+            distance: userDistance,
+            percentage: progressPercentage,
+            totalTasks: dta.totalTasks,
+            totalCalories: dta.totalCalories,
+            totalDistanceKm: dta.totalDistanceKm,
+          };
+        });
 
       setUsersParticipants(updatedParticipants);
 
@@ -291,18 +316,7 @@ export default function Map2() {
     }
   }, [isSuccess, routeData, mapReady]);
 
-  // const { data: rankData, isLoading: rankLoading } = useQuery<
-  //   RankData[],
-  //   Error
-  // >({
-  //   queryKey: ["rankData", desafioId],
-  //   queryFn: () => fetchRankData(desafioId + ""),
-  //   staleTime: 1000 * 60 * 15, // Dados são considerados frescos por 10 minutos
-  // });
-
-  const {
-    data: userConfig,
-  } = useQuery({
+  const { data: userConfig } = useQuery({
     queryKey: ["userData"],
     queryFn: fetchUserData,
     staleTime: 45 * 60 * 1000,
@@ -453,7 +467,109 @@ export default function Map2() {
         </TouchableOpacity>
       </View>
 
-      
+      <View className="absolute w-full  bottom-[190px] items-center">
+        <FlatList
+          data={usersParticipants}
+          keyExtractor={(item) => item.userId}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => focusOnUser(item)}
+              className="p-4 w-[311px] rounded-2xl bg-white"
+              activeOpacity={0.7}
+            >
+              <View className="flex-row items-start justify-between">
+                <View className="flex-row items-start">
+                  {item.avatar ? (
+                    <ExpoImage
+                      source={{ uri: item.avatar }}
+                      style={{ width: 43, height: 43, borderRadius: 100 }}
+                    />
+                  ) : (
+                    <Image
+                      source={require("../../assets/user2.png")}
+                      className="h-[32px] w-[32px] rounded-full"
+                    />
+                  )}
+                  <Text className="text-base font-inter-bold ml-2">
+                    {item.name}
+                  </Text>
+                </View>
+                <Text className="text-[#707271] text-[12px]">Há 1 hora</Text>
+              </View>
+
+              <View className="flex-row w-1/3 h-[37px] items-center justify-between mt-3">
+                <View className="w-full border-l-2 border-[#D1D5DA] pl-2">
+                  <Text className="font-inter-bold">{item.percentage}</Text>
+                  <Text className="text-[10px] text-bondis-gray-secondary">
+                    km
+                  </Text>
+                </View>
+                <View className="w-full border-l-2 border-[#D1D5DA] pl-2">
+                  <Text className="font-inter-bold">2</Text>
+                  <Text className="text-[10px] text-bondis-gray-secondary">
+                    ATIVIDADES
+                  </Text>
+                </View>
+                <View className="w-full border-l-2 border-[#D1D5DA] pl-2">
+                  <Text className="font-inter-bold">300</Text>
+                  <Text className="text-[10px] text-bondis-gray-secondary">
+                    CAL. TOTAIS
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
+          // renderItem={({ item }) => (
+          //   <View className="p-4 w-[311px] rounded-2xl bg-white">
+          //     <View className="flex-row items-start justify-between">
+          //       <View className="flex-row items-start">
+          //         {item.avatar ? (
+          //           <ExpoImage
+          //             source={{ uri: item.avatar }}
+          //             style={{ width: 43, height: 43, borderRadius: 100 }}
+          //           />
+          //         ) : (
+          //           <Image
+          //             source={require("../../assets/user2.png")}
+          //             className="h-[32px] w-[32px] rounded-full"
+          //           />
+          //         )}
+          //         <Text className="text-base font-inter-bold ml-2">
+          //           {item.name}
+          //         </Text>
+          //       </View>
+          //       <Text className="text-[#707271] text-[12px]">Há 1 hora</Text>
+          //     </View>
+
+          //     <View className="flex-row w-1/3 h-[37px] items-center justify-between mt-3">
+          //       <View className="w-full border-l-2 border-[#D1D5DA] pl-2">
+          //         <Text className="font-inter-bold">{item.percentage}</Text>
+          //         <Text className="text-[10px] text-bondis-gray-secondary">
+          //           km
+          //         </Text>
+          //       </View>
+          //       <View className="w-full border-l-2 border-[#D1D5DA] pl-2">
+          //         <Text className="font-inter-bold">2</Text>
+          //         <Text className="text-[10px] text-bondis-gray-secondary">
+          //           ATIVIDADES
+          //         </Text>
+          //       </View>
+          //       <View className="w-full border-l-2 border-[#D1D5DA] pl-2">
+          //         <Text className="font-inter-bold">300</Text>
+          //         <Text className="text-[10px] text-bondis-gray-secondary">
+          //           CAL. TOTAIS
+          //         </Text>
+          //       </View>
+          //     </View>
+          //   </View>
+          // )}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={{ width: 16 }} />}
+          contentContainerStyle={{ paddingHorizontal: 16 }}
+        />
+      </View>
+
       <RankingBottomSheet
         routeData={routeData}
         userProgress={userProgress}
