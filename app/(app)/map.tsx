@@ -21,7 +21,10 @@ import { router } from "expo-router";
 import Left from "../../assets/arrow-left.svg";
 import { cva } from "class-variance-authority";
 import RankingBottomSheet from "../../components/bottomSheeetMap";
-// import { useLocalSearchParams } from "expo-router";
+import dayjs from 'dayjs';
+import 'dayjs/locale/pt-br';
+import utc from 'dayjs/plugin/utc'
+import relativeTime from 'dayjs/plugin/relativeTime';
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Octicons from "@expo/vector-icons/Octicons";
 import { fetchUserData, fetchRouteData } from "@/utils/api-service";
@@ -42,6 +45,7 @@ interface UserParticipation {
   totalTasks: number;
   totalCalories: number;
   totalDistanceKm: number;
+  lastTaskDate: Date
 }
 
 interface LatLng {
@@ -156,6 +160,9 @@ export default function Map2() {
   // Novos estados para controlar a perspectiva do mapa
   const [tilt, setTilt] = useState<number>(0); // 0 a 60 graus
   // const [bearing, setBearing] = useState<number>(0); // 0 a 359 graus
+
+  dayjs.extend(relativeTime);
+  dayjs.locale('pt-br');
 
   const getUserPath = useMemo(() => {
     if (!routeCoordinates || userDistance === 0) return [];
@@ -302,6 +309,7 @@ export default function Map2() {
             totalTasks: dta.totalTasks,
             totalCalories: dta.totalCalories,
             totalDistanceKm: dta.totalDistanceKm,
+            lastTaskDate: dta.lastTaskDate,
           };
         });
 
@@ -494,7 +502,7 @@ export default function Map2() {
                     {item.name}
                   </Text>
                 </View>
-                <Text className="text-[#707271] text-[12px]">Há 1 hora</Text>
+                <Text className="text-[#707271] text-[12px]">{dayjs(item.lastTaskDate).utc().local().fromNow()}</Text>
               </View>
 
               <View className="flex-row w-1/3 h-[37px] items-center justify-between mt-3">
@@ -519,50 +527,6 @@ export default function Map2() {
               </View>
             </TouchableOpacity>
           )}
-          // renderItem={({ item }) => (
-          //   <View className="p-4 w-[311px] rounded-2xl bg-white">
-          //     <View className="flex-row items-start justify-between">
-          //       <View className="flex-row items-start">
-          //         {item.avatar ? (
-          //           <ExpoImage
-          //             source={{ uri: item.avatar }}
-          //             style={{ width: 43, height: 43, borderRadius: 100 }}
-          //           />
-          //         ) : (
-          //           <Image
-          //             source={require("../../assets/user2.png")}
-          //             className="h-[32px] w-[32px] rounded-full"
-          //           />
-          //         )}
-          //         <Text className="text-base font-inter-bold ml-2">
-          //           {item.name}
-          //         </Text>
-          //       </View>
-          //       <Text className="text-[#707271] text-[12px]">Há 1 hora</Text>
-          //     </View>
-
-          //     <View className="flex-row w-1/3 h-[37px] items-center justify-between mt-3">
-          //       <View className="w-full border-l-2 border-[#D1D5DA] pl-2">
-          //         <Text className="font-inter-bold">{item.percentage}</Text>
-          //         <Text className="text-[10px] text-bondis-gray-secondary">
-          //           km
-          //         </Text>
-          //       </View>
-          //       <View className="w-full border-l-2 border-[#D1D5DA] pl-2">
-          //         <Text className="font-inter-bold">2</Text>
-          //         <Text className="text-[10px] text-bondis-gray-secondary">
-          //           ATIVIDADES
-          //         </Text>
-          //       </View>
-          //       <View className="w-full border-l-2 border-[#D1D5DA] pl-2">
-          //         <Text className="font-inter-bold">300</Text>
-          //         <Text className="text-[10px] text-bondis-gray-secondary">
-          //           CAL. TOTAIS
-          //         </Text>
-          //       </View>
-          //     </View>
-          //   </View>
-          // )}
           horizontal
           showsHorizontalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={{ width: 16 }} />}

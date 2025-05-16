@@ -1,4 +1,3 @@
-import { Route } from "expo-router/build/Route";
 import useAuthStore from "../store/auth-store";
 
 type Coordinate = {
@@ -46,6 +45,7 @@ export interface RouteResponse {
 
 
 export interface Inscription {
+  lastTaskDate: Date;
   user: User;
   progress: number;
   totalTasks: number,
@@ -138,8 +138,6 @@ export const fetchRouteData = async (
 
   return data;
 };
-
-
 
 
 // Pega os dados do rank
